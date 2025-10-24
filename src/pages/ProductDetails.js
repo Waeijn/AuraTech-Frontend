@@ -1,26 +1,34 @@
 // Sprint 2: Member 3
-// Task: Show product details based on route param `id`.
-// Minimal implementation returns sample data; Member 3 will replace with real fetching logic.
+// Task: Display Product Details Page
 
-import { useParams } from "react-router-dom";
-import products from "../data/products.json";
+import React from "react";
 import "../styles/product.css";
 
-export default function ProductDetails() {
-  const { id } = useParams();
-  const product = products.find((p) => String(p.id) === String(id));
-
-  if (!product) {
-    return <div className="product-details"><p>Product not found.</p></div>;
-  }
+const ProductDetails = ({ product, onBack }) => {
+  if (!product) return null;
 
   return (
-    <div className="product-details">
-      <h1>{product.name}</h1>
-      <img src={product.image || "/img/products/placeholder.png"} alt={product.name} />
-      <p>{product.description}</p>
-      <p>Price: ₱{product.price}</p>
-      <p>Member 4 will provide add-to-cart integration in Sprint 4.</p>
+    <div className="details-container">
+      <div className="details-card">
+        <div className="details-image-wrapper">
+          <img src={product.image} alt={product.name} />
+        </div>
+
+        <div className="details-info">
+          <h2>{product.name}</h2>
+          <p className="details-price">₱{product.price.toLocaleString()}</p>
+          <p className="details-desc">{product.description}</p>
+
+          <div className="details-buttons">
+            <button className="btn-main" onClick={onBack}>
+              Back to Products
+            </button>
+            <button className="btn-secondary">Add to Cart</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default ProductDetails;

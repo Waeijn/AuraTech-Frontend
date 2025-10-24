@@ -1,27 +1,209 @@
-/* Sprint 2: Member 5
-   Task: Product listing/detail basic layout. */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
-.product-list {
+.product-container {
+  padding: 80px 100px;
+  background: linear-gradient(180deg, #f9fbff 0%, #edf1f8 100%);
+  min-height: 100vh;
+  text-align: center;
+  font-family: "Poppins", sans-serif;
+  animation: fadeIn 0.8s ease;
+}
+
+.product-header {
+  margin-bottom: 40px;
+}
+
+.product-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #0a1a3f;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.product-subtitle {
+  color: #555;
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.divider {
+  width: 90px;
+  height: 4px;
+  background-color: #123c7a;
+  border-radius: 10px;
+  margin: 25px auto 40px auto;
+}
+
+.category-filter {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 50px;
+}
+
+.category-btn {
+  background: #f1f3f6;
+  color: #123c7a;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 600;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.category-btn:hover {
+  background: #123c7a;
+  color: #fff;
+}
+
+.category-btn.active {
+  background: #123c7a;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(18, 60, 122, 0.3);
+}
+
+.product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  justify-items: center;
 }
 
 .product-card {
-  background: var(--surface);
-  padding: 12px;
+  background: #ffffff;
+  border-radius: 20px;
   border: 1px solid #e0e0e0;
-  border-radius: var(--radius);
-  text-align: left;
+  padding: 30px;
+  width: 300px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
 }
 
-.product-card__image img {
-  max-width: 100%;
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(18, 60, 122, 0.25);
+}
+
+.product-image-wrapper {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f5f7fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.product-card img {
+  width: 85%;
   height: auto;
-  display: block;
+  max-height: 180px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
 }
 
-.product-details img {
-  max-width: 400px;
-  display: block;
+.product-card:hover img {
+  transform: scale(1.07);
+}
+
+.product-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.product-price {
+  color: #0a1a3f;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.card-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn-main,
+.btn-secondary {
+  font-family: "Poppins", sans-serif;
+  padding: 11px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 130px;
+}
+
+.btn-main {
+  background-color: #123c7a;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(18, 60, 122, 0.4);
+}
+
+.btn-main:hover {
+  background-color: #0f2f5e;
+  transform: scale(1.05);
+}
+
+.btn-secondary {
+  background-color: #f1f3f6;
+  color: #123c7a;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover {
+  background-color: #e2e6ee;
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .product-container {
+    padding: 70px 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-container {
+    padding: 40px 25px;
+  }
+
+  .product-card {
+    width: 100%;
+  }
+}
+.product-stock {
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+.in-stock {
+  color: #27ae60;
+}
+.out-of-stock {
+  color: #e74c3c;
 }

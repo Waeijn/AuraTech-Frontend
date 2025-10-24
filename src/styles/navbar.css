@@ -18,7 +18,6 @@
   gap: 30px;
 }
 
-/* Logo / Brand Section */
 .navbar__brand {
   display: flex;
   align-items: center;
@@ -108,7 +107,40 @@
   width: 100%;
 }
 
-/* Responsive */
+.nav-user-greeting {
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.nav-logout-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-left: 1rem;
+}
+
+.nav-logout-btn:hover {
+  background-color: #0056b3;
+}
+
+.nav-logout-btn:active {
+  transform: scale(0.97);
+  background-color: #004085;
+}
+
+.nav-user-greeting {
+  color: #333;
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
 @media (max-width: 1024px) {
   .navbar__container {
     gap: 20px;
@@ -120,20 +152,5 @@
 
   .nav-link {
     font-size: 14px;
-  }
-}
-
-@media (max-width: 768px) {
-  .navbar__search {
-    max-width: 250px;
-  }
-
-  .navbar__links {
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .nav-link {
-    font-size: 13px;
   }
 }
