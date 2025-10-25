@@ -1,0 +1,95 @@
+.account-page {
+  padding: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.account-details {
+  margin-top: 20px;
+  border: 1px solid #eee;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.account-details h2 {
+  margin-bottom: 12px;
+}
+
+.account-history-btn {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: var(--accent);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.account-history-btn:hover {
+  background-color: #0056b3;
+}
+
+.shipping-details {
+  margin-top: 30px;
+}
+
+.shipping-edit-form label {
+  display: block;
+  margin-bottom: 15px;
+  font-weight: 500;
+  color: #333;
+}
+
+.shipping-edit-form input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 5px;
+  font-size: 0.95rem;
+}
+
+.shipping-edit-form .form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.shipping-details .btn-secondary {
+  background-color: #f1f3f6;
+  color: #123c7a;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.shipping-details .btn-main {
+    background-color: #123c7a;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.shipping-details .btn-cancel {
+    background-color: #ccc;
+    color: #555;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: 600;
+    font-size: 0.9rem;
+}

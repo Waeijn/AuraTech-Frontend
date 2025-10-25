@@ -2,9 +2,9 @@
 // Task: Integrate routes created across sprints and ensure pages render.
 // Member 5 will update routing when new pages are added. Keep routes simple and safe.
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import Navbar, { AuthProvider, useAuth } from "./components/Navbar";
 
-// Pages (placeholders)
 import HomePage from "./pages/HomePage";
 import ProductList from "./pages/ProductList";
 import ProductDetails from "./pages/ProductDetails";
@@ -12,34 +12,61 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-
-import Navbar from "./components/Navbar";
+import Account from "./pages/Account";
 import Footer from "./components/Footer";
+import PurchaseHistory from "./pages/PurchaseHistory";
 
-// Basic App shell to allow independent testing per sprint.
-export default function App() {
+const ProtectedRoute = ({ element: Element }) => {
+  const { currentUser } = useAuth();
+  return currentUser ? <Element /> : <Navigate to="/login" replace />;
+};
+
+function AppContent() {
+  const location = useLocation();
+
   return (
-    <div className="app-root">
+    <>
+      {/* Navbar hidden in Navbar component when on login/register */}
       <Navbar />
       <main>
         <Routes>
-          {/* Sprint 1 routes (Member 2) */}
           <Route path="/" element={<HomePage />} />
-          {/* Sprint 2 routes (Member 3) */}
           <Route path="/products" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetails />} />
-          {/* Sprint 4 routes (Member 4) */}
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          {/* Sprint 3 routes (Member 2) */}
+
+          {/* Protected Routes: Require login for Cart and Checkout */}
+          <Route path="/cart" element={<ProtectedRoute element={Cart} />} />
+          <Route
+            path="/checkout"
+            element={<ProtectedRoute element={Checkout} />}
+          />
+          <Route
+            path="/account"
+            element={<ProtectedRoute element={Account} />}
+          />
+          <Route
+            path="/purchase-history"
+            element={<ProtectedRoute element={PurchaseHistory} />}
+          />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <Footer />
-    </div>
+      {location.pathname !== "/login" && location.pathname !== "/register" && (
+        <Footer />
+      )}
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <div className="app-root">
+        <AppContent />
+      </div>
+    </AuthProvider>
   );
 }

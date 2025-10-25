@@ -1,38 +1,412 @@
 [
   {
     "id": 1,
-    "name": "Aurora RGB Mechanical Keyboard",
-    "shortDesc": "Hot-swappable, RGB zones, tactile switches",
-    "description": "A premium mechanical keyboard with customizable RGB lighting, durable switches, and programmable macros.",
-    "price": 5999,
-    "image": "/img/products/keyboard.png",
-    "category": "Keyboards"
+    "name": "Auratech Laptop Pro",
+    "price": 59999,
+    "image": "/img/products/laptop.png",
+    "description": "A high-performance laptop designed for professionals and creators.",
+    "category": "Gaming Laptops",
+    "stock": 10,
+    "featured": true
   },
   {
     "id": 2,
-    "name": "Pulse RGB Gaming Mouse",
-    "shortDesc": "High-DPI sensor, ergonomic shape",
-    "description": "Precision sensor, customizable DPI, multiple programmable buttons and RGB lighting.",
-    "price": 2999,
-    "image": "/img/products/mouse.png",
-    "category": "Mice"
+    "name": "Auratech Smartphone X",
+    "price": 32999,
+    "image": "/img/products/smartphone.png",
+    "description": "A sleek smartphone with a crystal-clear display and fast processor.",
+    "category": "Smartphones",
+    "stock": 15,
+    "featured": false
   },
   {
     "id": 3,
-    "name": "Echo Surround Gaming Headset",
-    "shortDesc": "7.1 virtual surround sound",
-    "description": "Comfortable headset with surround sound, detachable mic, and RGB ear cups.",
-    "price": 3499,
-    "image": "/img/products/headset.png",
-    "category": "Headsets"
+    "name": "Auratech Smartwatch 3",
+    "price": 12999,
+    "image": "/img/products/smartwatch.png",
+    "description": "Stay connected and track fitness with this modern smartwatch.",
+    "category": "Smartwatches",
+    "stock": 20,
+    "featured": true
   },
   {
     "id": 4,
-    "name": "Nebula Mousepad (XL)",
-    "shortDesc": "Wide surface, non-slip base",
-    "description": "Large RGB mousepad with customizable lighting and anti-slip rubber base.",
+    "name": "Auratech Wireless Headphones",
+    "price": 8999,
+    "image": "/img/products/headphones.png",
+    "description": "Noise-cancelling headphones with superior sound and comfort.",
+    "category": "Audio",
+    "stock": 13,
+    "featured": false
+  },
+  {
+    "id": 5,
+    "name": "Auratech Bluetooth Speaker",
+    "price": 4999,
+    "image": "/img/products/speaker.png",
+    "description": "Portable speaker with deep bass and clear sound quality.",
+    "category": "Audio",
+    "stock": 17,
+    "featured": false
+  },
+  {
+    "id": 6,
+    "name": "Auratech Gaming Mouse",
+    "price": 2499,
+    "image": "/img/products/mouse.png",
+    "description": "Ergonomic gaming mouse with customizable RGB lighting.",
+    "category": "Mouse & Keyboards",
+    "stock": 19,
+    "featured": true
+  },
+  {
+    "id": 7,
+    "name": "Auratech Mechanical Keyboard",
+    "price": 3999,
+    "image": "/img/products/keyboard.png",
+    "description": "Durable keyboard with tactile switches and customizable keys.",
+    "category": "Mouse & Keyboards",
+    "stock": 8,
+    "featured": false
+  },
+  {
+    "id": 8,
+    "name": "Auratech 4K Monitor",
+    "price": 19999,
+    "image": "/img/products/monitor.png",
+    "description": "Stunning 27-inch 4K UHD display for gaming and productivity.",
+    "category": "Monitors",
+    "stock": 6,
+    "featured": false
+  },
+  {
+    "id": 9,
+    "name": "Auratech Liquid CPU Cooler",
+    "description": "High-performance liquid CPU cooler with dual RGB fans and a quiet pump design.",
+    "price": 5999,
+    "image": "/img/products/cooler.png",
+    "category": "PC Components",
+    "stock": 8,
+    "featured": true
+  },
+  {
+    "id": 10,
+    "name": "Auratech 4K Action Camera",
+    "description": "Compact 4K action camera perfect for vlogging, adventure, and underwater recording.",
+    "price": 6499,
+    "image": "/img/products/camera.png",
+    "category": "Cameras",
+    "featured": true,
+    "stock": 11
+  },
+  {
+    "id": 11,
+    "name": "Auratech AirPods Pro",
+    "description": "High-fidelity true wireless earbuds with active noise cancellation and long battery life.",
+    "price": 8999,
+    "image": "/img/products/airpods.png",
+    "category": "Audio",
+    "stock": 20,
+    "featured": false
+  },
+  {
+    "id": 12,
+    "name": "Auratech Gaming Laptop Stand",
+    "description": "Ergonomic laptop stand with adjustable angles, integrated RGB lighting, and dual cooling fans for maximum airflow.",
+    "price": 2499,
+    "image": "/img/products/laptopstand.png",
+    "category": "Stands & Mounts",
+    "featured": false,
+    "stock": 23
+  },
+  {
+    "id": 13,
+    "name": "Auratech GameConsole X",
+    "price": 25999,
+    "image": "/img/products/gameconsole1.png",
+    "description": "Next-gen console for 4K gaming and immersive experiences.",
+    "category": "Game Consoles",
+    "stock": 10,
+    "featured": false
+  },
+  {
+    "id": 14,
+    "name": "Auratech GameConsole Elite",
+    "price": 32999,
+    "image": "/img/products/gameconsole2.png",
+    "description": "Premium console with ultra-fast SSD and 8K-ready performance.",
+    "category": "Game Consoles",
+    "stock": 8,
+    "featured": true
+  },
+  {
+    "id": 15,
+    "name": "Auratech Ergo Gaming Chair",
+    "price": 7999,
+    "image": "/img/products/gamingchair1.png",
+    "description": "Ergonomic gaming chair with lumbar support and adjustable height.",
+    "category": "Gaming Chairs",
+    "stock": 12,
+    "featured": false
+  },
+  {
+    "id": 16,
+    "name": "Auratech Pro Racing Chair",
+    "price": 8999,
+    "image": "/img/products/gamingchair2.png",
+    "description": "Racing-style chair with breathable leather and 180° recline.",
+    "category": "Gaming Chairs",
+    "stock": 9,
+    "featured": true
+  },
+  {
+    "id": 17,
+    "name": "Auratech Elite Comfort Chair",
+    "price": 10999,
+    "image": "/img/products/gamingchair3.png",
+    "description": "High-end chair with adjustable armrests and RGB lighting.",
+    "category": "Gaming Chairs",
+    "stock": 7,
+    "featured": false
+  },
+  {
+    "id": 18,
+    "name": "Auratech RGB Mechanical Keyboard",
+    "price": 4499,
+    "image": "/img/products/keyboard2.png",
+    "description": "Mechanical keyboard with full RGB backlight and blue switches.",
+    "category": "Mouse & Keyboards",
+    "stock": 10,
+    "featured": false
+  },
+  {
+    "id": 19,
+    "name": "Auratech Compact 60% Keyboard",
+    "price": 3599,
+    "image": "/img/products/keyboard3.png",
+    "description": "Compact gaming keyboard with Type-C connection.",
+    "category": "Mouse & Keyboards",
+    "stock": 12,
+    "featured": false
+  },
+  {
+    "id": 20,
+    "name": "Auratech Wireless RGB Keyboard",
+    "price": 4899,
+    "image": "/img/products/keyboard4.png",
+    "description": "Wireless mechanical keyboard with silent keys.",
+    "category": "Mouse & Keyboards",
+    "stock": 9,
+    "featured": true
+  },
+  {
+    "id": 21,
+    "name": "Auratech White Series Keyboard",
+    "price": 4299,
+    "image": "/img/products/keyboard5.png",
+    "description": "Elegant white backlit keyboard with custom switches.",
+    "category": "Mouse & Keyboards",
+    "stock": 10,
+    "featured": false
+  },
+  {
+    "id": 22,
+    "name": "Auratech Streaming Microphone",
+    "price": 3499,
+    "image": "/img/products/mic1.png",
+    "description": "Studio-quality USB microphone for streaming and podcasting.",
+    "category": "Microphones",
+    "stock": 14,
+    "featured": true
+  },
+  {
+    "id": 23,
+    "name": "Auratech RGB Mic Pro",
+    "price": 3999,
+    "image": "/img/products/mic2.png",
+    "description": "Professional microphone with RGB base and noise suppression.",
+    "category": "Microphones",
+    "stock": 10,
+    "featured": false
+  },
+  {
+    "id": 24,
+    "name": "Auratech Curved Gaming Monitor",
+    "price": 24999,
+    "image": "/img/products/monitor2.png",
+    "description": "32-inch curved 165Hz QHD display with ultra-fast response.",
+    "category": "Monitors",
+    "stock": 5,
+    "featured": true
+  },
+  {
+    "id": 25,
+    "name": "Auratech Pro RGB Mouse",
+    "price": 1899,
+    "image": "/img/products/mouse2.png",
+    "description": "Lightweight gaming mouse with adjustable DPI.",
+    "category": "Mouse & Keyboards",
+    "stock": 18,
+    "featured": false
+  },
+  {
+    "id": 26,
+    "name": "Auratech UltraLight Gaming Mouse",
+    "price": 1699,
+    "image": "/img/products/mouse3.png",
+    "description": "Honeycomb shell ultra-light mouse with braided cable.",
+    "category": "Mouse & Keyboards",
+    "stock": 15,
+    "featured": false
+  },
+  {
+    "id": 27,
+    "name": "Auratech RGB Mousepad",
     "price": 999,
     "image": "/img/products/mousepad.png",
-    "category": "Accessories"
-  }
+    "description": "Extended mousepad with dynamic RGB lighting.",
+    "category": "Accessories",
+    "stock": 20,
+    "featured": false
+  },
+  {
+    "id": 28,
+    "name": "Auratech Numeric Keypad",
+    "price": 1299,
+    "image": "/img/products/numerickeypad.png",
+    "description": "Standalone mechanical numeric keypad for productivity.",
+    "category": "Accessories",
+    "stock": 22,
+    "featured": false
+  },
+  {
+    "id": 29,
+    "name": "Auratech Gaming Phone Pro",
+    "price": 38999,
+    "image": "/img/products/phone1.png",
+    "description": "Flagship-level gaming phone with vapor-cooling system.",
+    "category": "Smartphones",
+    "stock": 6,
+    "featured": true
+  },
+  {
+    "id": 30,
+    "name": "Auratech Mobile Turbo",
+    "price": 27999,
+    "image": "/img/products/phone2.png",
+    "description": "Mid-range gaming phone optimized for performance.",
+    "category": "Smartphones",
+    "stock": 10,
+    "featured": false
+  },
+  {
+    "id": 31,
+    "name": "Auratech Gaming Phone Lite",
+    "price": 19999,
+    "image": "/img/products/phone3.png",
+    "description": "Affordable gaming phone with smooth 120Hz display.",
+    "category": "Smartphones",
+    "stock": 12,
+    "featured": false
+  },
+  {
+    "id": 32,
+    "name": "Auratech Bass Boost Speaker",
+    "price": 5999,
+    "image": "/img/products/speaker2.png",
+    "description": "Dual-driver speaker system with enhanced bass.",
+    "category": "Audio",
+    "stock": 10,
+    "featured": false
+  },
+  {
+    "id": 33,
+    "name": "Auratech Headset Stand RGB",
+    "price": 1299,
+    "image": "/img/products/stands1.png",
+    "description": "Stylish RGB headset stand with USB hub support.",
+    "category": "Stands & Mounts",
+    "stock": 15,
+    "featured": false
+  },
+  {
+    "id": 34,
+    "name": "Auratech RGB Controller Stand",
+    "price": 1599,
+    "image": "/img/products/stands2.png",
+    "description": "RGB stand for controllers and headsets.",
+    "category": "Stands & Mounts",
+    "stock": 12,
+    "featured": false
+  },
+  {
+    "id": 35,
+    "name": "Auratech Dual Monitor Arm",
+    "price": 3499,
+    "image": "/img/products/stands3.png",
+    "description": "Adjustable monitor arm for dual-screen setups.",
+    "category": "Stands & Mounts",
+    "stock": 10,
+    "featured": true
+  },
+  {
+    "id": 36,
+    "name": "Auratech Single Monitor Arm",
+    "price": 2499,
+    "image": "/img/products/stands4.png",
+    "description": "Durable adjustable stand for one monitor.",
+    "category": "Stands & Mounts",
+    "stock": 11,
+    "featured": false
+  },
+  {
+    "id": 37,
+    "name": "Auratech Smartwatch Lite",
+    "price": 8999,
+    "image": "/img/products/watch1.png",
+    "description": "Fitness tracking smartwatch with heart rate monitor.",
+    "category": "Smartwatches",
+    "stock": 18,
+    "featured": false
+  },
+  {
+    "id": 38,
+    "name": "Auratech Smartwatch Active",
+    "price": 10999,
+    "image": "/img/products/watch2.png",
+    "description": "Water-resistant smartwatch with AMOLED display.",
+    "category": "Smartwatches",
+    "stock": 16,
+    "featured": false
+  },
+  {
+    "id": 39,
+    "name": "Auratech Smartwatch Pro",
+    "price": 12999,
+    "image": "/img/products/watch3.png",
+    "description": "Premium smartwatch with Bluetooth calling and GPS.",
+    "category": "Smartwatches",
+    "stock": 10,
+    "featured": false
+  },
+  {
+  "id": 40,
+  "name": "Auratech Laptop 2",
+  "price": 64999,
+  "image": "/img/products/laptop2.png",
+  "description": "Next-gen gaming laptop with RTX graphics and 1TB SSD.",
+  "category": "Gaming Laptops",
+  "stock": 8,
+  "featured": false
+},
+{
+  "id": 41,
+  "name": "Auratech Laptop 3",
+  "price": 71999,
+  "image": "/img/products/laptop3.png",
+  "description": "Ultra-performance laptop with 17-inch 240Hz display and liquid cooling.",
+  "category": "Gaming Laptops",
+  "stock": 5,
+  "featured": false
+}
 ]

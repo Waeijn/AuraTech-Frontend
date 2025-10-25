@@ -1,0 +1,141 @@
+.purchase-history-container {
+  max-width: 900px;
+  margin: 80px auto;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 40px;
+}
+
+.purchase-history-container h1 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.purchase-history-container p {
+  color: #666;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.purchase-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 25px;
+}
+
+.purchase-history-table th,
+.purchase-history-table td {
+  border: 1px solid #eee;
+  text-align: left;
+  padding: 12px;
+}
+
+.purchase-history-table th {
+  background-color: #fafafa;
+  color: #333;
+  font-weight: 600;
+}
+
+.purchase-history-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.purchase-history-table ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9em;
+}
+
+.purchase-history-table li {
+  padding: 2px 0;
+  white-space: nowrap;
+}
+
+.status-delivered {
+  color: #155724;
+  background-color: #d4edda;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+.status-for-shipping {
+  color: #086972;
+  background-color: #e0f7fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+.status-shipped {
+  color: #856404;
+  background-color: #fff3cd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+.status-processing {
+  color: #004085;
+  background-color: #cce5ff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+.status-cancelled {
+  color: #721c24;
+  background-color: #f8d7da;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+.btn-action-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-action-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-cancel-order {
+  background-color: #d9534f; 
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-cancel-order:hover {
+  background-color: #c9302c;
+}
+
+.btn-cancel-order:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
