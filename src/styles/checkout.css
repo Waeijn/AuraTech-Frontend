@@ -1,262 +1,298 @@
-/* Sprint 4: Member 4
-   Task: Checkout form styles for two-column layout and summary. */
+/* === AuraTech Checkout Page (Refined + Modernized) === */
+/* Sleek layout consistent with Cart.css — dark summary, compact clean spacing */
 
 .checkout-page {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
+  padding: 0px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--color-bg-primary);
+  background-image: linear-gradient(
+      to right,
+      rgba(123, 125, 138, 0.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(123, 125, 138, 0.06) 1px, transparent 1px);
+  background-size: 45px 45px;
 }
 
-.checkout-container {
-  display: flex; 
-  flex-direction: column; 
-  margin-top: 20px;
+.checkout-page h1 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 40px;
+  text-align: center;
+  position: relative;
+  display: inline-block; /* Helps center the underline */
 }
 
-.checkout-form {
-  display: grid;
-  gap: 15px;
-  width: 100%; 
-  max-width: 400px; 
-  background: var(--surface);
-  padding: 25px;
-  border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  align-self: flex-start;
-  
-  order: 2; 
-  margin: 0 auto 30px auto; 
-}
-
-.checkout-form h2, .order-summary h2 {
-    font-size: 1.4em;
-    margin-bottom: 15px;
-    font-weight: 600;
-}
-
-.checkout-form label {
+/* Gradient underline */
+.checkout-page h1::after {
+  content: "";
   display: block;
-  font-weight: 500;
+  width: 300px;
+  height: 6px;
+  margin: 12px auto 0 auto;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-secondary-accent)
+  );
+}
+
+/* === Layout === */
+.checkout-container {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 40px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* === Left Panel: Shipping Form === */
+.checkout-form {
+  background: var(--color-surface);
+  padding: 35px 40px;
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checkout-form h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
   margin-bottom: 5px;
+  color: var(--color-text-primary);
+}
+
+/* Inputs */
+.checkout-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
 }
 
 .checkout-form input {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  background: var(--bg);
-  color: var(--text);
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: 5px;
+  width: 95%;
+  margin: 0 auto;
+  padding: 12px 10px;
+  border-radius: 8px;
+  border: 1.3px solid rgba(0, 0, 0, 0.1);
+  background: #fafafa;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+}
+
+.checkout-form input:focus:not([readonly]) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(0, 151, 167, 0.25);
+  background: #fff;
+  outline: none;
 }
 
 .checkout-form input[readonly] {
-  background-color: #f1f1f1; 
-  cursor: not-allowed;
-  border-color: #ccc;
+  background-color: #f2f2f2;
   color: #666;
+  opacity: 0.9;
+  cursor: default;
 }
 
+/* === Buttons === */
 .shipping-edit-controls {
   display: flex;
+  justify-content: flex-end;
+  align-items: center;
   gap: 10px;
-  grid-column: 1 / -1; 
+  margin-top: 5px;
+  margin-right: 4%;
 }
 
-.shipping-edit-controls .btn-secondary,
-.shipping-edit-controls .btn-save-shipping {
-    flex: 1;
-    font-size: 0.9rem;
-    padding: 10px;
-    font-weight: 600;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
+.shipping-edit-controls .btn-main,
+.shipping-edit-controls .btn-cancel,
 .shipping-edit-controls .btn-secondary {
-    background-color: #f1f3f6;
-    color: #123c7a;
+  flex: 0 0 auto;
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  font-weight: 600;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.shipping-edit-controls .btn-secondary:hover {
-    background-color: #e2e6ee;
-}
-
-.shipping-edit-controls .btn-save-shipping {
-    background-color: var(--accent);
-    color: white;
-}
-
-.shipping-edit-controls .btn-save-shipping:hover {
-    background-color: #0056b3;
-}
-
-.shipping-edit-controls .btn-cancel {
-    background-color: #ccc;
-    color: #555;
-    border: none;
-    font-size: 0.9rem;
-    padding: 10px;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.shipping-edit-controls .btn-cancel:hover {
-    background-color: #bbb;
-}
-
-.order-summary {
-  width: 100%; 
-  max-width: 400px; 
-  background: var(--surface);
-  padding: 20px;
+/* Place Order Button */
+.checkout-btn {
+  width: 95%;
+  align-self: center;
+  margin-top: 18px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  border: none;
   border-radius: var(--radius);
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  
-  display: flex; 
-  flex-direction: column; 
-  
-  order: 1; 
-  margin: 0 auto 20px auto;
+  cursor: pointer;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-secondary-accent)
+  );
+  box-shadow: 0 4px 14px rgba(0, 151, 167, 0.25);
+  transition: all 0.25s ease;
 }
 
-.summary-list {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
-  margin-bottom: 15px;
-  
-  flex-grow: 1; 
+.checkout-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
 }
 
+.checkout-btn:disabled {
+  background: #ccc;
+  color: #444;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Cancel Button (Return to Cart) */
+.cancel-btn {
+  width: 95%;
+  align-self: center;
+  margin-top: 10px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Validation & Helper */
+.validation-warning {
+  font-size: 0.9rem;
+  color: var(--color-secondary-accent);
+  font-weight: 500;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.helper-message {
+  color: var(--color-border);
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* === Right Panel: Dark Order Summary === */
+.order-summary {
+  background: var(--color-text-primary);
+  color: var(--color-surface);
+  padding: 35px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+  height: fit-content;
+}
+
+.order-summary h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-surface);
+  margin-bottom: 20px;
+  border-bottom: 3px solid var(--color-accent);
+  padding-bottom: 10px;
+}
+
+/* Order Items */
 .summary-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 10px;
 }
 
 .summary-item img {
   width: 50px;
   height: 50px;
-  object-fit: cover;
-  border-radius: 4px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: var(--color-bg-primary);
 }
 
 .summary-item-details {
-  flex-grow: 1;
+  flex: 1;
 }
 
 .summary-item-details h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
   margin: 0;
-  font-size: 0.9em;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--color-surface);
 }
 
 .summary-item-details p {
+  font-size: 0.8rem;
+  color: #ccc;
   margin: 0;
-  font-size: 0.8em;
-  color: var(--muted);
 }
 
 .summary-item-price {
+  font-size: 0.9rem;
   font-weight: 700;
-  font-size: 0.9em;
-  white-space: nowrap;
+  color: var(--color-accent);
 }
 
-.summary-calculations { 
-    display: flex;
-    flex-direction: column;
-}
-
-.summary-details .summary-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.95em;
-  padding: 5px 0;
-  border-bottom: 1px dashed #eee;
-}
-
-.summary-details .summary-total {
-  border-top: 1px solid #ddd;
+/* Totals */
+.summary-total {
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
   padding-top: 15px;
-  margin-top: auto; 
+  margin-top: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.summary-details .summary-total h3 {
-  color: var(--accent);
-  font-size: 1.5em;
+.summary-total h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-surface);
 }
 
-.checkout-btn {
-  margin-top: 20px;
+.summary-total h3:last-child {
+  color: var(--color-secondary-accent);
 }
 
-.checkout-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+/* === Responsive === */
+@media (max-width: 900px) {
+  .checkout-container {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
 
-.thank-you-page {
-    text-align: center;
-    padding: 100px 20px;
-    height: auto !important;
-}
+  .checkout-form,
+  .order-summary {
+    padding: 28px;
+  }
 
-.thank-you-page h1 {
-    color: var(--accent-2);
-    font-size: 2.5em;
-    font-weight: 700;
-}
-
-.receipt-box {
-    max-width: 400px;
-    margin: 30px auto;
-    padding: 25px;
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-.receipt-box h3 {
-    margin-bottom: 20px;
-    font-size: 1.4em;
-    font-weight: 600;
-}
-.receipt-total {
-    font-size: 1.1em;
-    color: var(--muted);
-    margin: 5px 0 10px 0;
-}
-.receipt-amount {
-    font-size: 2em;
-    color: var(--accent-2);
-    font-weight: 700;
-    margin-top: 0;
-}
-.receipt-message {
-    margin-top: 20px;
-    font-style: italic;
-    color: #666;
-}
-
-@media (max-width: 768px) {
-    .checkout-form, .order-summary {
-        order: initial;
-        margin: 0 auto 20px auto; 
-    }
-    .checkout-form {
-        margin-bottom: 30px;
-    }
+  .checkout-btn,
+  .cancel-btn {
+    width: 100%;
+  }
 }

@@ -1,98 +1,122 @@
-/* Sprint 1: Member 5
-   Task: Basic footer styles. Member 5 will finalize visuals. */
+/* Footer Styles (Aggressive Gaming Theme & Layout Fix) */
 
 .footer {
-  background: var(--surface);
-  border-top: 1px solid #ddd;
-  padding: 40px 20px;
-  color: var(--text);
-  margin-top: 60px;
+  /* Deep Navy background for strong closing section */
+  background: var(--color-text-primary);
+  border-top: 2px solid var(--color-accent);
+  padding: 40px 30px; /* Consistent padding */
+  color: var(--color-surface);
+  margin-top: 80px; /* Generous vertical spacing after main content */
 }
 
 .footer__inner {
-  max-width: 1200px;
+  max-width: 1400px; /* Use wide max-width for modern feel */
   margin: 0 auto;
+
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 40px;
+  /* Defining grid areas for clear structure */
+  grid-template-columns: 2fr 1fr; /* Brand gets 2/3rds, Links get 1/3rd */
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "brand links"
+    "copy copy"; /* Copyright always spans two columns */
+
+  gap: 30px 60px; /* Vertical gap 30px, Horizontal gap 60px */
   align-items: start;
 }
 
-/* Brand Section */
+/* --- Brand Section (Left Column) --- */
 .footer__brand {
+  grid-area: brand;
   text-align: left;
 }
 
-.footer__brand h3 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-  background: linear-gradient(90deg, #1e90ff, #00ced1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.footer__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.footer__logo img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.footer__logo h3 {
+  font-size: 24px; /* Prominent size */
+  font-weight: 800;
+  margin: 0;
+  /* FIX: Using solid color variable instead of old gradient */
+  color: var(--color-surface);
 }
 
 .footer__brand p {
   margin: 0;
-  font-size: 14px;
-  color: #999;
-  font-style: italic;
+  font-size: 15px;
+  color: var(--color-accent); /* Electric Purple Tagline */
+  font-weight: 500;
 }
 
-/* Links Section */
+/* --- Links Section (Right Column) --- */
 .footer__links {
+  grid-area: links;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .footer__links a {
-  color: var(--text);
+  color: var(--color-surface); /* White links */
   text-decoration: none;
   font-weight: 500;
-  font-size: 15px;
-  position: relative;
+  font-size: 16px;
   transition: color 0.3s ease;
   padding: 6px 0;
 }
 
-.footer__links a::before {
-  content: "→";
-  margin-right: 8px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
 .footer__links a:hover {
-  color: #1e90ff;
+  color: var(--color-secondary-accent); /* Vibrant Cyan hover */
 }
 
+/* Removed '->' link effect for cleaner aesthetic */
+.footer__links a::before,
 .footer__links a:hover::before {
-  opacity: 1;
+  content: none;
+  opacity: 0;
 }
 
-/* Copyright Section */
+/* --- Copyright Section (Spans Full Width) --- */
 .footer__copy {
+  grid-area: copy;
   text-align: left;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  padding-top: 25px;
+  /* Clear line separation from content above */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 15px; /* Adds space above the line */
 }
 
 .footer__copy p {
   margin: 0;
-  font-size: 13px;
-  color: #999;
+  font-size: 14px;
+  color: var(--color-border); /* Subtle gray color */
 }
 
-/* Footer Bottom - Responsive Stack */
+/* Responsive design */
 @media (max-width: 768px) {
   .footer {
     padding: 30px 20px;
+    margin-top: 60px;
   }
 
   .footer__inner {
+    /* Stack all elements vertically on mobile */
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "brand"
+      "links"
+      "copy";
     gap: 30px;
     text-align: center;
   }
@@ -102,39 +126,12 @@
   }
 
   .footer__links {
-    align-items: center;
+    align-items: center; /* Center links */
   }
 
   .footer__copy {
     text-align: center;
-    border-top: 1px solid #eee;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
     padding-top: 20px;
   }
-}
-
-@media (prefers-color-scheme: dark) {
-  .footer {
-    border-top: 1px solid #333;
-  }
-
-  .footer__copy {
-    border-top: 1px solid #333;
-  }
-
-  .footer__brand p,
-  .footer__copy p {
-    color: #666;
-  }
-}
-
-.footer__logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.footer__logo img {
-  height: 40px;
-  width: auto;
-  object-fit: contain;
 }

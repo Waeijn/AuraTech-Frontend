@@ -1,6 +1,4 @@
-// Sprint 3: Member 2
-// Task: Create a registration page layout for Sprint 3.
-// Member 2 will add validation and backend hookup later.
+// Sprint 3: Member 2 - Registration Page with Split Layout
 
 import { useState } from "react";
 import { useAuth } from "../components/Navbar";
@@ -30,7 +28,6 @@ export default function Register() {
     e.preventDefault();
     setMessage("");
 
-    // Validation
     if (
       !formData.name ||
       !formData.email ||
@@ -54,19 +51,16 @@ export default function Register() {
       return;
     }
 
-    // Register user
     const result = register(formData);
     if (result.success) {
       setMessageType("success");
       setMessage(result.message);
-      // Clear form
       setFormData({
         name: "",
         email: "",
         password: "",
         confirmPassword: "",
       });
-      // Redirect after 1.5 seconds
       setTimeout(() => {
         window.location.href = "/login";
       }, 1500);
@@ -78,81 +72,102 @@ export default function Register() {
 
   return (
     <section className="auth-page">
-      <div className="auth-container">
-        <h1>Register</h1>
-        {message && (
-          <div className={`form-message form-message-${messageType}`}>
-            {message}
+      <div className="auth-wrapper">
+        {/* LEFT SIDE: Brand Panel (Logo & Tagline) */}
+        <div className="auth-brand-panel">
+          <div className="brand-content">
+            <img
+              src="/img/logo/LOGO.png"
+              alt="AuraTech Logo"
+              className="brand-logo"
+            />
+            <h2>AuraTech</h2>
+            <p className="brand-tagline">Power. Precision. Performance.</p>
           </div>
-        )}
-        <form onSubmit={handleSubmit} className="auth-form">
-          <label className="form-label">
-            Full name
-            <input
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="form-input"
-              placeholder="Enter your full name"
-            />
-          </label>
-          <label className="form-label">
-            Email
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="form-input"
-              placeholder="Enter your email"
-            />
-          </label>
-          <label className="form-label">
-            Password
-            <input
-              name="password"
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="form-input"
-              placeholder="Enter your password"
-            />
-          </label>
-          <label className="form-label">
-            Confirm Password
-            <input
-              name="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              className="form-input"
-              placeholder="Confirm your password"
-            />
-          </label>
-          <button className="password-btn">
-            <input
-              type="checkbox"
-              className="password-toggle"
-              checked={showPassword}
-              onChange={() => setShowPassword((prev) => !prev)}
-            />{" "}
-            Show Password
-          </button>
-          <button type="submit" className="form-button">
-            Register
-          </button>
-        </form>
-        <p className="auth-link">
-          Already have an account?{" "}
-          <a href="/login" className="auth-link-text">
-            Login here
-          </a>
-        </p>
+        </div>
+
+        {/* RIGHT SIDE: Form Panel */}
+        <div className="auth-form-panel">
+          <div className="auth-container">
+            <h1>Register</h1>
+            {message && (
+              <div className={`form-message form-message-${messageType}`}>
+                {message}
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="auth-form">
+              <label className="form-label">
+                Full name
+                <input
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Enter your full name"
+                />
+              </label>
+              <label className="form-label">
+                Email
+                <input
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Enter your email"
+                />
+              </label>
+              <label className="form-label">
+                Password
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Enter your password"
+                />
+              </label>
+              <label className="form-label">
+                Confirm Password
+                <input
+                  name="confirmPassword"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Confirm your password"
+                />
+              </label>
+              <div className="password-toggle-wrapper">
+                <input
+                  type="checkbox"
+                  className="password-toggle"
+                  checked={showPassword}
+                  onChange={() => setShowPassword((prev) => !prev)}
+                  id="showPass"
+                />
+                <label htmlFor="showPass" className="password-toggle-label">
+                  Show Password
+                </label>
+              </div>
+              <button type="submit" className="form-button">
+                Register
+              </button>
+            </form>
+            <p className="auth-link">
+              Already have an account?{" "}
+              <a href="/login" className="auth-link-text">
+                Login here
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

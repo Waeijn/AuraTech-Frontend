@@ -1,6 +1,4 @@
-// Sprint 1: Member 2
-// Task: Basic Footer structure for site layout.
-// NOTE to Member 2: Footer styling controlled by Member 5.
+// Sprint 1: Member 2 - Finalized Footer structure.
 
 import "../styles/footer.css";
 import { Link, useNavigate } from "react-router-dom";
@@ -28,6 +26,7 @@ export default function Footer() {
 
   return (
     <>
+      {/* Modal for unauthorized cart access (hidden by default via CSS) */}
       {isAuthPromptOpen && (
         <div className={`modal-overlay open`}>
           <div className="quantity-modal confirmation-modal">
@@ -51,7 +50,7 @@ export default function Footer() {
 
       <footer className="footer">
         <div className="footer__inner">
-          {/* Left: Brand / Logo / Tagline */}
+          {/* Brand / Logo / Tagline (Left Column on Desktop) */}
           <div className="footer__brand">
             <div className="footer__logo">
               <img src="/img/logo/LOGO.png" alt="AuraTech Logo" />
@@ -60,7 +59,7 @@ export default function Footer() {
             <p>Gaming Gear — Built for Performance</p>
           </div>
 
-          {/* Center: Navigation Links */}
+          {/* Navigation Links (Right Column on Desktop) */}
           <div className="footer__links">
             <Link to="/">Home</Link>
             <Link to="/products">Products</Link>
@@ -69,7 +68,7 @@ export default function Footer() {
             </Link>
           </div>
 
-          {/* Bottom: Copyright */}
+          {/* Copyright Section (Spans Full Width at the Bottom via CSS Grid) */}
           <div className="footer__copy">
             <p>© {new Date().getFullYear()} AuraTech. All rights reserved.</p>
           </div>

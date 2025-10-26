@@ -63,12 +63,16 @@ const handleAddToCartLogic = (product, quantity) => {
   const requestedQuantity = quantity;
 
   if (requestedQuantity > currentStock) {
-    alert(`Cannot add ${requestedQuantity}: Only ${currentStock} are available in stock.`);
+    alert(
+      `Cannot add ${requestedQuantity}: Only ${currentStock} are available in stock.`
+    );
     return;
   }
 
   if (currentCartQuantity + requestedQuantity > currentStock) {
-    alert(`Cannot add ${requestedQuantity}: You already have ${currentCartQuantity} in your cart. Only ${currentStock} total are available.`);
+    alert(
+      `Cannot add ${requestedQuantity}: You already have ${currentCartQuantity} in your cart. Only ${currentStock} total are available.`
+    );
     return;
   }
 
@@ -86,8 +90,8 @@ const handleAddToCartLogic = (product, quantity) => {
   }
 
   localStorage.setItem("cart", JSON.stringify(cart));
-  alert(`Added ${requestedQuantity} x ${product.name} to cart!`);
   console.log(`Added ${requestedQuantity} x ${product.name} to cart!`);
+  alert(`Added ${requestedQuantity} x ${product.name} to cart!`);
 };
 
 const ProductList = () => {
@@ -101,6 +105,12 @@ const ProductList = () => {
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+
+  // FIX: Reset scroll position immediately after render.
+  // This ensures that when selectedProduct changes (switching views), the scroll is reset.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  });
 
   useEffect(() => {
     window.showQuantityModal = (product) => {
@@ -173,7 +183,8 @@ const ProductList = () => {
   ];
 
   const filteredProducts = productsData.filter((p) => {
-    const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+    const matchesCategory =
+      selectedCategory === "All" || p.category === selectedCategory;
     const matchesSearch =
       p.name.toLowerCase().includes(searchTerm) ||
       p.category.toLowerCase().includes(searchTerm) ||
@@ -185,12 +196,13 @@ const ProductList = () => {
   const maxQtyAllowed = modalProduct ? getMaxAllowedToAdd(modalProduct.id) : 0;
 
   return (
-    <div className="product-container">
+    <>
       <div className={`modal-overlay ${isAuthPromptOpen ? "open" : ""}`}>
         <div className="quantity-modal confirmation-modal">
           <h2>Login Required</h2>
           <p>
-            You must be logged in to add items to your cart. Do you want to login now or stay on this page?
+            You must be logged in to add items to your cart. Do you want to
+            login now or stay on this page?
           </p>
           <div className="modal-actions">
             <button className="btn-main" onClick={handleLoginRedirect}>
@@ -209,7 +221,11 @@ const ProductList = () => {
           <p>{modalProduct?.name}</p>
 
           <div className="quantity-controls">
-            <button className="quantity-btn" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
+            <button
+              className="quantity-btn"
+              onClick={() => handleQuantityChange(-1)}
+              disabled={quantity <= 1}
+            >
               -
             </button>
             <input
@@ -231,7 +247,11 @@ const ProductList = () => {
           </div>
 
           <div className="modal-actions">
-            <button className="btn-main" onClick={handleFinalAddToCart} disabled={quantity > maxQtyAllowed || maxQtyAllowed === 0}>
+            <button
+              className="btn-main"
+              onClick={handleFinalAddToCart}
+              disabled={quantity > maxQtyAllowed || maxQtyAllowed === 0}
+            >
               Add {quantity} to Cart
             </button>
             <button className="btn-cancel" onClick={handleCloseModal}>
@@ -241,45 +261,56 @@ const ProductList = () => {
         </div>
       </div>
 
-      {selectedProduct ? (
-        <ProductDetails product={selectedProduct} onBack={handleBackToList} />
-      ) : (
-        <>
-          <div className="product-header">
-            <h1 className="product-title">Our Products</h1>
-            <p className="product-subtitle">
-              Explore AuraTech’s next-gen gaming gear — engineered for power, precision, and performance.
-            </p>
-            <div className="divider"></div>
-            {searchTerm && (
-              <p className="search-results-msg">
-                Showing results for: <strong>{searchTerm}</strong>
+      <div className="product-container">
+        {selectedProduct ? (
+          <ProductDetails product={selectedProduct} onBack={handleBackToList} />
+        ) : (
+          <>
+            <div className="product-header">
+              <h1 className="product-title">Our Products</h1>
+              <p className="product-subtitle">
+                Explore AuraTech’s next-gen gaming gear — engineered for power,
+                precision, and performance.
               </p>
-            )}
-          </div>
+              <div className="divider"></div>
+              {searchTerm && (
+                <p className="search-results-msg">
+                  Showing results for: <strong>{searchTerm}</strong>
+                </p>
+              )}
+            </div>
 
-          <div className="category-filter">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                className={`category-btn ${selectedCategory === cat ? "active" : ""}`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+            <div className="category-filter">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  className={`category-btn ${
+                    selectedCategory === cat ? "active" : ""
+                  }`}
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
 
-          <div className="product-grid">
-            {filteredProducts && filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)
-            ) : (
-              <p>No products found for your search.</p>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+            <div className="product-grid">
+              {filteredProducts && filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetails={() => setSelectedProduct(product)}
+                  />
+                ))
+              ) : (
+                <p>No products found for your search.</p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 };
 
