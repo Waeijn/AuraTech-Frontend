@@ -1,13 +1,12 @@
-/* Sprint 1: Member 5
-   Task: Final Navbar Styles (Navy/Teal Palette, Full-Width Search) */
+/* --- Navbar Base Styles (Navy/Teal Palette) --- */
 
 .navbar {
   /* Navbar base style: Navy Background, White/Light Text */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 30px; /* Increased vertical padding for space */
-  background: var(--color-text-primary); /* Navy Blue background */
+  padding: 1rem 30px;
+  background: var(--color-text-primary); /* Deep Navy background */
   border-bottom: 2px solid var(--color-accent); /* Primary Accent border */
 }
 
@@ -16,9 +15,10 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  gap: 40px; /* Increased gap for better spacing */
+  gap: 40px;
 }
 
+/* --- Brand/Logo Section --- */
 .navbar__brand {
   display: flex;
   align-items: center;
@@ -27,16 +27,16 @@
 }
 
 .navbar__brand img {
-  height: 40px; /* Slightly smaller logo for modern look */
+  height: 40px;
   width: auto;
   object-fit: contain;
 }
 
 .navbar__brand a {
-  color: var(--color-surface); /* White text on Navy */
+  color: var(--color-surface);
   text-decoration: none;
   font-weight: 700;
-  font-size: 22px; /* Prominent brand name */
+  font-size: 22px;
   white-space: nowrap;
   transition: color 0.3s ease;
 }
@@ -45,33 +45,33 @@
   color: var(--color-secondary-accent); /* Teal hover */
 }
 
-/* Search Bar - NOW FULL WIDTH */
+/* --- Search Bar & Input (Full Width) --- */
 .navbar__search {
   display: flex;
   gap: 8px;
   flex: 1; /* Takes up all available space */
-  max-width: 1150px; /* Increased maximum width */
+  max-width: 1150px;
 }
 
 .search-input {
   flex: 1;
-  padding: 10px 14px; /* More padding */
+  padding: 10px 14px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius); /* Uses global radius */
+  border-radius: var(--radius);
   font-size: 15px;
   color: var(--color-text-primary);
-  background-color: var(--color-surface); /* White background */
+  background-color: var(--color-surface);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .search-input:focus {
-  border-color: var(--color-secondary-accent); /* Teal border on focus */
+  border-color: var(--color-secondary-accent);
   box-shadow: 0 0 0 2px rgba(41, 168, 203, 0.3);
   outline: none;
 }
 
 .search-btn {
-  /* Search button uses Primary Accent color */
+  /* Button uses Primary Accent color (Teal/Cyan) */
   padding: 10px 20px;
   background: var(--color-accent);
   color: var(--color-surface);
@@ -83,93 +83,130 @@
 }
 
 .search-btn:hover {
-  background: var(--color-hover-dark); /* Darker Navy/Blue mix hover */
+  background: var(--color-hover-dark);
 }
 
-/* Navigation Links */
+/* --- Navigation Links --- */
 .navbar__links {
   display: flex;
-  gap: 28px; /* Increased gap for clean separation */
+  gap: 28px;
   align-items: center;
   flex-shrink: 0;
 }
 
 .nav-link {
-  color: var(--color-surface); /* White links on Navy background */
+  color: var(--color-surface);
   text-decoration: none;
   font-weight: 500;
-  font-size: 16px; /* Slightly larger text */
+  font-size: 16px;
   position: relative;
   transition: color 0.3s ease;
   padding: 8px 0;
 }
 
+/* Underline effect using ::after element */
 .nav-link::after {
   content: "";
   position: absolute;
-  bottom: -2px; /* Moved underline slightly lower */
+  bottom: -2px;
   left: 0;
   width: 0;
-  height: 3px; /* Thicker underline */
-  /* Removed gradient, using solid Accent Teal color for clean look */
+  height: 3px;
   background: var(--color-secondary-accent);
   transition: width 0.3s ease;
 }
 
 .nav-link:hover,
 .nav-link.active {
-  color: var(--color-secondary-accent); /* Teal hover */
+  color: var(--color-secondary-accent);
 }
 
+/* Full width underline on hover/active */
 .nav-link:hover::after,
 .nav-link.active::after {
   width: 100%;
 }
 
-/* User Greeting & Logout Button */
-.nav-user-greeting {
-  font-size: 0.95rem;
-  color: var(--color-surface); /* White text */
-  font-weight: 500;
-  margin-right: 0.5rem;
-}
+/* --- User Dropdown & Auth Controls --- */
 
-.nav-logout-btn {
-  /* Logout button uses Secondary Accent color */
-  background-color: var(--color-secondary-accent);
-  color: var(--color-surface);
+/* User Greeting & Toggle Button */
+.user-dropdown-toggle {
+  background: none;
   border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  color: var(--color-surface);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-left: 1rem;
+  font-size: 1rem;
+  padding: 8px 12px;
+  transition: background 0.2s;
+  line-height: 1.5; /* Vertical alignment fix */
 }
 
-.nav-logout-btn:hover {
-  background-color: var(--color-accent); /* Primary Accent on hover */
-  transform: none; /* Removed transform for cleaner interaction */
+.user-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
 }
 
-.nav-logout-btn:active {
-  background-color: var(--color-hover-dark);
+/* User Dropdown Menu Positioning and Styling */
+.user-dropdown-menu {
+  list-style: none;
+  position: absolute;
+  top: 60px;
+  right: 30px;
+  min-width: 250px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-bg-primary);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  margin: 0;
+  z-index: 1000;
 }
 
-/* === Live Search Dropdown Styling === */
+.user-dropdown-menu li {
+  padding: 10px 16px;
+}
+
+.user-dropdown-menu li:hover {
+  background-color: rgba(41, 168, 203, 0.08);
+}
+
+.user-dropdown-menu a,
+.user-dropdown-menu button {
+  /* Text color inside white dropdown */
+  color: var(--color-text-primary);
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* Specific styling for the Logout button */
+.logout-btn {
+  color: #cc0000;
+  display: block; /* Ensure button takes full space */
+}
+
+.logout-btn:hover {
+  background-color: #fdecea;
+}
+
+/* --- Live Search Dropdown Styling --- */
 .navbar__search-wrapper {
   position: relative;
-  width: 100%; /* Important: Must be full width to hold the dropdown */
+  width: 100%;
 }
 
 .search-results-dropdown {
   position: absolute;
-  top: calc(100% + 5px); /* Slightly more space */
+  top: calc(100% + 5px);
   left: 0;
   width: 100%;
   background: var(--color-surface);
-  border: 1px solid var(--color-accent); /* Accent border */
+  border: 1px solid var(--color-accent);
   border-radius: var(--radius);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
   z-index: 9999;
@@ -190,12 +227,7 @@
 }
 
 .search-item:hover {
-  background-color: rgba(
-    41,
-    168,
-    203,
-    0.08
-  ); /* Light Teal background on hover */
+  background-color: rgba(41, 168, 203, 0.08);
 }
 
 .search-thumb {
@@ -203,7 +235,7 @@
   height: 40px;
   border-radius: 4px;
   object-fit: cover;
-  background: var(--color-bg-primary); /* Light gray placeholder */
+  background: var(--color-bg-primary);
   flex-shrink: 0;
 }
 
@@ -214,7 +246,7 @@
   line-height: 1.2;
 }
 
-/* Scrollbar styles for the dropdown */
+/* Scrollbar styles for the search dropdown */
 .search-results-dropdown::-webkit-scrollbar {
   width: 6px;
 }
@@ -228,76 +260,7 @@
   background-color: var(--color-accent);
 }
 
-/* User Dropdown Toggle (Hello, John Wayne Landing) */
-.user-dropdown-toggle {
-  background: none;
-  border: none;
-  color: var(--color-surface); /* White text */
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 8px 12px;
-  transition: background 0.2s;
-  /* FIX: Match line height of links for vertical alignment */
-  line-height: 1.5;
-}
-
-.user-dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-}
-
-/* User Dropdown Menu */
-.user-dropdown-menu {
-  /* FIX: Remove default list bullets */
-  list-style: none;
-
-  position: absolute;
-  top: 60px; /* Adjust position to clear the toggle button */
-  right: 30px;
-  min-width: 250px;
-  background: var(--color-surface); /* White background */
-  border: 1px solid var(--color-bg-primary);
-  border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 8px 0;
-  margin: 0;
-  z-index: 1000;
-}
-
-.user-dropdown-menu li {
-  padding: 10px 16px;
-}
-
-.user-dropdown-menu li:hover {
-  background-color: rgba(41, 168, 203, 0.08);
-}
-
-.user-dropdown-menu a,
-.user-dropdown-menu button {
-  /* FIX: Dark text on white background */
-  color: var(--color-text-primary);
-  text-decoration: none;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-/* Logout Button inside Dropdown */
-.logout-btn {
-  color: #cc0000;
-  /* Ensure the button element inside the li takes full space */
-  display: block;
-}
-
-.logout-btn:hover {
-  background-color: #fdecea;
-}
-
-/* Responsive adjustments */
+/* --- Responsive adjustments --- */
 @media (max-width: 1024px) {
   .navbar__container {
     gap: 20px;
@@ -315,11 +278,12 @@
 
 @media (max-width: 768px) {
   .navbar__container {
-    flex-wrap: wrap; /* Allows items to stack on small screens */
+    flex-wrap: wrap;
     gap: 15px;
   }
+  /* Reorder items to push search bar to a new row */
   .navbar__search-wrapper {
-    order: 3; /* Push search bar to the bottom row */
+    order: 3;
     width: 100%;
     margin-top: 10px;
   }

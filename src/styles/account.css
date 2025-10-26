@@ -1,4 +1,4 @@
-/* === AuraTech Account Page (Polished Vertical Layout) === */
+/* === AuraTech Account Page Layout === */
 
 .account-page {
   width: 100%;
@@ -17,6 +17,7 @@
   text-align: center;
 }
 
+/* Gradient divider under the main title */
 .account-underline {
   width: 180px;
   height: 5px;
@@ -45,7 +46,7 @@
   width: 100%;
 }
 
-/* === Combined Card Style (DRY) === */
+/* === Account Card Styles (Applied to both info and shipping) === */
 .account-card,
 .shipping-card {
   background: var(--color-surface);
@@ -65,8 +66,8 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Unique height properties */
 .account-card {
+  /* Fixed height for visual balance */
   min-height: 350px;
   height: 350px;
 }
@@ -91,29 +92,28 @@
   margin-bottom: 30px;
 }
 
-/* === ALIGNMENT FIX: Use flexbox for perfect text alignment === */
+/* Use flex for strong/value pairing for clean vertical alignment */
 .info-block p,
 .shipping-static p {
   margin: 5px 0;
   font-size: 1rem;
   color: var(--color-text-primary);
-  display: flex; /* Makes the p tag a flex container */
-  gap: 8px; /* Separates the strong tag from the value */
+  display: flex;
+  gap: 8px;
 }
 
 .info-block p strong,
 .shipping-static p strong {
   font-weight: 700;
-  white-space: nowrap; /* Prevents the label from wrapping */
+  white-space: nowrap;
 }
-/* ========================================================= */
 
 .not-set {
   color: var(--color-border);
   font-style: italic;
 }
 
-/* === Buttons === */
+/* === Button Styling === */
 .btn-main,
 .btn-secondary,
 .btn-cancel {
@@ -141,6 +141,7 @@
 }
 
 .logout-btn {
+  /* Specific gradient for logout to stand out */
   background: linear-gradient(90deg, #7b68ee);
   color: #fff;
   border: none;
@@ -159,32 +160,16 @@
   padding: 8px 18px;
 }
 
-.btn-secondary:hover {
-  background: var(--color-accent);
-  color: var(--color-surface);
-}
-
-.btn-cancel {
-  background: #ccc;
-  color: #333;
-}
-
-.btn-cancel:hover {
-  background: #bbb;
-}
-
-/* === ALIGNMENT FIX: Vertical alignment for buttons === */
 .account-actions {
+  /* Pushes buttons to the bottom of the card */
   display: flex;
   gap: 15px;
   flex-wrap: wrap;
   margin-top: auto;
-  align-items: center; /* Ensures buttons are vertically aligned */
+  align-items: center;
 }
-/* ========================================================= */
 
-/* === Shipping Section === */
-
+/* === Shipping Information Section Styles === */
 .shipping-static {
   display: flex;
   flex-direction: column;
@@ -193,8 +178,8 @@
   align-items: flex-start;
 }
 
+/* Adds space for the shipping card to match the height of the account card when in static view */
 .shipping-static .edit-shipping-btn {
-  /* Use btn-main styles (already applied in JS) but ensure proper spacing */
   margin-top: 125px;
   width: 100%;
 }
@@ -231,7 +216,7 @@
   margin-top: 25px;
 }
 
-/* === Responsive === */
+/* === Responsive Adjustments === */
 @media (max-width: 600px) {
   .account-page {
     padding: 40px 20px;
@@ -242,6 +227,7 @@
     padding: 30px;
   }
 
+  /* Force buttons to full width on mobile */
   .btn-main,
   .btn-secondary,
   .btn-cancel {
@@ -249,8 +235,8 @@
     text-align: center;
   }
 
-  /* Reset the specific width for the Edit button on small screens so it takes full width */
   .shipping-static .edit-shipping-btn {
+    margin-top: 40px; /* Reduced margin to fit mobile layout better */
     width: 100%;
   }
 

@@ -1,35 +1,42 @@
-// Sprint 2: Member 3 - Redesigned for visual appeal and brand consistency (AuraTech)
-
 import "../styles/home.css";
 import products from "../data/products.json";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * HomePage Component
+ * Renders the main landing page, featuring a hero section, value propositions,
+ * and a grid of featured products.
+ */
 export default function HomePage() {
   const navigate = useNavigate();
 
+  // Filter the product list to show only items marked as featured
   const featuredProducts = products.filter((p) => p.featured);
 
-  // Handler to navigate to a product's details page
+  // --- Handlers ---
+
+  /**
+   * Navigates to the details page of the clicked product.
+   * @param {string} productId - The ID of the product.
+   */
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`);
   };
 
-  // Handler to navigate to the main products page
+  /** Navigates to the main product listing page. */
   const handleShopNowClick = () => {
     navigate("/products");
   };
 
   return (
-    // The home-page container uses the main brand background color (F9F9F9)
     <section className="home-page">
-      {/* 1. HERO SECTION: High-impact introduction */}
+      {/* 1. HERO SECTION: High-impact brand introduction */}
       <div className="hero">
         <h1>Welcome to AuraTech</h1>
         <p>
           Discover cutting-edge gaming gear designed for performance,
           durability, and style. Level up your setup with AuraTech.
         </p>
-        {/* Uses btn-main for Primary Accent color (#1D6489) */}
         <button className="btn-main" onClick={handleShopNowClick}>
           Shop Now
         </button>
@@ -39,7 +46,6 @@ export default function HomePage() {
       <section className="highlights">
         <h2>Why Shop with AuraTech?</h2>
         <div className="highlight-grid">
-          {/* Highlight cards use the subtle background and get an Accent Teal border on hover */}
           <div className="highlight-card">
             <h3> Superior Performance</h3>
             <p>
@@ -71,23 +77,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. FEATURED PRODUCTS SECTION: Key products displayed in a clean grid */}
+      {/* 3. FEATURED PRODUCTS SECTION: Displays key products */}
       <section className="featured">
         <h2>Featured Products</h2>
         <div className="featured-grid">
           {featuredProducts.length > 0 ? (
             featuredProducts.map((product) => (
-              // Added onClick handler and cursor style for interactivity
               <div
                 key={product.id}
                 className="featured-card"
+                // Click handler navigates to the specific product detail page
                 onClick={() => handleProductClick(product.id)}
                 style={{ cursor: "pointer" }}
               >
                 <div className="featured-image-wrapper">
                   <img src={product.image} alt={product.name} />
                 </div>
-                {/* Price uses the Primary Accent color for emphasis in CSS */}
                 <h3>{product.name}</h3>
                 <p className="featured-price">
                   ₱{product.price.toLocaleString()}
@@ -101,7 +106,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. CTA (Call to Action) SECTION: Uses Dark Text background for contrast */}
+      {/* 4. CTA (Call to Action) SECTION: Encourages browsing more products */}
       <div className="cta">
         <div className="cta-content">
           <h3>Join the AuraTech Community</h3>
@@ -109,7 +114,6 @@ export default function HomePage() {
             Sign up to get exclusive discounts and early access to our next-gen
             gaming gear.
           </p>
-          {/* CTA button uses reversed style (White background, Primary Accent text) for high contrast on the dark banner */}
           <button className="btn-main" onClick={handleShopNowClick}>
             Explore All Products
           </button>

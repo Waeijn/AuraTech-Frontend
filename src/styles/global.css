@@ -1,19 +1,17 @@
-/* --- global.css --- */
-/* Global styles and theme variables for LIGHT mode using the AuraTech Brand Gaming Palette.
-   Refined: Darker accents, cleaner contrast, and richer tones for a premium gaming-tech aesthetic. */
+/* Global styles and theme variables for the AuraTech Gaming Palette (LIGHT Mode). */
 
 :root {
-  /* AuraTech Deep Gaming Palette (Refined Jewel Tones) */
-  --color-accent: #0097a7; /* Primary Accent (Deep Cyan/Teal) - CTAs, Highlights */
-  --color-secondary-accent: #7b1fa2; /* Secondary Accent (Rich Electric Purple) - Contrast & Highlights */
-  --color-text-primary: #141625; /* Deep Navy Text/Background */
-  --color-bg-primary: #f2f3f5; /* Softer Gray Background for balance */
-  --color-border: #70727f; /* Subtle Neutral Gray for borders/text hints */
-  --color-surface: #ffffff; /* Base card & container white */
+  /* --- AuraTech Deep Gaming Palette (Refined Jewel Tones) --- */
+  --color-accent: #0097a7; /* Primary Accent: Deep Cyan/Teal, used for CTAs and highlights. */
+  --color-secondary-accent: #7b1fa2; /* Secondary Accent: Rich Electric Purple, used for contrast. */
+  --color-text-primary: #141625; /* Deep Navy: Primary text and dark backgrounds (e.g., footer, summary). */
+  --color-bg-primary: #f2f3f5; /* Softer Gray: Main application background. */
+  --color-border: #70727f; /* Subtle Neutral Gray: Borders and secondary text hints. */
+  --color-surface: #ffffff; /* White: Base card and container background. */
 
   /* Derived Hover States */
-  --color-hover-dark: #007888; /* Darker Teal Hover (Deeper than Accent) */
-  --color-hover-secondary: #5e1782; /* Darker Purple Hover */
+  --color-hover-dark: #007888;
+  --color-hover-secondary: #5e1782;
 
   /* General Styling Variables */
   --radius: 10px;
@@ -22,7 +20,7 @@
     Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* === Base Layout === */
+/* === Base Layout and Reset === */
 html,
 body,
 #root {
@@ -39,6 +37,7 @@ body,
   min-height: 100vh;
 }
 
+/* Centralized main content area */
 main {
   flex: 1 1 auto;
   max-width: var(--max-width);
@@ -72,9 +71,10 @@ a:hover {
   color: var(--color-secondary-accent);
 }
 
-/* === Buttons (Global Theme) === */
+/* === Buttons (Primary Gradient Theme) === */
 button,
 .btn-main {
+  /* Gradient background using both primary and secondary accents */
   background: linear-gradient(
     90deg,
     var(--color-accent),
@@ -97,7 +97,7 @@ button:hover,
   transform: translateY(-2px);
 }
 
-/* === Utility Buttons === */
+/* === Utility Buttons (Solid Secondary Accent) === */
 .btn-secondary {
   background: var(--color-secondary-accent);
   color: #fff;
@@ -118,7 +118,7 @@ button:hover,
   background: #e9ebef;
 }
 
-/* === Inputs (Global) === */
+/* === Inputs (Global Styling) === */
 input,
 select,
 textarea {
@@ -133,6 +133,7 @@ textarea {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+/* Input focus state with accent color shadow */
 input:focus,
 select:focus,
 textarea:focus {
@@ -142,7 +143,7 @@ textarea:focus {
   background: #ffffff;
 }
 
-/* === Scrollbar Styling (Sleek AuraTech Style) === */
+/* === Scrollbar Styling (Sleek AuraTech Gradient) === */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -153,6 +154,7 @@ textarea:focus {
 }
 
 ::-webkit-scrollbar-thumb {
+  /* Gradient thumb for visual flair */
   background: linear-gradient(
     180deg,
     var(--color-accent),

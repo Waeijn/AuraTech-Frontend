@@ -1,3 +1,4 @@
+/* --- Imports and Base Home Layout --- */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 
 .home-page {
@@ -16,12 +17,14 @@
   background: var(--color-surface);
   padding: 160px 60px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  /* Full-width image background */
   background-image: url("/public/img/hero/gaming-setup-banner.jpg");
   background-size: cover;
   background-position: center;
   animation: fadeIn 1s ease;
 }
 
+/* Dark overlay for contrast over the image */
 .hero::before {
   content: "";
   position: absolute;
@@ -30,6 +33,7 @@
   z-index: 1;
 }
 
+/* Ensure text and button remain visible above the overlay */
 .hero h1,
 .hero p,
 .hero .btn-main {
@@ -54,13 +58,14 @@
 }
 
 .btn-main {
+  /* Pill shape for primary CTA */
   padding: 14px 36px;
   border-radius: 40px;
   font-size: 1rem;
   box-shadow: 0 4px 20px rgba(29, 100, 137, 0.3);
 }
 
-/* --- Highlights Section --- */
+/* --- Highlights Section (Value Propositions) --- */
 .highlights {
   text-align: center;
   padding: 80px 40px;
@@ -77,6 +82,7 @@
   display: inline-block;
 }
 
+/* Underline accent using ::after pseudo-element */
 .highlights h2::after,
 .featured h2::after {
   content: "";
@@ -90,6 +96,7 @@
   border-radius: 2px;
 }
 
+/* Responsive grid layout for highlight cards */
 .highlight-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -107,6 +114,7 @@
   border: 1px solid transparent;
 }
 
+/* Lift and accent border on hover */
 .highlight-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 10px 30px rgba(29, 100, 137, 0.25);
@@ -126,7 +134,7 @@
   line-height: 1.5;
 }
 
-/* --- Featured Products --- */
+/* --- Featured Products Section --- */
 .featured {
   background: var(--color-bg-primary);
   padding: 90px 40px;
@@ -150,12 +158,14 @@
   border: 1px solid var(--color-bg-primary);
 }
 
+/* Lift effect and secondary accent border on hover */
 .featured-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(29, 100, 137, 0.2);
   border-color: var(--color-secondary-accent);
 }
 
+/* Image container styling for visual appeal */
 .featured-image-wrapper {
   background: var(--color-bg-primary);
   border-radius: 8px;
@@ -192,8 +202,9 @@
   line-height: 1.5;
 }
 
-/* --- CTA Section --- */
+/* --- CTA Section (Call to Action Banner) --- */
 .cta {
+  /* Dark background for maximum contrast */
   background-color: var(--color-text-primary);
   color: var(--color-surface);
   padding: 100px 60px;
@@ -213,9 +224,12 @@
   margin: 0 auto 35px;
 }
 
+/* CTA button styling with reversed colors for prominence on dark background */
 .cta-content .btn-main {
   background-color: var(--color-surface);
-  color: var(--color-text-secondary);
+  color: var(
+    --color-text-secondary
+  ); /* Needs to be redefined or use existing variable for text */
   border: 2px solid var(--color-accent);
   box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
 }
@@ -226,12 +240,13 @@
   transform: translateY(-3px);
 }
 
-/* --- Responsive --- */
+/* --- Responsive Adjustments --- */
 @media (max-width: 1024px) {
   .hero {
     padding: 120px 40px;
   }
 
+  /* Switch highlights grid to two columns */
   .highlight-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -251,6 +266,7 @@
     padding: 70px 20px;
   }
 
+  /* Stack grids into a single column on small screens */
   .highlight-grid,
   .featured-grid {
     grid-template-columns: 1fr;

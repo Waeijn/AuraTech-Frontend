@@ -1,8 +1,3 @@
-// Sprint 2: Member 3
-// Task: Display Product Details Page
-// Sprint 4: Member 4 - Integrated Functional Add to Cart button logic via Quantity Modal.
-// FIX: Added useEffect to scroll window to top on load/view switch.
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import productsData from "../data/products.json";
@@ -11,11 +6,18 @@ import { useAuth } from "../components/Navbar";
 
 const INVENTORY_KEY = "temporary_inventory";
 
+// --- Utility Functions for Inventory and Cart Checks ---
+
+/**
+ * Initializes and retrieves product stock/inventory from local storage.
+ * @returns {object} The current inventory object {productId: stockCount}.
+ */
 const getInventory = () => {
   let inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY));
   if (!inventory) {
     const initialStock = {};
     productsData.forEach((p) => {
+      // Use product stock or a high default if undefined
       initialStock[p.id] = p.stock || 99999;
     });
     inventory = initialStock;
@@ -24,15 +26,28 @@ const getInventory = () => {
   return inventory;
 };
 
+/**
+ * Calculates the maximum quantity of a product a user can add to the cart
+ * by considering both total stock and current cart quantity.
+ * @param {string} productId - The ID of the product.
+ * @returns {number} The maximum quantity allowed to add.
+ */
 const getMaxAllowedToAdd = (productId) => {
   const inventory = getInventory();
   const currentStock = inventory[productId] || 0;
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const existingItem = cart.find((item) => item.id === productId);
   const currentCartQty = existingItem ? existingItem.quantity : 0;
+  // Stock minus what's already in the cart
   return currentStock - currentCartQty;
 };
 
+/**
+ * Core logic to update the cart in local storage with the selected quantity.
+ * Includes necessary stock and boundary checks.
+ * @param {object} product - The product object being added.
+ * @param {number} quantity - The quantity to add.
+ */
 const handleAddToCartLogic = (product, quantity) => {
   const inventory = getInventory();
   const currentStock = inventory[product.id] || 0;
@@ -41,6 +56,7 @@ const handleAddToCartLogic = (product, quantity) => {
   const existingItem = cart.find((item) => item.id === product.id);
 
   const currentCartQuantity = existingItem ? existingItem.quantity : 0;
+  // Check against total stock capacity
   if (currentCartQuantity + quantity > currentStock) {
     alert(
       `Cannot add ${quantity}: Cart already contains ${currentCartQuantity}. Only ${currentStock} total are available.`
@@ -48,13 +64,7 @@ const handleAddToCartLogic = (product, quantity) => {
     return;
   }
 
-  if (quantity > currentStock) {
-    alert(
-      `Cannot add ${quantity}: Only ${currentStock} are available in stock.`
-    );
-    return;
-  }
-
+  // Update cart
   if (existingItem) {
     existingItem.quantity += quantity;
   } else {
@@ -64,61 +74,84 @@ const handleAddToCartLogic = (product, quantity) => {
       price: product.price,
       image: product.image,
       quantity: quantity,
-      isChecked: true,
+      isChecked: true, // Default to checked upon adding
     });
   }
   localStorage.setItem("cart", JSON.stringify(cart));
-  console.log(`Added ${quantity} x ${product.name} from Details Page!`);
   alert(`Added ${quantity} x ${product.name} to cart!`);
 };
 
+// --- ProductDetails Component ---
+
+/**
+ * ProductDetails Component
+ * Displays comprehensive details for a single product, including stock,
+ * specifications, and an Add to Cart button that triggers a quantity modal.
+ * @param {object} propProduct - Optional product object passed via props (for embedded use).
+ * @param {function} onBack - Optional function to handle back action.
+ */
 const ProductDetails = ({ product: propProduct, onBack }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
+  // Find product by ID from data or use propProduct
   const product =
     propProduct || productsData.find((p) => String(p.id) === String(id));
 
+  // Get current stock status
   const inventory = getInventory();
   const currentStock = product ? inventory[product.id] || 0 : 0;
 
+  // State for quantity modal and its input
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
+  // State for the authentication required prompt modal
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
 
-  // FIX: Scroll to top immediately when this component renders
+  // --- Effects ---
+
+  // Scrolls the window to the top on component render/mount
   useEffect(() => {
     window.scrollTo(0, 0);
   });
 
+  // Exposes a global function to trigger the quantity modal for use by other components (e.g., ProductCard)
   useEffect(() => {
     if (product && !propProduct) {
       window.showQuantityModal = (p = product) => {
         setModalProduct(p);
         if (!currentUser) {
-          setIsAuthPromptOpen(true);
+          setIsAuthPromptOpen(true); // Show auth prompt if not logged in
         } else {
-          setQuantity(1);
+          setQuantity(1); // Reset quantity and open the main modal
           setIsModalOpen(true);
         }
       };
     }
+    // Cleanup function to remove the global function when the component unmounts
     return () => {
       delete window.showQuantityModal;
     };
   }, [product, propProduct, currentUser]);
 
+  // --- Modal Handlers ---
+
   const handleCloseModal = () => setIsModalOpen(false);
   const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
 
+  /** Closes auth prompt and redirects to login page. */
   const handleLoginRedirect = () => {
     handleCloseAuthPrompt();
     navigate("/login");
   };
 
+  /**
+   * Updates the quantity in the modal via +/- buttons.
+   * Enforces min (1) and max (stock minus current cart quantity) boundaries.
+   */
   const handleQuantityChange = (delta) => {
     if (!modalProduct) return;
     const maxAllowed = getMaxAllowedToAdd(modalProduct.id);
@@ -129,6 +162,10 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
     });
   };
 
+  /**
+   * Updates quantity in the modal via manual input.
+   * Enforces min (1) and max (stock minus current cart quantity) boundaries.
+   */
   const handleManualQuantityChange = (e) => {
     const value = parseInt(e.target.value);
     if (!modalProduct) return;
@@ -142,6 +179,7 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
     setQuantity(newQty);
   };
 
+  /** Final action to call the core cart logic and close the modal. */
   const handleFinalAddToCart = () => {
     if (!modalProduct || quantity < 1) return;
 
@@ -149,17 +187,20 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
     handleCloseModal();
   };
 
+  /** Primary handler for the 'Add to Cart' button on the main details page. */
   const handleShowModal = () => {
     setModalProduct(product);
     if (!currentUser) {
-      setIsAuthPromptOpen(true);
+      setIsAuthPromptOpen(true); // Show login requirement
     } else {
       setQuantity(1);
-      setIsModalOpen(true);
+      setIsModalOpen(true); // Open quantity selection modal
     }
   };
 
   const maxQtyAllowed = modalProduct ? getMaxAllowedToAdd(modalProduct.id) : 0;
+
+  // --- Error State ---
 
   if (!product) {
     return (
@@ -174,12 +215,13 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
     );
   }
 
-  // Helper function to render specifications
+  // --- JSX Helpers ---
+
+  /** Renders the technical specifications list if available. */
   const renderSpecifications = (specs) => {
-    if (!specs) return null;
+    if (!specs || Object.keys(specs).length === 0) return null;
 
     const keys = Object.keys(specs);
-    if (keys.length === 0) return null;
 
     return (
       <div className="specifications-section">
@@ -196,8 +238,11 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
     );
   };
 
+  // --- Main Render ---
+
   return (
     <div className="details-container">
+      {/* 1. Login Required Modal (Displayed if user is a guest) */}
       <div className={`modal-overlay ${isAuthPromptOpen ? "open" : ""}`}>
         <div className="quantity-modal confirmation-modal">
           <h2>Login Required</h2>
@@ -217,6 +262,7 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
         </div>
       </div>
 
+      {/* 2. Quantity Selection Modal (Displayed if user is logged in) */}
       <div className={`modal-overlay ${isModalOpen ? "open" : ""}`}>
         <div className="quantity-modal">
           <h2>Select Quantity</h2>
@@ -248,6 +294,10 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
             </button>
           </div>
 
+          <p className="modal-stock-info">
+            Max available to add: {maxQtyAllowed}
+          </p>
+
           <div className="modal-actions">
             <button
               className="btn-main"
@@ -263,6 +313,7 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
         </div>
       </div>
 
+      {/* 3. Main Product Details View */}
       <div className="details-card">
         <div className="details-image-wrapper">
           <img src={product.image} alt={product.name} />
@@ -272,13 +323,19 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
           <h2>{product.name}</h2>
           <p className="details-price">₱{product.price.toLocaleString()}</p>
           <p className="details-desc">{product.description}</p>
-          <p className="product-stock">
+          {/* Stock status display */}
+          <p
+            className={`product-stock ${
+              currentStock > 0 ? "in-stock" : "out-of-stock"
+            }`}
+          >
             {currentStock > 0 ? `In Stock: ${currentStock}` : "Out of Stock"}
           </p>
 
           <div className="details-buttons">
             <button
               className="btn-main"
+              // Use onBack prop if available, otherwise navigate to products list
               onClick={onBack || (() => navigate("/products"))}
             >
               Back to Products
@@ -292,7 +349,7 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
             </button>
           </div>
 
-          {/* Renders the new specifications table */}
+          {/* Technical Specifications Section */}
           {renderSpecifications(product.specifications)}
         </div>
       </div>

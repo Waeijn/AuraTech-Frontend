@@ -1,5 +1,4 @@
 /* === AuraTech Checkout Page (Refined + Modernized) === */
-/* Sleek layout consistent with Cart.css — dark summary, compact clean spacing */
 
 .checkout-page {
   width: 100%;
@@ -9,6 +8,7 @@
   flex-direction: column;
   align-items: center;
   background-color: var(--color-bg-primary);
+  /* Subtle grid pattern background for texture */
   background-image: linear-gradient(
       to right,
       rgba(123, 125, 138, 0.06) 1px,
@@ -25,10 +25,10 @@
   margin-bottom: 40px;
   text-align: center;
   position: relative;
-  display: inline-block; /* Helps center the underline */
+  display: inline-block;
 }
 
-/* Gradient underline */
+/* Gradient underline accent for the main title */
 .checkout-page h1::after {
   content: "";
   display: block;
@@ -43,13 +43,15 @@
   );
 }
 
-/* === Layout === */
+/* === Two-Column Layout (Form and Summary) === */
 .checkout-container {
   display: grid;
+  /* Form panel takes slightly more width (1.3fr) */
   grid-template-columns: 1.3fr 1fr;
   gap: 40px;
   max-width: 1200px;
   width: 100%;
+  padding-bottom: 60px; /* Space at the bottom */
 }
 
 /* === Left Panel: Shipping Form === */
@@ -70,7 +72,7 @@
   color: var(--color-text-primary);
 }
 
-/* Inputs */
+/* Input Styling */
 .checkout-form label {
   display: flex;
   flex-direction: column;
@@ -81,7 +83,7 @@
 }
 
 .checkout-form input {
-  width: 95%;
+  width: 95%; /* Shrink inputs slightly for alignment */
   margin: 0 auto;
   padding: 12px 10px;
   border-radius: 8px;
@@ -92,6 +94,7 @@
   transition: all 0.25s ease;
 }
 
+/* Focus style for editable inputs */
 .checkout-form input:focus:not([readonly]) {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px rgba(0, 151, 167, 0.25);
@@ -99,6 +102,7 @@
   outline: none;
 }
 
+/* Styling for read-only fields (e.g., logged-in user name/email) */
 .checkout-form input[readonly] {
   background-color: #f2f2f2;
   color: #666;
@@ -106,14 +110,14 @@
   cursor: default;
 }
 
-/* === Buttons === */
+/* === Shipping Edit Controls (Logged-in users only) === */
 .shipping-edit-controls {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 10px;
   margin-top: 5px;
-  margin-right: 4%;
+  margin-right: 4%; /* Align buttons with the right edge of the input fields */
 }
 
 .shipping-edit-controls .btn-main,
@@ -142,6 +146,7 @@
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
+  /* Primary gradient accent */
   background: linear-gradient(
     90deg,
     var(--color-accent),
@@ -184,7 +189,7 @@
   color: var(--color-accent);
 }
 
-/* Validation & Helper */
+/* Validation & Helper Messages */
 .validation-warning {
   font-size: 0.9rem;
   color: var(--color-secondary-accent);
@@ -203,12 +208,13 @@
 
 /* === Right Panel: Dark Order Summary === */
 .order-summary {
+  /* Inherits dark background from Cart styles */
   background: var(--color-text-primary);
   color: var(--color-surface);
   padding: 35px;
   border-radius: var(--radius);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
-  height: fit-content;
+  height: fit-content; /* Only takes up necessary vertical space */
 }
 
 .order-summary h2 {
@@ -220,7 +226,7 @@
   padding-bottom: 10px;
 }
 
-/* Order Items */
+/* Order Items in Summary List */
 .summary-item {
   display: flex;
   align-items: center;
@@ -259,7 +265,20 @@
   color: var(--color-accent);
 }
 
-/* Totals */
+/* Totals Calculations */
+.summary-calculations-wrapper {
+  margin-top: 20px;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 1rem;
+  color: var(--color-surface);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* Final Total Highlighting */
 .summary-total {
   border-top: 2px solid rgba(255, 255, 255, 0.1);
   padding-top: 15px;
@@ -276,12 +295,14 @@
 }
 
 .summary-total h3:last-child {
+  /* Secondary accent color for the final price */
   color: var(--color-secondary-accent);
 }
 
-/* === Responsive === */
+/* === Responsive Adjustments === */
 @media (max-width: 900px) {
   .checkout-container {
+    /* Stack columns vertically on tablet/mobile */
     grid-template-columns: 1fr;
     gap: 25px;
   }
@@ -291,8 +312,15 @@
     padding: 28px;
   }
 
+  /* Make main buttons full width */
   .checkout-btn,
   .cancel-btn {
     width: 100%;
+  }
+
+  .shipping-edit-controls {
+    /* Reset alignment for full width flow */
+    justify-content: space-between;
+    margin-right: 0;
   }
 }

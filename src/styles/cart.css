@@ -1,9 +1,8 @@
-/* Sprint 4: Member 4
-   Task: Cart page styles for functional UI (using aggressive gaming palette). */
+/* === Cart Page Layout and Structure === */
 
 .cart-page {
-  padding: 40px 20px; /* Increased top/bottom padding */
-  max-width: 1400px; /* Increased max width for content */
+  padding: 40px 20px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -15,13 +14,13 @@
   text-align: left;
 }
 
-/* --- Main Layout: Two Column Grid --- */
+/* Two-column layout for desktop: Items (2fr) and Summary (1fr) */
 .cart-container {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 40px; /* Spacious gap between sections */
+  gap: 40px;
   margin-top: 20px;
-  align-items: start; /* Align items to the top of the grid */
+  align-items: start;
 }
 
 .cart-items {
@@ -34,7 +33,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  border-bottom: 3px solid var(--color-secondary-accent); /* Teal/Cyan accent underline */
+  border-bottom: 3px solid var(--color-secondary-accent);
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -43,54 +42,56 @@
 .cart-summary {
   width: 100%;
   max-width: 450px;
-  /* Deep Navy background for visual hierarchy */
+  /* Dark background for visual hierarchy */
   background: var(--color-text-primary);
-  color: var(--color-surface); /* White text */
+  color: var(--color-surface);
   padding: 30px;
   border-radius: var(--radius);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  position: sticky; /* Keeps summary visible during item scrolling */
+  /* Keeps the summary panel fixed while scrolling items */
+  position: sticky;
   top: 20px;
 }
 
 .cart-summary h2 {
-  color: var(--color-surface); /* White heading */
-  border-bottom-color: var(--color-accent); /* Cyan underline */
+  color: var(--color-surface);
+  border-bottom-color: var(--color-accent);
 }
 
 /* --- Individual Cart Item Card --- */
 .cart-item {
   display: flex;
   align-items: center;
-  gap: 20px; /* Increased gap */
+  gap: 20px;
   padding: 20px;
   margin-bottom: 20px;
   background: var(--color-surface);
   border: 1px solid var(--color-bg-primary);
-  border-radius: 12px; /* Smoother radius */
+  border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   justify-content: space-between;
   transition: all 0.2s ease;
 }
 
 .cart-item:hover {
-  box-shadow: 0 6px 15px rgba(156, 39, 176, 0.1); /* Subtle Purple hover shadow */
+  /* Subtle lift effect on hover */
+  box-shadow: 0 6px 15px rgba(156, 39, 176, 0.1);
   transform: translateY(-2px);
 }
 
 .item-checkbox {
-  transform: scale(1.5); /* Larger checkbox */
+  transform: scale(1.5);
   cursor: pointer;
   accent-color: var(--color-accent);
   flex-shrink: 0;
 }
 
 .item-image img {
-  width: 100px; /* Larger image */
+  width: 100px;
   height: 100px;
   object-fit: contain;
   border-radius: 6px;
-  background: var(--color-bg-primary); /* Light background for image */
+  background: var(--color-bg-primary);
 }
 
 .item-details {
@@ -105,6 +106,7 @@
   margin: 0 0 5px 0;
 }
 
+/* Price and Quantity Information Styling */
 .item-price-qty {
   font-size: 1em;
   color: var(--color-border);
@@ -114,17 +116,17 @@
 }
 .item-price {
   font-weight: 700;
-  color: var(--color-secondary-accent); /* Electric Purple for Price */
+  color: var(--color-secondary-accent); /* Purple for base price */
   font-size: 1.1em;
 }
 
 .item-subtotal {
   font-weight: 700;
-  color: var(--color-accent); /* Cyan/Teal for Total Price */
+  color: var(--color-accent); /* Cyan/Teal for line total */
   margin-left: 0;
 }
 
-/* Quantity Controls */
+/* --- Inline Quantity Controls --- */
 .checkout-qty-controls {
   display: flex;
   align-items: center;
@@ -142,7 +144,7 @@
   border-radius: var(--radius);
   font-size: 1.2rem;
   font-weight: 600;
-  line-height: 1; /* Reset line height for clean centering */
+  line-height: 1;
   transition: all 0.2s;
 }
 
@@ -152,16 +154,15 @@
 
 .qty-value {
   font-weight: 700;
-  padding: 0 5px;
+  padding: 5px 10px;
   color: var(--color-surface);
   background-color: var(--color-text-primary);
-  padding: 5px 10px;
   border-radius: 4px;
   min-width: 30px;
 }
 
 .edit-item-btn {
-  background: var(--color-secondary-accent); /* Electric Purple Edit Button */
+  background: var(--color-secondary-accent); /* Purple button */
   color: var(--color-surface);
   border: none;
   padding: 10px 15px;
@@ -181,11 +182,12 @@
 .summary-calculations {
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Increased gap */
+  gap: 15px;
   padding-top: 10px;
   padding-bottom: 20px;
 }
 
+/* Row styling for Subtotal and Shipping */
 .summary-row {
   display: flex;
   justify-content: space-between;
@@ -195,15 +197,16 @@
 }
 
 .summary-row p {
-  color: var(--color-surface); /* White text */
+  color: var(--color-surface);
 }
 .summary-row p:last-child {
   font-weight: 700;
   color: var(--color-accent); /* Cyan/Teal amount */
 }
 
+/* Total Section Highlighting */
 .summary-total {
-  border-top: 2px solid var(--color-accent); /* Highlight total line */
+  border-top: 2px solid var(--color-accent);
   padding-top: 15px;
   margin-top: 10px;
   display: flex;
@@ -254,6 +257,7 @@
 }
 
 /* --- MODAL STYLES (Manage Item Modal) --- */
+/* The general modal styles are assumed to be inherited from global CSS */
 .remove-modal {
   background: var(--color-surface);
 }
@@ -267,7 +271,7 @@
 }
 
 .remove-modal .modal-error {
-  color: var(--color-secondary-accent); /* Use purple for errors */
+  color: var(--color-secondary-accent); /* Purple for errors */
   font-weight: 600;
 }
 
@@ -303,7 +307,7 @@
   background-color: var(--color-hover-secondary);
 }
 
-/* --- Responsive adjustments --- */
+/* --- Responsive Adjustments --- */
 @media (max-width: 1000px) {
   .cart-container {
     /* Stack items vertically on smaller screens */
@@ -322,10 +326,12 @@
     text-align: center;
   }
   .cart-item {
+    /* Allow items to wrap for better mobile flow */
     flex-wrap: wrap;
     justify-content: flex-start;
   }
 
+  /* Reorder elements for mobile display */
   .item-image {
     order: -1;
   }

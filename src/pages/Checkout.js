@@ -1,28 +1,41 @@
-// Sprint 4: Member 4
-// Task: Implement Checkout form, display receipt, and deduct stock from local storage.
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../components/Navbar";
 import "../styles/checkout.css";
 import productsData from "../data/products.json";
 import { useNavigate } from "react-router-dom";
 
-const SHIPPING_RATE = 0.1;
+const SHIPPING_RATE = 0.1; // 10% rate
 const INVENTORY_KEY = "temporary_inventory";
 const PURCHASE_HISTORY_KEY = "purchaseHistory";
 const SHIPPING_KEY_PREFIX = "shippingInfo_";
 
+// --- Utility Functions for Local Storage Management ---
+
+/**
+ * Retrieves the stored shipping information for a given user email.
+ * @param {string} email - The user's unique email.
+ * @returns {object} Stored shipping data { address: string, city: string } or default empty object.
+ */
 const getShippingInfo = (email) => {
   const key = SHIPPING_KEY_PREFIX + email;
   const stored = localStorage.getItem(key);
   return stored ? JSON.parse(stored) : { address: "", city: "" };
 };
 
+/**
+ * Saves the shipping information for a given user email to local storage.
+ * @param {string} email - The user's unique email.
+ * @param {object} data - Shipping data { address: string, city: string }.
+ */
 const saveShippingInfo = (email, data) => {
   const key = SHIPPING_KEY_PREFIX + email;
   localStorage.setItem(key, JSON.stringify(data));
 };
 
+/**
+ * Initializes and retrieves product stock/inventory from local storage.
+ * @returns {object} The current inventory object {productId: stockCount}.
+ */
 const getInventory = () => {
   let inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY));
   if (!inventory) {
@@ -36,12 +49,21 @@ const getInventory = () => {
   return inventory;
 };
 
+/**
+ * Saves the updated inventory object back to local storage.
+ * @param {object} inventory - The inventory object to save.
+ */
 const saveInventory = (inventory) => {
   localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
 };
 
+/**
+ * Calculates the total cost, shipping fee, and item counts for selected cart items.
+ * @returns {object} Object containing calculated totals and the list of checked items.
+ */
 const calculateCheckoutTotals = () => {
   const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+  // Only process items selected for checkout
   const checkedItems = cartItems.filter((item) => item.isChecked);
 
   const totalCount = checkedItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -56,6 +78,11 @@ const calculateCheckoutTotals = () => {
   return { checkedItems, checkedSubtotal, shippingFee, total, totalCount };
 };
 
+/**
+ * Reduces the stock count for purchased items in the global inventory.
+ * Ensures stock does not drop below zero.
+ * @param {Array} purchasedItems - List of items and quantities purchased.
+ */
 const deductStockAndSave = (purchasedItems) => {
   const currentInventory = getInventory();
   purchasedItems.forEach((item) => {
@@ -67,6 +94,13 @@ const deductStockAndSave = (purchasedItems) => {
   saveInventory(currentInventory);
 };
 
+/**
+ * Saves the completed order to the user's purchase history in local storage.
+ * Generates a simple order ID and captures order details.
+ * @param {object} orderData - The calculated order totals and items.
+ * @param {string} userEmail - The email associated with the order.
+ * @returns {string} The generated order ID.
+ */
 const savePurchaseToHistory = (orderData, userEmail) => {
   const history = JSON.parse(localStorage.getItem(PURCHASE_HISTORY_KEY)) || [];
 
@@ -82,17 +116,26 @@ const savePurchaseToHistory = (orderData, userEmail) => {
     })),
     total: orderData.total,
     totalItemsCount: orderData.totalCount,
-    status: "For Shipping",
+    status: "For Shipping", // Initial status
   };
 
+  // Add new order to the beginning of the history array
   history.unshift(newOrder);
   localStorage.setItem(PURCHASE_HISTORY_KEY, JSON.stringify(history));
   return newOrder.orderId;
 };
 
+// --- Checkout Component ---
+
+/**
+ * Checkout Component
+ * Handles shipping form submission, validation, order processing,
+ * stock deduction, and displays a success receipt.
+ */
 export default function Checkout() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  // UI state for address editing and form warnings
   const [isShippingEditing, setIsShippingEditing] = useState(false);
   const [addressWarning, setAddressWarning] = useState("");
 
@@ -104,6 +147,7 @@ export default function Checkout() {
   };
 
   const [formData, setFormData] = useState(initialFormData);
+  // State to toggle between checkout form and receipt page
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [receiptData, setReceiptData] = useState({
     total: 0,
@@ -112,6 +156,7 @@ export default function Checkout() {
     orderId: "",
   });
 
+  // Load initial shipping data and set form fields on mount/user change
   useEffect(() => {
     if (currentUser) {
       const shippingInfo = getShippingInfo(currentUser.email);
@@ -122,22 +167,29 @@ export default function Checkout() {
         address: shippingInfo.address || "",
         city: shippingInfo.city || "",
       }));
+      // Reset editing state when user context loads
       setIsShippingEditing(false);
     }
   }, [currentUser]);
 
+  // Scroll to the top when the component loads
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Calculate totals based on currently checked cart items
   const { checkedItems, checkedSubtotal, shippingFee, total, totalCount } =
     calculateCheckoutTotals();
 
+  // --- Handlers ---
+
+  /** Updates form state on input change. */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /** Saves the edited shipping details to local storage for the current user. */
   const handleSaveShipping = () => {
     if (currentUser && currentUser.email) {
       const { address, city } = formData;
@@ -146,17 +198,22 @@ export default function Checkout() {
     setIsShippingEditing(false);
   };
 
+  /**
+   * Main form submission handler.
+   * Performs validation, processes the order, updates stock/history, and clears cart items.
+   * @param {object} e - The form submit event.
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     setAddressWarning("");
 
+    // 1. Validation Checks
     if (isShippingEditing) {
       setAddressWarning(
         "Please save or cancel your address edits before placing the order."
       );
       return;
     }
-
     if (!formData.address || !formData.city) {
       setAddressWarning("Shipping address and city are required.");
       return;
@@ -168,10 +225,14 @@ export default function Checkout() {
       return;
     }
 
+    // 2. Core Transaction Logic
+    // Update inventory (deduct stock)
     deductStockAndSave(finalOrder.checkedItems);
+    // Save order to history
     const userEmail = currentUser ? currentUser.email : formData.email;
     const orderId = savePurchaseToHistory(finalOrder, userEmail);
 
+    // 3. Update UI/State
     setReceiptData({
       total: finalOrder.total,
       totalCount: finalOrder.totalCount,
@@ -179,21 +240,25 @@ export default function Checkout() {
       orderId: orderId,
     });
 
+    // Remove purchased items from the cart in local storage
     const finalCart = (JSON.parse(localStorage.getItem("cart")) || []).filter(
       (item) => !item.isChecked
     );
     localStorage.setItem("cart", JSON.stringify(finalCart));
 
+    // Display receipt screen
     setIsSubmitted(true);
   };
 
+  // Helper variables for button state
   const isAddressSet = formData.address && formData.city;
   const isButtonDisabled = isShippingEditing || !isAddressSet;
 
+  // --- Render Logic: Receipt View ---
   if (isSubmitted) {
     return (
       <section className="checkout-page thank-you-page">
-        <h1>Order Placed!</h1>
+        <h1>Order Placed! 🥳</h1>
         <div className="receipt-box">
           <h3>Purchase Receipt</h3>
           <p className="receipt-message-header">
@@ -208,7 +273,7 @@ export default function Checkout() {
             })}
           </p>
           <p className="receipt-message">
-            Your order for {receiptData.totalCount} items has been placed
+            Your order for **{receiptData.totalCount} items** has been placed
             successfully.
           </p>
           <p>
@@ -225,15 +290,16 @@ export default function Checkout() {
     );
   }
 
+  // --- Render Logic: Checkout Form View ---
   return (
     <section className="checkout-page">
       <h1>Checkout</h1>
-
       <div className="checkout-container">
         {/* LEFT SIDE: SHIPPING FORM */}
         <form className="checkout-form" onSubmit={handleSubmit}>
           <h2>Shipping Information</h2>
 
+          {/* User details are read-only if logged in */}
           <label>
             Full Name
             <input
@@ -259,6 +325,7 @@ export default function Checkout() {
             />
           </label>
 
+          {/* Address fields are editable only if editing is enabled (or for guests) */}
           <label>
             Address
             <input
@@ -283,6 +350,7 @@ export default function Checkout() {
             />
           </label>
 
+          {/* Registered User Shipping Controls */}
           {currentUser && (
             <div className="shipping-edit-controls">
               {isShippingEditing ? (
@@ -315,12 +383,11 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* Validation Message (when user interacts) */}
+          {/* Form Messages */}
           {addressWarning && (
             <p className="validation-warning">{addressWarning}</p>
           )}
 
-          {/* Static Helper Message (when no address yet) */}
           {!formData.address && !formData.city && (
             <p className="helper-message">
               Please fill in your shipping address and city before placing your
@@ -328,6 +395,7 @@ export default function Checkout() {
             </p>
           )}
 
+          {/* Place Order Button */}
           <button
             type="submit"
             className="btn-main checkout-btn"
@@ -354,7 +422,7 @@ export default function Checkout() {
             Cancel & Return to Cart
           </button>
 
-          {/* If no items selected */}
+          {/* Cart Empty Placeholder */}
           {checkedItems.length === 0 && (
             <div className="cart-placeholder">
               <h3>No items selected for checkout</h3>
@@ -386,6 +454,7 @@ export default function Checkout() {
             ))}
           </div>
 
+          {/* Summary Totals */}
           <div className="summary-calculations-wrapper">
             <div className="summary-row">
               <p>Items Subtotal:</p>

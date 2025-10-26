@@ -1,4 +1,4 @@
-/* --- product.css (Aggressive Gaming Theme Redesign - Button Alignment Fix) --- */
+/* --- Imports and Base Product List Layout --- */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 
 .product-container {
@@ -9,6 +9,7 @@
   font-family: var(--font-family-primary);
 }
 
+/* --- Product List Header --- */
 .product-header {
   margin-bottom: 50px;
 }
@@ -28,6 +29,7 @@
   margin: 0 auto;
 }
 
+/* Accent divider line */
 .divider {
   width: 100px;
   height: 4px;
@@ -36,7 +38,7 @@
   margin: 25px auto 60px auto;
 }
 
-/* --- Category Filter --- */
+/* --- Category Filter Buttons --- */
 .category-filter {
   display: flex;
   justify-content: center;
@@ -69,8 +71,9 @@
   box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
 }
 
-/* --- Product Grid Layout (4 Columns) --- */
+/* --- Product Grid Layout --- */
 .product-grid {
+  /* Responsive grid layout with a minimum card width of 215px */
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
   gap: 45px;
@@ -79,6 +82,7 @@
   margin: 0 auto;
 }
 
+/* --- Individual Product Card --- */
 .product-card {
   background: var(--color-surface);
   border-radius: 12px;
@@ -90,10 +94,12 @@
   text-align: left;
   overflow: hidden;
   position: relative;
+  /* Enables flex-based layout for pushing buttons to the bottom */
   display: flex;
   flex-direction: column;
 }
 
+/* Lift effect and secondary accent border on hover */
 .product-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(156, 39, 176, 0.3);
@@ -110,7 +116,6 @@
   justify-content: center;
   align-items: center;
   margin-bottom: 15px;
-  /* Ensure this element doesn't expand */
   flex-shrink: 0;
 }
 
@@ -122,11 +127,11 @@
   transition: transform 0.3s ease;
 }
 
-/* Name, Price, Stock elements */
+/* Prevents text from shrinking */
 .product-card h3,
 .product-price,
 .product-stock {
-  flex-shrink: 0; /* Prevents text elements from shrinking */
+  flex-shrink: 0;
 }
 
 .product-card h3 {
@@ -134,7 +139,7 @@
   font-weight: 700;
   color: var(--color-text-primary);
   margin-bottom: 4px;
-  /* FIX: Explicitly set height or min-height to accommodate two lines */
+  /* Reserves space for two lines of text */
   min-height: 2.8em;
   overflow: hidden;
 }
@@ -143,13 +148,13 @@
   color: var(--color-accent);
   font-weight: 800;
   font-size: 1.3rem;
-  margin-bottom: 5px; /* Reduced margin here */
+  margin-bottom: 5px;
 }
 
 .product-stock {
   font-size: 0.9rem;
   margin-top: 4px;
-  margin-bottom: 15px; /* Space above the button container */
+  margin-bottom: 15px;
   color: var(--color-border);
 }
 
@@ -157,9 +162,11 @@
   display: flex;
   justify-content: center;
   gap: 8px;
+  /* Pushes the button container to the bottom of the flex column */
   margin-top: auto;
 }
 
+/* Button styling specific to the card */
 .btn-main,
 .btn-secondary {
   padding: 8px 8px;
@@ -167,7 +174,7 @@
   font-weight: 600;
   border-radius: 6px;
   min-width: unset;
-  flex: 1;
+  flex: 1; /* Ensures buttons share space equally */
   line-height: 1.5;
 }
 
@@ -189,13 +196,6 @@
 .btn-secondary:hover {
   background-color: var(--color-hover-light);
   transform: translateY(-1px);
-}
-
-/* --- Stock Status --- */
-.product-stock {
-  font-size: 0.9rem;
-  margin-top: 4px;
-  color: var(--color-border);
 }
 
 /* --- PRODUCT DETAILS PAGE STYLES --- */
@@ -230,7 +230,7 @@
 }
 
 .details-info {
-  flex: 1.5;
+  flex: 1.5; /* Info panel is wider than image panel */
   padding: 40px;
   text-align: left;
 }
@@ -278,6 +278,7 @@
   display: inline-block;
 }
 
+/* Underline accent for specs title */
 .specifications-section h3::after {
   content: "";
   position: absolute;
@@ -293,6 +294,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  /* Grid for key-value pair alignment */
   display: grid;
   grid-template-columns: 150px 1fr;
   max-width: 500px;
@@ -300,7 +302,6 @@
 }
 
 .spec-item {
-  font-size: 1rem;
   display: contents;
 }
 
@@ -314,18 +315,18 @@
   color: var(--color-secondary-accent);
 }
 
-/* --- MODAL STYLES (Aesthetic Refinement) --- */
+/* --- MODAL STYLES (Quantity and Auth Prompts) --- */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  /* Dark semi-transparent overlay */
   background: rgba(26, 26, 46, 0.9);
   z-index: 9999;
 
   display: none;
-
   align-items: center;
   justify-content: center;
   opacity: 0;
@@ -345,6 +346,7 @@
   max-width: 400px;
   width: 90%;
   text-align: center;
+  /* Initial off-screen position for animation */
   transform: translateY(-20px);
   transition: transform 0.3s ease;
 }
@@ -378,9 +380,9 @@
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
-  width: 45px; /* Slightly wider button */
-  height: 45px; /* Slightly taller button */
-  border-radius: 8px; /* Square corners for tech feel */
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
   font-size: 1.2rem;
   font-weight: 700;
   transition: background 0.2s;
@@ -388,11 +390,11 @@
 }
 
 .quantity-input-field {
-  width: 80px; /* Wider input field */
-  padding: 10px 10px; /* Increased padding */
-  border: 2px solid var(--color-accent); /* Thicker border on input */
+  width: 80px;
+  padding: 10px 10px;
+  border: 2px solid var(--color-accent);
   border-radius: 8px;
-  font-size: 1.3rem; /* Larger font */
+  font-size: 1.3rem;
   font-weight: 600;
   text-align: center;
   color: var(--color-text-primary);
@@ -408,7 +410,7 @@
 
 .modal-actions .btn-main {
   flex: 1;
-  padding: 12px 15px; /* Increased button padding */
+  padding: 12px 15px;
   font-size: 1rem;
 }
 
@@ -427,6 +429,7 @@
 
 /* --- Responsive Design --- */
 @media (max-width: 900px) {
+  /* Stack details card on small screens */
   .details-card {
     flex-direction: column;
     max-width: 600px;
@@ -452,6 +455,7 @@
   .details-price {
     font-size: 1.5rem;
   }
+  /* Stack detail buttons vertically */
   .details-buttons {
     flex-direction: column;
     gap: 10px;

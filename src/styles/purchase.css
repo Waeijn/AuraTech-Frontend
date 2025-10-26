@@ -1,4 +1,4 @@
-/* --- purchase.css (Aggressive Gaming Theme Table) --- */
+/* --- Base Layout and Container --- */
 
 .purchase-history-container {
   max-width: 1200px; /* Increased width for better table readability */
@@ -29,7 +29,7 @@
   margin: 40px 0;
 }
 
-/* --- Individual Order Section --- */
+/* --- Individual Order Section Card --- */
 .purchase-section {
   margin-bottom: 40px;
   background: var(--color-surface);
@@ -42,7 +42,7 @@
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  border-bottom: 3px solid var(--color-accent); /* Vibrant Cyan underline */
+  border-bottom: 3px solid var(--color-accent); /* Cyan accent underline */
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -50,18 +50,18 @@
 /* --- Table Styles --- */
 .purchase-history-table {
   width: 100%;
-  border-collapse: separate; /* Use separate for border-radius effects */
+  border-collapse: separate;
   border-spacing: 0;
   margin-top: 25px;
   border-radius: var(--radius);
-  overflow: hidden; /* Ensures radius applies to borders */
+  overflow: hidden;
 }
 
 .purchase-history-table th,
 .purchase-history-table td {
   text-align: left;
   padding: 15px 12px;
-  border-bottom: 1px solid var(--color-bg-primary); /* Light separator */
+  border-bottom: 1px solid var(--color-bg-primary); /* Light row separator */
 }
 
 .purchase-history-table th {
@@ -81,6 +81,7 @@
   background-color: var(--color-bg-primary); /* Subtle hover effect */
 }
 
+/* Styling for item list within the table cell */
 .item-list {
   list-style: none;
   padding: 0;
@@ -89,14 +90,10 @@
   color: var(--color-text-primary);
 }
 
-.item-list li {
-  padding: 2px 0;
-  white-space: normal;
-}
-
+/* Total column styling (Electric Purple accent) */
 .order-total {
   font-weight: 700;
-  color: var(--color-secondary-accent); /* Electric Purple for Total */
+  color: var(--color-secondary-accent);
   font-size: 1.1em;
 }
 
@@ -109,17 +106,19 @@
   white-space: nowrap;
 }
 
+/* Specific color for 'For Shipping' status */
 .status-for-shipping {
-  color: var(--color-text-primary);
-  background-color: var(--color-accent); /* Vibrant Cyan background */
   color: var(--color-surface);
+  background-color: var(--color-accent); /* Vibrant Cyan background */
 }
 
+/* Specific color for 'Delivered' status */
 .status-delivered {
   color: #155724;
   background-color: #c8e6c9; /* Light green/success */
 }
 
+/* Specific color for 'Cancelled' status */
 .status-cancelled {
   color: #721c24;
   background-color: #fbe6e6; /* Light red/danger */
@@ -131,6 +130,7 @@
   gap: 8px;
 }
 
+/* 'Received' button (Primary Accent) */
 .btn-action-primary {
   background-color: var(--color-accent);
   color: var(--color-surface);
@@ -148,10 +148,9 @@
   background-color: var(--color-hover-dark);
 }
 
+/* 'Cancel' button (Secondary Accent/Purple) */
 .btn-cancel-order {
-  background-color: var(
-    --color-secondary-accent
-  ); /* Electric Purple for Cancel */
+  background-color: var(--color-secondary-accent);
   color: var(--color-surface);
   border: none;
   padding: 8px 12px;
@@ -167,21 +166,23 @@
   background-color: var(--color-hover-secondary);
 }
 
-/* --- Responsive design --- */
+/* --- Responsive design (Mobile Table View) --- */
 @media (max-width: 900px) {
   .purchase-history-container {
     padding: 40px 20px;
   }
 
+  /* Force table structure change to vertical stacking on mobile */
   .purchase-history-table {
     display: block;
     border-radius: 0;
   }
 
   .purchase-history-table thead {
-    display: none; /* Hide header on mobile */
+    display: none; /* Hide desktop header */
   }
 
+  /* Make rows and cells behave as block elements */
   .purchase-history-table,
   .purchase-history-table tbody,
   .purchase-history-table tr,
@@ -197,6 +198,7 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   }
 
+  /* Position data label and align content */
   .purchase-history-table td {
     text-align: right;
     padding-left: 50%;
@@ -204,6 +206,7 @@
     border: none;
   }
 
+  /* Insert column header text via data-label attribute for accessibility */
   .purchase-history-table td::before {
     content: attr(data-label);
     position: absolute;
@@ -216,6 +219,7 @@
     color: var(--color-text-primary);
   }
 
+  /* Hardcoded content for the 'data-label' attribute based on column index */
   .purchase-history-table td:nth-child(1)::before {
     content: "Order ID";
   }

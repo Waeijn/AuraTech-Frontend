@@ -1,27 +1,28 @@
-/* Footer Styles (Aggressive Gaming Theme & Layout Fix) */
+/* === Footer Styles (Aggressive Gaming Theme & Layout) === */
 
 .footer {
-  /* Deep Navy background for strong closing section */
+  /* Deep Navy background with accent border for a strong close */
   background: var(--color-text-primary);
   border-top: 2px solid var(--color-accent);
-  padding: 40px 30px; /* Consistent padding */
+  padding: 40px 30px;
   color: var(--color-surface);
-  margin-top: 80px; /* Generous vertical spacing after main content */
+  margin-top: 80px;
 }
 
 .footer__inner {
-  max-width: 1400px; /* Use wide max-width for modern feel */
+  max-width: 1400px;
   margin: 0 auto;
 
+  /* Desktop Grid Layout */
   display: grid;
-  /* Defining grid areas for clear structure */
-  grid-template-columns: 2fr 1fr; /* Brand gets 2/3rds, Links get 1/3rd */
+  /* Brand gets 2/3rds (2fr), Links get 1/3rd (1fr) */
+  grid-template-columns: 2fr 1fr;
   grid-template-rows: auto auto;
   grid-template-areas:
     "brand links"
-    "copy copy"; /* Copyright always spans two columns */
+    "copy copy"; /* Copyright spans the full width at the bottom */
 
-  gap: 30px 60px; /* Vertical gap 30px, Horizontal gap 60px */
+  gap: 30px 60px;
   align-items: start;
 }
 
@@ -45,17 +46,16 @@
 }
 
 .footer__logo h3 {
-  font-size: 24px; /* Prominent size */
+  font-size: 24px;
   font-weight: 800;
   margin: 0;
-  /* FIX: Using solid color variable instead of old gradient */
   color: var(--color-surface);
 }
 
 .footer__brand p {
   margin: 0;
   font-size: 15px;
-  color: var(--color-accent); /* Electric Purple Tagline */
+  color: var(--color-accent); /* Accent color for tagline */
   font-weight: 500;
 }
 
@@ -68,7 +68,7 @@
 }
 
 .footer__links a {
-  color: var(--color-surface); /* White links */
+  color: var(--color-surface);
   text-decoration: none;
   font-weight: 500;
   font-size: 16px;
@@ -77,33 +77,26 @@
 }
 
 .footer__links a:hover {
-  color: var(--color-secondary-accent); /* Vibrant Cyan hover */
+  color: var(--color-secondary-accent); /* Secondary accent color on hover */
 }
 
-/* Removed '->' link effect for cleaner aesthetic */
-.footer__links a::before,
-.footer__links a:hover::before {
-  content: none;
-  opacity: 0;
-}
-
-/* --- Copyright Section (Spans Full Width) --- */
+/* --- Copyright Section (Full Width Row) --- */
 .footer__copy {
   grid-area: copy;
   text-align: left;
   padding-top: 25px;
-  /* Clear line separation from content above */
+  /* Visual separation line */
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  margin-top: 15px; /* Adds space above the line */
+  margin-top: 15px;
 }
 
 .footer__copy p {
   margin: 0;
   font-size: 14px;
-  color: var(--color-border); /* Subtle gray color */
+  color: var(--color-border);
 }
 
-/* Responsive design */
+/* === Responsive Adjustments === */
 @media (max-width: 768px) {
   .footer {
     padding: 30px 20px;
@@ -111,7 +104,7 @@
   }
 
   .footer__inner {
-    /* Stack all elements vertically on mobile */
+    /* Stack all grid areas vertically */
     grid-template-columns: 1fr;
     grid-template-areas:
       "brand"
@@ -125,8 +118,12 @@
     text-align: center;
   }
 
+  .footer__logo {
+    justify-content: center; /* Center logo elements */
+  }
+
   .footer__links {
-    align-items: center; /* Center links */
+    align-items: center; /* Center links in the column */
   }
 
   .footer__copy {

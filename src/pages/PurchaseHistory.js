@@ -1,5 +1,3 @@
-// Sprint 4: Member 4 - Redesigned Purchase History Page
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../components/Navbar";
 import "../styles/purchase.css";
@@ -8,6 +6,12 @@ import productsData from "../data/products.json";
 const PURCHASE_HISTORY_KEY = "purchaseHistory";
 const INVENTORY_KEY = "temporary_inventory";
 
+// --- Utility Functions for Inventory and History Management ---
+
+/**
+ * Initializes and retrieves product stock/inventory from local storage.
+ * @returns {object} The current inventory object {productId: stockCount}.
+ */
 const getInventory = () => {
   let inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY));
   if (!inventory) {
@@ -21,17 +25,26 @@ const getInventory = () => {
   return inventory;
 };
 
+/**
+ * Saves the updated inventory object back to local storage.
+ * @param {object} inventory - The inventory object to save.
+ */
 const saveInventory = (inventory) => {
   localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
 };
 
+/**
+ * Restocks items by adding their quantity back to the temporary inventory.
+ * Used when an order is cancelled.
+ * @param {Array} items - List of items with their IDs and quantities to restock.
+ */
 const restockItems = (items) => {
   const currentInventory = getInventory();
 
   items.forEach((item) => {
     const itemId = item.id;
     const returnedQty = item.quantity;
-
+    // Safely add returned quantity to the current stock
     currentInventory[itemId] = (currentInventory[itemId] || 0) + returnedQty;
   });
 
@@ -39,13 +52,23 @@ const restockItems = (items) => {
   console.log("Stock successfully returned to temporary local inventory.");
 };
 
-// Helper to fetch history specific to the user
+/**
+ * Fetches the purchase history filtered specifically for the logged-in user.
+ * @param {string} userEmail - The email of the current user.
+ * @returns {Array} List of orders belonging to the user.
+ */
 const getPurchaseHistory = (userEmail) => {
   const allHistory =
     JSON.parse(localStorage.getItem(PURCHASE_HISTORY_KEY)) || [];
   return allHistory.filter((order) => order.userEmail === userEmail);
 };
 
+// --- OrderTable Sub-Component ---
+
+/**
+ * OrderTable Component
+ * Renders a stylized table of orders for a specific category (e.g., Active or Completed).
+ */
 const OrderTable = ({
   title,
   orders,
@@ -85,6 +108,7 @@ const OrderTable = ({
             <tr key={order.orderId}>
               <td>{order.orderId}</td>
               <td>{order.date}</td>
+              {/* Display list of items in the order */}
               <td>
                 <ul className="item-list">
                   {order.items.map((item) => (
@@ -94,6 +118,7 @@ const OrderTable = ({
                   ))}
                 </ul>
               </td>
+              {/* Display formatted total price */}
               <td className="order-total">
                 ₱
                 {order.total.toLocaleString(undefined, {
@@ -101,6 +126,7 @@ const OrderTable = ({
                   maximumFractionDigits: 2,
                 })}
               </td>
+              {/* Display stylized status tag */}
               <td>
                 <span
                   className={`status-tag status-${order.status
@@ -110,6 +136,7 @@ const OrderTable = ({
                   {order.status}
                 </span>
               </td>
+              {/* Conditional Actions column */}
               {showActions && (
                 <td>
                   {order.status === "For Shipping" && (
@@ -140,10 +167,18 @@ const OrderTable = ({
   );
 };
 
+// --- PurchaseHistory Component ---
+
+/**
+ * PurchaseHistory Component
+ * Main page for displaying a user's active and completed orders,
+ * including actions like confirming delivery and cancelling orders.
+ */
 export default function PurchaseHistory() {
   const { currentUser } = useAuth();
   const [allHistory, setAllHistory] = useState([]);
 
+  /** Memoized function to fetch and set history data for the current user. */
   const refreshHistory = useCallback(() => {
     if (currentUser && currentUser.email) {
       setAllHistory(getPurchaseHistory(currentUser.email));
@@ -152,10 +187,18 @@ export default function PurchaseHistory() {
     }
   }, [currentUser]);
 
+  // Load history on mount and whenever the refresh function changes
   useEffect(() => {
     refreshHistory();
   }, [refreshHistory]);
 
+  // --- Handlers ---
+
+  /**
+   * Updates the status of a specific order in local storage.
+   * @param {string} orderId - The ID of the order to update.
+   * @param {string} newStatus - The new status value (e.g., "Delivered").
+   */
   const updateOrderStatus = (orderId, newStatus) => {
     const history =
       JSON.parse(localStorage.getItem(PURCHASE_HISTORY_KEY)) || [];
@@ -168,11 +211,17 @@ export default function PurchaseHistory() {
     });
 
     localStorage.setItem(PURCHASE_HISTORY_KEY, JSON.stringify(updatedHistory));
-    refreshHistory();
+    refreshHistory(); // Refresh component state
   };
 
+  /**
+   * Handles the cancellation of an order.
+   * Changes the status to "Cancelled" and calls restockItems.
+   * @param {string} orderId - The ID of the order to cancel.
+   * @param {Array} orderItems - The list of items to restock.
+   */
   const handleCancelOrder = (orderId, orderItems) => {
-    // FIX: Using console log instead of window.confirm for compliance
+    // Log message serves as a placeholder for a custom confirmation modal
     console.log(
       `Attempting to cancel Order ID: ${orderId}. This action should be confirmed via a custom modal.`
     );
@@ -183,7 +232,7 @@ export default function PurchaseHistory() {
     const updatedHistory = history.map((order) => {
       if (order.orderId === orderId && order.status === "For Shipping") {
         order.status = "Cancelled";
-        restockItems(orderItems);
+        restockItems(orderItems); // Return items to inventory
         console.log(
           `Order ${orderId} has been CANCELLED and items have been restocked.`
         );
@@ -195,16 +244,20 @@ export default function PurchaseHistory() {
     refreshHistory();
   };
 
+  /**
+   * Handles confirming delivery of an order, changing its status to "Delivered".
+   * @param {string} orderId - The ID of the order.
+   */
   const handleConfirmDelivery = (orderId) => {
-    // FIX: Using console log instead of window.confirm for compliance
+    // Log message serves as a placeholder for a custom confirmation modal
     console.log(
       `Confirming Order ID: ${orderId} received. This action should be confirmed via a custom modal.`
     );
-
     updateOrderStatus(orderId, "Delivered");
     console.log(`Order ${orderId} status changed to 'Delivered'.`);
   };
 
+  // --- Conditional Render: Not Logged In ---
   if (!currentUser) {
     return (
       <div className="purchase-history-container">
@@ -214,7 +267,7 @@ export default function PurchaseHistory() {
     );
   }
 
-  // Filter orders into two groups
+  // --- Filter Orders for Display ---
   const activeOrders = allHistory.filter(
     (order) => order.status === "For Shipping"
   );
@@ -223,6 +276,7 @@ export default function PurchaseHistory() {
     (order) => order.status === "Delivered" || order.status === "Cancelled"
   );
 
+  // --- Main Render ---
   return (
     <div className="purchase-history-container">
       <h1>My Orders</h1>
@@ -230,6 +284,7 @@ export default function PurchaseHistory() {
         This tracks the current status of your active and past orders.
       </p>
 
+      {/* Active Orders Table */}
       <OrderTable
         title="Active Orders (Awaiting Delivery)"
         orders={activeOrders}
@@ -240,9 +295,11 @@ export default function PurchaseHistory() {
 
       <div className="history-separator"></div>
 
+      {/* Completed History Table */}
       <OrderTable
         title="Completed History"
         orders={completedHistory}
+        // No actions needed for delivered or cancelled items
         handleCancelOrder={() => {}}
         handleConfirmDelivery={() => {}}
         showActions={false}
