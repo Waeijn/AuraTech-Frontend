@@ -1,24 +1,37 @@
-// Sprint 1: Member 2
-// Task: Basic Footer structure for site layout.
-// NOTE to Member 2: Footer styling controlled by Member 5.
-
 import "../styles/footer.css";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "./Navbar";
+import { useAuth } from "./Navbar"; // Assuming 'Navbar' exports the Auth context hook
 import React, { useState } from "react";
 
+/**
+ * Footer Component
+ * Renders the main application footer with navigation links and handles
+ * authentication prompts for protected routes like the Cart.
+ */
 export default function Footer() {
+  // --- State and Context Hooks ---
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
 
-  // Handlers for Auth Prompt Modal
+  // --- Handlers for Authentication Prompt Modal ---
+
+  /** Closes the authentication prompt modal. */
   const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
+
+  /**
+   * Redirects the user to the login page after closing the prompt.
+   */
   const handleLoginRedirect = () => {
     handleCloseAuthPrompt();
     navigate("/login");
   };
 
+  /**
+   * Intercepts the click on the Cart link.
+   * If no user is logged in, prevents navigation and opens the auth prompt.
+   * @param {object} e - The click event.
+   */
   const handleCartClick = (e) => {
     if (!currentUser) {
       e.preventDefault();
@@ -28,6 +41,9 @@ export default function Footer() {
 
   return (
     <>
+      {/* Authentication Required Modal: 
+        Displays when an unauthenticated user attempts to access the cart.
+      */}
       {isAuthPromptOpen && (
         <div className={`modal-overlay open`}>
           <div className="quantity-modal confirmation-modal">
@@ -49,9 +65,10 @@ export default function Footer() {
         </div>
       )}
 
+      {/* Main Footer Structure */}
       <footer className="footer">
         <div className="footer__inner">
-          {/* Left: Brand / Logo / Tagline */}
+          {/* Brand and Tagline Section */}
           <div className="footer__brand">
             <div className="footer__logo">
               <img src="/img/logo/LOGO.png" alt="AuraTech Logo" />
@@ -60,16 +77,17 @@ export default function Footer() {
             <p>Gaming Gear — Built for Performance</p>
           </div>
 
-          {/* Center: Navigation Links */}
+          {/* Navigation Links Section */}
           <div className="footer__links">
             <Link to="/">Home</Link>
             <Link to="/products">Products</Link>
+            {/* Cart link uses the handler to enforce login */}
             <Link to="/cart" onClick={handleCartClick}>
               Cart
             </Link>
           </div>
 
-          {/* Bottom: Copyright */}
+          {/* Copyright Section */}
           <div className="footer__copy">
             <p>© {new Date().getFullYear()} AuraTech. All rights reserved.</p>
           </div>

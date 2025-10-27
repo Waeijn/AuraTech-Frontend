@@ -7,7 +7,14 @@
     "description": "A high-performance laptop designed for professionals and creators.",
     "category": "Gaming Laptops",
     "stock": 10,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Processor": "Intel i9 (14th Gen)",
+      "Graphics": "NVIDIA RTX 4080",
+      "RAM": "32GB DDR5",
+      "Storage": "1TB NVMe SSD",
+      "Display": "16-inch QHD (240Hz)"
+    }
   },
   {
     "id": 2,
@@ -17,7 +24,14 @@
     "description": "A sleek smartphone with a crystal-clear display and fast processor.",
     "category": "Smartphones",
     "stock": 15,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "OS": "Android 14",
+      "Display": "6.7-inch AMOLED (120Hz)",
+      "Camera": "50MP Main / 12MP Ultra-wide",
+      "Battery": "5000mAh (65W Fast Charge)",
+      "Storage": "256GB"
+    }
   },
   {
     "id": 3,
@@ -27,7 +41,14 @@
     "description": "Stay connected and track fitness with this modern smartwatch.",
     "category": "Smartwatches",
     "stock": 20,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Display": "1.4-inch AMOLED",
+      "Connectivity": "GPS, Bluetooth 5.0",
+      "Sensor": "Heart Rate, SpO2, ECG",
+      "Water Resistance": "5 ATM",
+      "Battery Life": "Up to 7 days"
+    }
   },
   {
     "id": 4,
@@ -37,7 +58,14 @@
     "description": "Noise-cancelling headphones with superior sound and comfort.",
     "category": "Audio",
     "stock": 13,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Over-Ear Wireless",
+      "Feature": "Active Noise Cancelling (ANC)",
+      "Battery Life": "40 Hours",
+      "Connectivity": "Bluetooth 5.2",
+      "Audio Drivers": "40mm"
+    }
   },
   {
     "id": 5,
@@ -47,7 +75,14 @@
     "description": "Portable speaker with deep bass and clear sound quality.",
     "category": "Audio",
     "stock": 17,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Portable Bluetooth Speaker",
+      "Water Resistance": "IPX7",
+      "Battery Life": "12 Hours",
+      "Output Power": "20W",
+      "Feature": "Stereo Pairing"
+    }
   },
   {
     "id": 6,
@@ -57,7 +92,14 @@
     "description": "Ergonomic gaming mouse with customizable RGB lighting.",
     "category": "Mouse & Keyboards",
     "stock": 19,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Type": "Wired Gaming Mouse",
+      "Sensor": "Optical (16,000 DPI)",
+      "Buttons": "7 Programmable",
+      "Weight": "80g",
+      "Lighting": "Customizable RGB"
+    }
   },
   {
     "id": 7,
@@ -67,7 +109,14 @@
     "description": "Durable keyboard with tactile switches and customizable keys.",
     "category": "Mouse & Keyboards",
     "stock": 8,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Full-Size Mechanical",
+      "Switches": "AuraTactile Brown",
+      "Key Rollover": "N-Key Rollover",
+      "Backlighting": "White LED",
+      "Connection": "Wired USB-C"
+    }
   },
   {
     "id": 8,
@@ -77,7 +126,14 @@
     "description": "Stunning 27-inch 4K UHD display for gaming and productivity.",
     "category": "Monitors",
     "stock": 6,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Size": "27-inch",
+      "Resolution": "3840 x 2160 (4K UHD)",
+      "Refresh Rate": "60Hz",
+      "Panel Type": "IPS",
+      "Response Time": "5ms"
+    }
   },
   {
     "id": 9,
@@ -87,7 +143,14 @@
     "image": "/img/products/cooler.png",
     "category": "PC Components",
     "stock": 8,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Type": "AIO Liquid Cooler",
+      "Radiator Size": "240mm",
+      "Fans": "2x 120mm RGB",
+      "Compatibility": "Intel/AMD Universal",
+      "Pump Noise": "< 20 dBA"
+    }
   },
   {
     "id": 10,
@@ -97,7 +160,14 @@
     "image": "/img/products/camera.png",
     "category": "Cameras",
     "featured": true,
-    "stock": 11
+    "stock": 11,
+    "specifications": {
+      "Video Resolution": "4K at 60fps",
+      "Still Image": "20MP",
+      "Waterproof": "Up to 10m (without case)",
+      "Stabilization": "HyperSmooth 3.0",
+      "Feature": "Voice Control"
+    }
   },
   {
     "id": 11,
@@ -107,7 +177,14 @@
     "image": "/img/products/airpods.png",
     "category": "Audio",
     "stock": 20,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "True Wireless Earbuds",
+      "Feature": "Active Noise Cancelling (ANC)",
+      "Battery Life": "6 Hours (30 with Case)",
+      "Water Resistance": "IPX4",
+      "Connectivity": "Bluetooth 5.3"
+    }
   },
   {
     "id": 12,
@@ -117,7 +194,14 @@
     "image": "/img/products/laptopstand.png",
     "category": "Stands & Mounts",
     "featured": false,
-    "stock": 23
+    "stock": 23,
+    "specifications": {
+      "Material": "Aluminum Alloy",
+      "Fan Speed": "2000 RPM",
+      "Laptop Size": "Up to 17.3 inches",
+      "Feature": "7-Level Height Adjustment",
+      "Lighting": "Integrated RGB"
+    }
   },
   {
     "id": 13,
@@ -127,7 +211,14 @@
     "description": "Next-gen console for 4K gaming and immersive experiences.",
     "category": "Game Consoles",
     "stock": 10,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Resolution": "Up to 4K",
+      "Storage": "825GB Custom SSD",
+      "RAM": "16GB GDDR6",
+      "Feature": "Ray Tracing Support",
+      "Controller": "Wireless Haptic Feedback"
+    }
   },
   {
     "id": 14,
@@ -137,7 +228,14 @@
     "description": "Premium console with ultra-fast SSD and 8K-ready performance.",
     "category": "Game Consoles",
     "stock": 8,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Resolution": "Up to 8K",
+      "Storage": "1TB NVMe Custom SSD",
+      "RAM": "18GB GDDR6",
+      "Feature": "Variable Refresh Rate (VRR)",
+      "Controller": "Elite Wireless Pro"
+    }
   },
   {
     "id": 15,
@@ -147,7 +245,14 @@
     "description": "Ergonomic gaming chair with lumbar support and adjustable height.",
     "category": "Gaming Chairs",
     "stock": 12,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Material": "PU Leather",
+      "Armrests": "2D Adjustable",
+      "Recline": "150° Max",
+      "Weight Capacity": "120 kg",
+      "Pillows": "Headrest and Lumbar"
+    }
   },
   {
     "id": 16,
@@ -157,7 +262,14 @@
     "description": "Racing-style chair with breathable leather and 180° recline.",
     "category": "Gaming Chairs",
     "stock": 9,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Material": "Breathable Fabric/Mesh",
+      "Armrests": "3D Adjustable",
+      "Recline": "180° Flat",
+      "Weight Capacity": "150 kg",
+      "Feature": "High-Density Foam"
+    }
   },
   {
     "id": 17,
@@ -167,7 +279,14 @@
     "description": "High-end chair with adjustable armrests and RGB lighting.",
     "category": "Gaming Chairs",
     "stock": 7,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Material": "Premium PVC Leather",
+      "Armrests": "4D Multi-Adjustable",
+      "Recline": "160° Max",
+      "Weight Capacity": "180 kg",
+      "Lighting": "Integrated RGB Base"
+    }
   },
   {
     "id": 18,
@@ -177,7 +296,14 @@
     "description": "Mechanical keyboard with full RGB backlight and blue switches.",
     "category": "Mouse & Keyboards",
     "stock": 10,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Full-Size Mechanical",
+      "Switches": "Clicky Blue",
+      "Key Rollover": "N-Key Rollover",
+      "Backlighting": "Per-Key RGB",
+      "Connection": "Wired USB"
+    }
   },
   {
     "id": 19,
@@ -187,7 +313,14 @@
     "description": "Compact gaming keyboard with Type-C connection.",
     "category": "Mouse & Keyboards",
     "stock": 12,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "60% Mini Mechanical",
+      "Switches": "Linear Red",
+      "Keycaps": "PBT Double-shot",
+      "Connection": "Detachable USB-C",
+      "Feature": "Compact Layout"
+    }
   },
   {
     "id": 20,
@@ -197,7 +330,14 @@
     "description": "Wireless mechanical keyboard with silent keys.",
     "category": "Mouse & Keyboards",
     "stock": 9,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Type": "TKL Mechanical",
+      "Switches": "Silent Red",
+      "Backlighting": "RGB",
+      "Connection": "2.4GHz Wireless / Bluetooth",
+      "Battery Life": "Up to 50 Hours"
+    }
   },
   {
     "id": 21,
@@ -207,7 +347,14 @@
     "description": "Elegant white backlit keyboard with custom switches.",
     "category": "Mouse & Keyboards",
     "stock": 10,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Full-Size Mechanical",
+      "Switches": "Custom AuraTactile White",
+      "Color": "White",
+      "Backlighting": "White LED",
+      "Feature": "Media Controls"
+    }
   },
   {
     "id": 22,
@@ -217,7 +364,14 @@
     "description": "Studio-quality USB microphone for streaming and podcasting.",
     "category": "Microphones",
     "stock": 14,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Type": "Condenser",
+      "Polar Pattern": "Cardioid",
+      "Connection": "USB Plug-and-Play",
+      "Sample Rate": "48kHz/16-bit",
+      "Feature": "Zero-Latency Monitoring"
+    }
   },
   {
     "id": 23,
@@ -227,7 +381,14 @@
     "description": "Professional microphone with RGB base and noise suppression.",
     "category": "Microphones",
     "stock": 10,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Dynamic",
+      "Polar Pattern": "Omnidirectional",
+      "Connection": "USB-C",
+      "Lighting": "RGB Base",
+      "Feature": "Built-in Pop Filter"
+    }
   },
   {
     "id": 24,
@@ -237,7 +398,14 @@
     "description": "32-inch curved 165Hz QHD display with ultra-fast response.",
     "category": "Monitors",
     "stock": 5,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Size": "32-inch Curved",
+      "Resolution": "2560 x 1440 (QHD)",
+      "Refresh Rate": "165Hz",
+      "Panel Type": "VA",
+      "Response Time": "1ms"
+    }
   },
   {
     "id": 25,
@@ -247,7 +415,14 @@
     "description": "Lightweight gaming mouse with adjustable DPI.",
     "category": "Mouse & Keyboards",
     "stock": 18,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Wired Gaming Mouse",
+      "Sensor": "Optical (12,000 DPI)",
+      "Buttons": "6 Programmable",
+      "Weight": "70g",
+      "Lighting": "Full RGB"
+    }
   },
   {
     "id": 26,
@@ -257,7 +432,14 @@
     "description": "Honeycomb shell ultra-light mouse with braided cable.",
     "category": "Mouse & Keyboards",
     "stock": 15,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Wired Gaming Mouse",
+      "Sensor": "Optical (10,000 DPI)",
+      "Buttons": "6 Programmable",
+      "Weight": "60g",
+      "Feature": "Honeycomb Shell"
+    }
   },
   {
     "id": 27,
@@ -267,7 +449,14 @@
     "description": "Extended mousepad with dynamic RGB lighting.",
     "category": "Accessories",
     "stock": 20,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Size": "Extended (900x400mm)",
+      "Material": "Micro-woven cloth",
+      "Base": "Anti-slip Rubber",
+      "Lighting": "Dynamic RGB Edge",
+      "Connection": "Detachable USB"
+    }
   },
   {
     "id": 28,
@@ -277,7 +466,14 @@
     "description": "Standalone mechanical numeric keypad for productivity.",
     "category": "Accessories",
     "stock": 22,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Keys": "21 Mechanical",
+      "Switches": "Tactile Brown",
+      "Connection": "Wired USB",
+      "Feature": "Standalone Numpad",
+      "Compatibility": "Universal"
+    }
   },
   {
     "id": 29,
@@ -287,7 +483,14 @@
     "description": "Flagship-level gaming phone with vapor-cooling system.",
     "category": "Smartphones",
     "stock": 6,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Processor": "Snapdragon 8 Gen 3",
+      "Display": "6.8-inch AMOLED (144Hz)",
+      "Cooling": "Vapor Chamber",
+      "Battery": "6000mAh",
+      "Feature": "AirTriggers"
+    }
   },
   {
     "id": 30,
@@ -297,7 +500,14 @@
     "description": "Mid-range gaming phone optimized for performance.",
     "category": "Smartphones",
     "stock": 10,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Processor": "Mediatek Dimensity 9000",
+      "Display": "6.67-inch AMOLED (120Hz)",
+      "Camera": "64MP Main",
+      "Battery": "5500mAh",
+      "RAM": "12GB"
+    }
   },
   {
     "id": 31,
@@ -307,7 +517,14 @@
     "description": "Affordable gaming phone with smooth 120Hz display.",
     "category": "Smartphones",
     "stock": 12,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Processor": "Snapdragon 7 Gen 2",
+      "Display": "6.5-inch IPS (120Hz)",
+      "Storage": "128GB",
+      "Battery": "5000mAh",
+      "Feature": "Game Mode Optimization"
+    }
   },
   {
     "id": 32,
@@ -317,7 +534,14 @@
     "description": "Dual-driver speaker system with enhanced bass.",
     "category": "Audio",
     "stock": 10,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Type": "Home Bluetooth Speaker",
+      "Drivers": "Dual Subwoofers",
+      "Output Power": "40W",
+      "Connectivity": "Bluetooth / Aux-in",
+      "Feature": "Enhanced Bass Mode"
+    }
   },
   {
     "id": 33,
@@ -327,7 +551,14 @@
     "description": "Stylish RGB headset stand with USB hub support.",
     "category": "Stands & Mounts",
     "stock": 15,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Material": "ABS Plastic",
+      "Feature": "3x USB 2.0 Hub",
+      "Lighting": "Full RGB Base",
+      "Compatibility": "Universal Headsets",
+      "Cable Management": "Yes"
+    }
   },
   {
     "id": 34,
@@ -337,7 +568,14 @@
     "description": "RGB stand for controllers and headsets.",
     "category": "Stands & Mounts",
     "stock": 12,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Material": "Acrylic",
+      "Capacity": "2 Controllers + 1 Headset",
+      "Lighting": "Adjustable RGB",
+      "Power": "USB Powered",
+      "Feature": "Cable Holder"
+    }
   },
   {
     "id": 35,
@@ -347,7 +585,14 @@
     "description": "Adjustable monitor arm for dual-screen setups.",
     "category": "Stands & Mounts",
     "stock": 10,
-    "featured": true
+    "featured": true,
+    "specifications": {
+      "Mount Type": "Desk Clamp",
+      "Monitors": "Supports 2 (up to 32-inch each)",
+      "Weight Capacity": "8kg per arm",
+      "Adjustment": "Tilt, Swivel, Rotation",
+      "VESA": "75x75, 100x100"
+    }
   },
   {
     "id": 36,
@@ -357,7 +602,14 @@
     "description": "Durable adjustable stand for one monitor.",
     "category": "Stands & Mounts",
     "stock": 11,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Mount Type": "Grommet/Clamp",
+      "Monitor": "Supports 1 (up to 35-inch)",
+      "Weight Capacity": "10kg",
+      "Adjustment": "Gas Spring Height Adjustment",
+      "VESA": "75x75, 100x100"
+    }
   },
   {
     "id": 37,
@@ -367,7 +619,14 @@
     "description": "Fitness tracking smartwatch with heart rate monitor.",
     "category": "Smartwatches",
     "stock": 18,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Display": "1.2-inch TFT",
+      "Connectivity": "Bluetooth",
+      "Sensor": "Heart Rate Monitor",
+      "Water Resistance": "3 ATM",
+      "Battery Life": "Up to 5 days"
+    }
   },
   {
     "id": 38,
@@ -377,7 +636,14 @@
     "description": "Water-resistant smartwatch with AMOLED display.",
     "category": "Smartwatches",
     "stock": 16,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Display": "1.3-inch AMOLED",
+      "Connectivity": "GPS, Bluetooth 5.0",
+      "Sensor": "Heart Rate, Accelerometer",
+      "Water Resistance": "5 ATM",
+      "Feature": "Always-On Display"
+    }
   },
   {
     "id": 39,
@@ -387,26 +653,47 @@
     "description": "Premium smartwatch with Bluetooth calling and GPS.",
     "category": "Smartwatches",
     "stock": 10,
-    "featured": false
+    "featured": false,
+    "specifications": {
+      "Display": "1.4-inch Super AMOLED",
+      "Connectivity": "GPS, Bluetooth Calling",
+      "Sensor": "Heart Rate, ECG, SpO2",
+      "Case Material": "Stainless Steel",
+      "Feature": "Rotating Bezel"
+    }
   },
   {
-  "id": 40,
-  "name": "Auratech Laptop 2",
-  "price": 64999,
-  "image": "/img/products/laptop2.png",
-  "description": "Next-gen gaming laptop with RTX graphics and 1TB SSD.",
-  "category": "Gaming Laptops",
-  "stock": 8,
-  "featured": false
-},
-{
-  "id": 41,
-  "name": "Auratech Laptop 3",
-  "price": 71999,
-  "image": "/img/products/laptop3.png",
-  "description": "Ultra-performance laptop with 17-inch 240Hz display and liquid cooling.",
-  "category": "Gaming Laptops",
-  "stock": 5,
-  "featured": false
-}
+    "id": 40,
+    "name": "Auratech Laptop 2",
+    "price": 64999,
+    "image": "/img/products/laptop2.png",
+    "description": "Next-gen gaming laptop with RTX graphics and 1TB SSD.",
+    "category": "Gaming Laptops",
+    "stock": 8,
+    "featured": false,
+    "specifications": {
+      "Processor": "AMD Ryzen 9",
+      "Graphics": "NVIDIA RTX 4070",
+      "RAM": "16GB DDR5",
+      "Storage": "1TB NVMe SSD",
+      "Display": "15.6-inch FHD (144Hz)"
+    }
+  },
+  {
+    "id": 41,
+    "name": "Auratech Laptop 3",
+    "price": 71999,
+    "image": "/img/products/laptop3.png",
+    "description": "Ultra-performance laptop with 17-inch 240Hz display and liquid cooling.",
+    "category": "Gaming Laptops",
+    "stock": 5,
+    "featured": false,
+    "specifications": {
+      "Processor": "Intel i9 (14th Gen)",
+      "Graphics": "NVIDIA RTX 4090",
+      "RAM": "64GB DDR5",
+      "Storage": "2TB NVMe SSD",
+      "Display": "17.3-inch QHD (240Hz)"
+    }
+  }
 ]

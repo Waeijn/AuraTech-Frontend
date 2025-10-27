@@ -1,13 +1,13 @@
-/* Sprint 1: Member 5
-   Task: Basic navbar styles. Member 5 will finalize visuals. */
+/* --- Navbar Base Styles (Navy/Teal Palette) --- */
 
 .navbar {
+  /* Navbar base style: Navy Background, White/Light Text */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
-  background: var(--surface);
-  border-bottom: 1px solid #ddd;
+  padding: 1rem 30px;
+  background: var(--color-text-primary); /* Deep Navy background */
+  border-bottom: 2px solid var(--color-accent); /* Primary Accent border */
 }
 
 .navbar__container {
@@ -15,9 +15,10 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  gap: 30px;
+  gap: 40px;
 }
 
+/* --- Brand/Logo Section --- */
 .navbar__brand {
   display: flex;
   align-items: center;
@@ -26,136 +27,188 @@
 }
 
 .navbar__brand img {
-  height: 45px;
+  height: 40px;
   width: auto;
   object-fit: contain;
 }
 
 .navbar__brand a {
-  color: var(--text);
+  color: var(--color-surface);
   text-decoration: none;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 22px;
   white-space: nowrap;
+  transition: color 0.3s ease;
 }
 
-/* Search Bar */
+.navbar__brand a:hover {
+  color: var(--color-secondary-accent); /* Teal hover */
+}
+
+/* --- Search Bar & Input (Full Width) --- */
 .navbar__search {
   display: flex;
   gap: 8px;
-  flex: 1;
-  max-width: 400px;
+  flex: 1; /* Takes up all available space */
+  max-width: 1150px;
 }
 
 .search-input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--color-secondary-accent);
+  box-shadow: 0 0 0 2px rgba(41, 168, 203, 0.3);
+  outline: none;
 }
 
 .search-btn {
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
+  /* Button uses Primary Accent color (Teal/Cyan) */
+  padding: 10px 20px;
+  background: var(--color-accent);
+  color: var(--color-surface);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   transition: background 0.3s ease;
 }
 
 .search-btn:hover {
-  background: #0056b3;
+  background: var(--color-hover-dark);
 }
 
-/* Navigation Links */
+/* --- Navigation Links --- */
 .navbar__links {
   display: flex;
-  gap: 24px;
+  gap: 28px;
   align-items: center;
   flex-shrink: 0;
 }
 
 .nav-link {
-  color: var(--text);
+  color: var(--color-surface);
   text-decoration: none;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 16px;
   position: relative;
   transition: color 0.3s ease;
   padding: 8px 0;
 }
 
+/* Underline effect using ::after element */
 .nav-link::after {
   content: "";
   position: absolute;
-  bottom: 0;
+  bottom: -2px;
   left: 0;
   width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #1e90ff, #00ced1);
+  height: 3px;
+  background: var(--color-secondary-accent);
   transition: width 0.3s ease;
 }
 
-.nav-link:hover {
-  color: #1e90ff;
+.nav-link:hover,
+.nav-link.active {
+  color: var(--color-secondary-accent);
 }
 
-.nav-link:hover::after {
+/* Full width underline on hover/active */
+.nav-link:hover::after,
+.nav-link.active::after {
   width: 100%;
 }
 
-.nav-user-greeting {
-  font-size: 0.95rem;
-  color: #333;
-  font-weight: 500;
-}
+/* --- User Dropdown & Auth Controls --- */
 
-.nav-logout-btn {
-  background-color: #007bff;
-  color: white;
+/* User Greeting & Toggle Button */
+.user-dropdown-toggle {
+  background: none;
   border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  color: var(--color-surface);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  margin-left: 1rem;
+  font-size: 1rem;
+  padding: 8px 12px;
+  transition: background 0.2s;
+  line-height: 1.5; /* Vertical alignment fix */
 }
 
-.nav-logout-btn:hover {
-  background-color: #0056b3;
+.user-dropdown-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
 }
 
-.nav-logout-btn:active {
-  transform: scale(0.97);
-  background-color: #004085;
+/* User Dropdown Menu Positioning and Styling */
+.user-dropdown-menu {
+  list-style: none;
+  position: absolute;
+  top: 60px;
+  right: 30px;
+  min-width: 250px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-bg-primary);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  margin: 0;
+  z-index: 1000;
 }
 
-.nav-user-greeting {
-  color: #333;
-  font-weight: 500;
-  margin-right: 0.5rem;
+.user-dropdown-menu li {
+  padding: 10px 16px;
 }
 
-/* === Live Search Dropdown Styling === */
+.user-dropdown-menu li:hover {
+  background-color: rgba(41, 168, 203, 0.08);
+}
+
+.user-dropdown-menu a,
+.user-dropdown-menu button {
+  /* Text color inside white dropdown */
+  color: var(--color-text-primary);
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* Specific styling for the Logout button */
+.logout-btn {
+  color: #cc0000;
+  display: block; /* Ensure button takes full space */
+}
+
+.logout-btn:hover {
+  background-color: #fdecea;
+}
+
+/* --- Live Search Dropdown Styling --- */
 .navbar__search-wrapper {
   position: relative;
-  width: 300px;
+  width: 100%;
 }
 
 .search-results-dropdown {
   position: absolute;
-  top: calc(100% + 2px);
+  top: calc(100% + 5px);
   left: 0;
   width: 100%;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
   z-index: 9999;
   max-height: 250px;
   overflow-y: auto;
@@ -167,141 +220,77 @@
 .search-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 12px;
+  padding: 10px 15px;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .search-item:hover {
-  background-color: #f3f6ff;
+  background-color: rgba(41, 168, 203, 0.08);
 }
 
 .search-thumb {
   width: 40px;
   height: 40px;
-  border-radius: 6px;
+  border-radius: 4px;
   object-fit: cover;
-  background: #f5f5f5;
+  background: var(--color-bg-primary);
   flex-shrink: 0;
 }
 
 .search-name {
-  font-size: 14px;
-  color: #333;
+  font-size: 15px;
+  color: var(--color-text-primary);
   font-weight: 500;
   line-height: 1.2;
 }
 
+/* Scrollbar styles for the search dropdown */
 .search-results-dropdown::-webkit-scrollbar {
   width: 6px;
 }
 
 .search-results-dropdown::-webkit-scrollbar-thumb {
-  background-color: #ccc;
+  background-color: var(--color-border);
   border-radius: 3px;
 }
 
 .search-results-dropdown::-webkit-scrollbar-thumb:hover {
-  background-color: #999;
+  background-color: var(--color-accent);
 }
 
-.user-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.user-dropdown-toggle {
-  background: none;
-  border: none;
-  color: #222;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 8px 12px;
-  transition: background 0.2s;
-}
-
-.user-dropdown-toggle:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 6px;
-}
-
-.user-dropdown-menu {
-  position: absolute;
-  top: 40px;
-  right: 0;
-  min-width: 180px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  list-style: none;
-  padding: 8px 0;
-  margin: 0;
-  z-index: 1000;
-}
-
-.user-dropdown-menu li {
-  padding: 10px 16px;
-}
-
-.user-dropdown-menu li:hover {
-  background-color: #f8f8f8;
-}
-
-.user-dropdown-menu a,
-.user-dropdown-menu button {
-  color: #333;
-  text-decoration: none;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-.logout-btn {
-  color: #d9534f;
-}
-
-.logout-btn:hover {
-  background-color: #fdecea;
-}
-
-.search-dropdown {
-  position: absolute;
-  top: 40px;
-  left: 0;
-  width: 100%;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 9999;
-  max-height: 250px;
-  overflow-y: auto;
-}
-
-.search-dropdown-item {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.search-dropdown-item:hover {
-  background-color: #f5f5f5;
-}
-
+/* --- Responsive adjustments --- */
 @media (max-width: 1024px) {
   .navbar__container {
     gap: 20px;
   }
-
-  .navbar__links {
-    gap: 16px;
+  .navbar__search {
+    max-width: 500px;
   }
-
+  .navbar__links {
+    gap: 18px;
+  }
   .nav-link {
-    font-size: 14px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar__container {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  /* Reorder items to push search bar to a new row */
+  .navbar__search-wrapper {
+    order: 3;
+    width: 100%;
+    margin-top: 10px;
+  }
+  .navbar__brand {
+    order: 1;
+  }
+  .navbar__links {
+    order: 2;
   }
 }

@@ -1,6 +1,3 @@
-// Sprint 1: Member 2
-// Task: Implement basic Navbar structure for navigation.
-
 import React, {
   createContext,
   useContext,
@@ -12,18 +9,31 @@ import React, {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/navbar.css";
 
+// Mock data source for product search functionality
 import productData from "../data/products.json";
 
+// --- Authentication Context Setup ---
 const AuthContext = createContext();
 
+/**
+ * AuthProvider Component
+ * Manages user state (login/logout/register) and persistence
+ * via local storage for the entire application.
+ */
 export function AuthProvider({ children }) {
+  // State for all registered users, initialized from local storage
   const [users, setUsers] = useState(() => {
     const stored = localStorage.getItem("users");
     return stored ? JSON.parse(stored) : [];
   });
+  // State for the currently logged-in user
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Register user
+  /**
+   * Registers a new user and saves the updated list to local storage.
+   * @param {object} userData - User data { name, email, password }.
+   * @returns {object} Status object indicating success or failure.
+   */
   const register = ({ name, email, password }) => {
     const existingUser = users.find((u) => u.email === email);
     if (existingUser) {
@@ -38,7 +48,12 @@ export function AuthProvider({ children }) {
     return { success: true, message: "Registration successful!" };
   };
 
-  // Login user
+  /**
+   * Attempts to log in a user by checking credentials against stored users.
+   * If successful, sets currentUser and stores it in local storage.
+   * @param {object} credentials - User credentials { email, password }.
+   * @returns {object} Status object indicating success or failure.
+   */
   const login = ({ email, password }) => {
     const stored = JSON.parse(localStorage.getItem("users")) || [];
     const user = stored.find(
@@ -53,19 +68,21 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Load current user on refresh
+  /**
+   * Clears the current user state and removes user data from local storage.
+   */
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem("currentUser");
+  };
+
+  // Effect to initialize currentUser state from local storage on component mount
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
     }
   }, []);
-
-  // Logout user
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem("currentUser");
-  };
 
   return (
     <AuthContext.Provider value={{ currentUser, register, login, logout }}>
@@ -74,13 +91,23 @@ export function AuthProvider({ children }) {
   );
 }
 
+/** Custom hook to consume the AuthContext. */
 export const useAuth = () => useContext(AuthContext);
 
+// --- Navbar Component ---
+
+/**
+ * Navbar Component
+ * Renders the primary application header, including navigation links,
+ * user authentication status, search functionality, and a cart login prompt.
+ */
 export default function Navbar() {
+  // Context and Router hooks
   const { currentUser, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
+  // State for search and UI elements
   const [searchTerm, setSearchTerm] = useState("");
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [products, setProducts] = useState([]);
@@ -88,25 +115,70 @@ export default function Navbar() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Ref for handling clicks outside the search dropdown
   const searchWrapperRef = useRef(null);
 
-  // Handlers for Auth Prompt Modal
+  // --- Modal Handlers ---
+
+  /** Closes the authentication prompt modal. */
   const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
+
+  /** Closes the modal and navigates to the login page. */
   const handleLoginRedirect = () => {
     handleCloseAuthPrompt();
     navigate("/login");
   };
 
+  /**
+   * Intercepts the click on the Cart link.
+   * If not logged in, prevents navigation and opens the auth prompt.
+   * @param {object} e - The click event.
+   */
   const handleCartClick = (e) => {
     if (!currentUser) {
       e.preventDefault();
       setIsAuthPromptOpen(true);
     }
   };
+
+  /** Logs the user out and navigates to the home page. */
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  /**
+   * Handles the search form submission.
+   * Navigates the user to the /products page with a search query parameter.
+   * @param {object} e - The form submission event.
+   */
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim() !== "") {
+      navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm("");
+    }
+  };
+
+  /**
+   * Handles clicking on a product result in the dropdown.
+   * Navigates to the product's detail page and clears the search state.
+   * @param {object} product - The selected product object.
+   */
+  const handleSelectProduct = (product) => {
+    navigate(`/product/${product.id}`);
+    setSearchTerm("");
+    setResults([]);
+  };
+
+  // --- Effects ---
+
+  // Loads product data from the JSON file on initial render
   useEffect(() => {
     setProducts(productData);
   }, []);
 
+  // Debounces the search term state to limit search executions
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -114,7 +186,7 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Live filter
+  // Performs live filtering of products based on the debounced search term
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setResults([]);
@@ -122,9 +194,11 @@ export default function Navbar() {
     }
     const q = searchTerm.toLowerCase();
     const filtered = products.filter((p) => p.name.toLowerCase().includes(q));
+    // Limit results for the dropdown display
     setResults(filtered.slice(0, 10));
   }, [searchTerm, products]);
 
+  // Updates the URL query parameter if the user is on the /products page
   useEffect(() => {
     if (location.pathname === "/products") {
       if (debouncedSearchTerm.trim() !== "") {
@@ -135,19 +209,23 @@ export default function Navbar() {
           }
         );
       } else {
+        // Clears the search query if the input is empty
         navigate("/products", { replace: true });
       }
     }
   }, [location.pathname, debouncedSearchTerm, navigate]);
 
+  // Global click listener to close the search results and user dropdowns
   useEffect(() => {
     function handleClickOutside(e) {
+      // Close search results if click is outside the search bar
       if (
         searchWrapperRef.current &&
         !searchWrapperRef.current.contains(e.target)
       ) {
         setResults([]);
       }
+      // Close user dropdown if click is outside the dropdown container
       if (!e.target.closest(".user-dropdown")) {
         setShowDropdown(false);
       }
@@ -156,32 +234,16 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Hide Navbar on Login/Register pages
+  // --- Conditional Rendering ---
+
+  // Hides the Navbar on login/register pages
   if (location.pathname === "/login" || location.pathname === "/register") {
     return null;
   }
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim() !== "") {
-      navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
-      setSearchTerm("");
-    }
-  };
-
-  const handleSelectProduct = (product) => {
-    navigate(`/product/${product.id}`);
-    setSearchTerm("");
-    setResults([]);
-  };
-
   return (
     <>
+      {/* Authentication Required Modal (Displayed when cart is clicked by a guest) */}
       {isAuthPromptOpen && (
         <div className={`modal-overlay open`}>
           <div className="quantity-modal confirmation-modal">
@@ -203,8 +265,10 @@ export default function Navbar() {
         </div>
       )}
 
+      {/* Main Header/Navbar Structure */}
       <header className="navbar">
         <div className="navbar__container">
+          {/* Brand/Logo Section */}
           <div className="navbar__brand">
             <img
               src="/img/logo/LOGO.png"
@@ -216,6 +280,7 @@ export default function Navbar() {
             </Link>
           </div>
 
+          {/* Search Bar with Live Results Dropdown */}
           <div
             className="navbar__search-wrapper"
             ref={searchWrapperRef}
@@ -238,6 +303,7 @@ export default function Navbar() {
             {results.length > 0 && (
               <ul
                 className="search-results-dropdown"
+                // Prevent closing the dropdown when clicking inside it
                 onMouseDown={(e) => e.preventDefault()}
               >
                 {results.map((product) => (
@@ -258,6 +324,7 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* Navigation and Auth Links */}
           <nav className="navbar__links">
             <Link to="/" className="nav-link">
               Home
@@ -270,6 +337,7 @@ export default function Navbar() {
             </Link>
 
             {!currentUser ? (
+              // Links for unauthenticated users
               <>
                 <Link to="/login" className="nav-link">
                   Login
@@ -279,6 +347,7 @@ export default function Navbar() {
                 </Link>
               </>
             ) : (
+              // Dropdown menu for authenticated users
               <div className="user-dropdown">
                 <button
                   className="user-dropdown-toggle"
