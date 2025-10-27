@@ -1,0 +1,245 @@
+/* --- Base Layout and Container --- */
+
+.purchase-history-container {
+  max-width: 1200px; /* Increased width for better table readability */
+  margin: 60px auto;
+  background-color: var(--color-bg-primary); /* Light page background */
+  padding: 0 40px;
+}
+
+.purchase-history-container h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 5px;
+  text-align: left;
+}
+
+.history-subtext {
+  font-size: 1rem;
+  color: var(--color-border);
+  margin-bottom: 40px;
+}
+
+.history-separator {
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-border);
+  opacity: 0.3;
+  margin: 40px 0;
+}
+
+/* --- Individual Order Section Card --- */
+.purchase-section {
+  margin-bottom: 40px;
+  background: var(--color-surface);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.purchase-section h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  border-bottom: 3px solid var(--color-accent); /* Cyan accent underline */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* --- Table Styles --- */
+.purchase-history-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 25px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.purchase-history-table th,
+.purchase-history-table td {
+  text-align: left;
+  padding: 15px 12px;
+  border-bottom: 1px solid var(--color-bg-primary); /* Light row separator */
+}
+
+.purchase-history-table th {
+  background-color: var(--color-bg-primary); /* Light gray header */
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 0.95em;
+  text-transform: uppercase;
+}
+
+.purchase-history-table tr {
+  background-color: var(--color-surface);
+  transition: background-color 0.2s;
+}
+
+.purchase-history-table tr:hover {
+  background-color: var(--color-bg-primary); /* Subtle hover effect */
+}
+
+/* Styling for item list within the table cell */
+.item-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--color-text-primary);
+}
+
+/* Total column styling (Electric Purple accent) */
+.order-total {
+  font-weight: 700;
+  color: var(--color-secondary-accent);
+  font-size: 1.1em;
+}
+
+/* --- Status Tags --- */
+.status-tag {
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+/* Specific color for 'For Shipping' status */
+.status-for-shipping {
+  color: var(--color-surface);
+  background-color: var(--color-accent); /* Vibrant Cyan background */
+}
+
+/* Specific color for 'Delivered' status */
+.status-delivered {
+  color: #155724;
+  background-color: #c8e6c9; /* Light green/success */
+}
+
+/* Specific color for 'Cancelled' status */
+.status-cancelled {
+  color: #721c24;
+  background-color: #fbe6e6; /* Light red/danger */
+}
+
+/* --- Action Buttons --- */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* 'Received' button (Primary Accent) */
+.btn-action-primary {
+  background-color: var(--color-accent);
+  color: var(--color-surface);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8em;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-action-primary:hover {
+  background-color: var(--color-hover-dark);
+}
+
+/* 'Cancel' button (Secondary Accent/Purple) */
+.btn-cancel-order {
+  background-color: var(--color-secondary-accent);
+  color: var(--color-surface);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8em;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-cancel-order:hover {
+  background-color: var(--color-hover-secondary);
+}
+
+/* --- Responsive design (Mobile Table View) --- */
+@media (max-width: 900px) {
+  .purchase-history-container {
+    padding: 40px 20px;
+  }
+
+  /* Force table structure change to vertical stacking on mobile */
+  .purchase-history-table {
+    display: block;
+    border-radius: 0;
+  }
+
+  .purchase-history-table thead {
+    display: none; /* Hide desktop header */
+  }
+
+  /* Make rows and cells behave as block elements */
+  .purchase-history-table,
+  .purchase-history-table tbody,
+  .purchase-history-table tr,
+  .purchase-history-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .purchase-history-table tr {
+    margin-bottom: 20px;
+    border: 1px solid var(--color-bg-primary);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Position data label and align content */
+  .purchase-history-table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border: none;
+  }
+
+  /* Insert column header text via data-label attribute for accessibility */
+  .purchase-history-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 12px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  /* Hardcoded content for the 'data-label' attribute based on column index */
+  .purchase-history-table td:nth-child(1)::before {
+    content: "Order ID";
+  }
+  .purchase-history-table td:nth-child(2)::before {
+    content: "Date";
+  }
+  .purchase-history-table td:nth-child(3)::before {
+    content: "Items";
+  }
+  .purchase-history-table td:nth-child(4)::before {
+    content: "Total";
+  }
+  .purchase-history-table td:nth-child(5)::before {
+    content: "Status";
+  }
+  .purchase-history-table td:nth-child(6)::before {
+    content: "Actions";
+  }
+
+  .action-buttons {
+    justify-content: flex-end;
+  }
+}

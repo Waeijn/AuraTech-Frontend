@@ -1,0 +1,246 @@
+/* === AuraTech Account Page Layout === */
+
+.account-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.account-page h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* Gradient divider under the main title */
+.account-underline {
+  width: 180px;
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-secondary-accent)
+  );
+  border-radius: 4px;
+  margin-bottom: 30px;
+}
+
+.account-subtext {
+  color: var(--color-border);
+  font-size: 1rem;
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+.account-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  max-width: 800px;
+  width: 100%;
+}
+
+/* === Account Card Styles (Applied to both info and shipping) === */
+.account-card,
+.shipping-card {
+  background: var(--color-surface);
+  padding: 45px;
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.account-card:hover,
+.shipping-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.account-card {
+  /* Fixed height for visual balance */
+  min-height: 350px;
+  height: 350px;
+}
+.shipping-card {
+  min-height: 400px;
+}
+
+.account-card h2,
+.shipping-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  border-bottom: 3px solid var(--color-secondary-accent);
+  padding-bottom: 10px;
+  margin-bottom: 25px;
+}
+
+.info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 30px;
+}
+
+/* Use flex for strong/value pairing for clean vertical alignment */
+.info-block p,
+.shipping-static p {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  display: flex;
+  gap: 8px;
+}
+
+.info-block p strong,
+.shipping-static p strong {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.not-set {
+  color: var(--color-border);
+  font-style: italic;
+}
+
+/* === Button Styling === */
+.btn-main,
+.btn-secondary,
+.btn-cancel {
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+}
+
+.btn-main {
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-secondary-accent)
+  );
+  color: #fff;
+}
+
+.btn-main:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.logout-btn {
+  /* Specific gradient for logout to stand out */
+  background: linear-gradient(90deg, #7b68ee);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+}
+
+.logout-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: var(--color-bg-primary);
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+  padding: 8px 18px;
+}
+
+.account-actions {
+  /* Pushes buttons to the bottom of the card */
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  align-items: center;
+}
+
+/* === Shipping Information Section Styles === */
+.shipping-static {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+  align-items: flex-start;
+}
+
+/* Adds space for the shipping card to match the height of the account card when in static view */
+.shipping-static .edit-shipping-btn {
+  margin-top: 125px;
+  width: 100%;
+}
+
+.shipping-edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+}
+
+.shipping-edit-form input {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #f9fbfc;
+  transition: all 0.25s ease;
+}
+
+.shipping-edit-form input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(0, 151, 167, 0.25);
+  outline: none;
+  background: #fff;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 600px) {
+  .account-page {
+    padding: 40px 20px;
+  }
+
+  .account-card,
+  .shipping-card {
+    padding: 30px;
+  }
+
+  /* Force buttons to full width on mobile */
+  .btn-main,
+  .btn-secondary,
+  .btn-cancel {
+    width: 100%;
+    text-align: center;
+  }
+
+  .shipping-static .edit-shipping-btn {
+    margin-top: 40px; /* Reduced margin to fit mobile layout better */
+    width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+}

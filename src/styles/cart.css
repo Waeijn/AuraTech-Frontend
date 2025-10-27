@@ -1,12 +1,356 @@
-/* Sprint 4: Member 5
-   Task: Cart page styles skeleton. */
+/* === Cart Page Layout and Structure === */
 
 .cart-page {
-  padding: 12px;
+  padding: 40px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.cart-page h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+/* Two-column layout for desktop: Items (2fr) and Summary (1fr) */
+.cart-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 40px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+.cart-items {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.cart-items h2,
+.cart-summary h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  border-bottom: 3px solid var(--color-secondary-accent);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* --- Cart Summary Panel --- */
+.cart-summary {
+  width: 100%;
+  max-width: 450px;
+  /* Dark background for visual hierarchy */
+  background: var(--color-text-primary);
+  color: var(--color-surface);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  /* Keeps the summary panel fixed while scrolling items */
+  position: sticky;
+  top: 20px;
+}
+
+.cart-summary h2 {
+  color: var(--color-surface);
+  border-bottom-color: var(--color-accent);
+}
+
+/* --- Individual Cart Item Card --- */
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-bg-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+  /* Subtle lift effect on hover */
+  box-shadow: 0 6px 15px rgba(156, 39, 176, 0.1);
+  transform: translateY(-2px);
+}
+
+.item-checkbox {
+  transform: scale(1.5);
+  cursor: pointer;
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.item-image img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: var(--color-bg-primary);
+}
+
+.item-details {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.item-details h3 {
+  font-size: 1.25em;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 5px 0;
+}
+
+/* Price and Quantity Information Styling */
+.item-price-qty {
+  font-size: 1em;
+  color: var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.item-price {
+  font-weight: 700;
+  color: var(--color-secondary-accent); /* Purple for base price */
+  font-size: 1.1em;
+}
+
+.item-subtotal {
+  font-weight: 700;
+  color: var(--color-accent); /* Cyan/Teal for line total */
+  margin-left: 0;
+}
+
+/* --- Inline Quantity Controls --- */
+.checkout-qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.qty-change-btn {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  width: 35px;
+  height: 35px;
+  border-radius: var(--radius);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.qty-change-btn:hover:not(:disabled) {
+  background: var(--color-hover-light);
+}
+
+.qty-value {
+  font-weight: 700;
+  padding: 5px 10px;
+  color: var(--color-surface);
+  background-color: var(--color-text-primary);
+  border-radius: 4px;
+  min-width: 30px;
+}
+
+.edit-item-btn {
+  background: var(--color-secondary-accent); /* Purple button */
+  color: var(--color-surface);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: background 0.2s;
+  margin-left: 20px;
+  flex-shrink: 0;
+}
+
+.edit-item-btn:hover {
+  background: var(--color-hover-secondary);
+}
+
+/* --- Summary Details --- */
+.summary-calculations {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+/* Row styling for Subtotal and Shipping */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.1em;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.summary-row p {
+  color: var(--color-surface);
+}
+.summary-row p:last-child {
+  font-weight: 700;
+  color: var(--color-accent); /* Cyan/Teal amount */
+}
+
+/* Total Section Highlighting */
+.summary-total {
+  border-top: 2px solid var(--color-accent);
+  padding-top: 15px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-total h3 {
+  color: var(--color-surface);
+  font-size: 1.5em;
+  font-weight: 800;
+}
+
+.summary-total h3:last-child {
+  color: var(--color-secondary-accent); /* Purple total amount */
+  font-size: 1.6em;
+}
+
+.checkout-link-wrapper {
+  margin-top: 20px;
+}
+
+.checkout-btn {
+  width: 100%;
+}
+
+.checkout-btn:disabled {
+  background: var(--color-border);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.member-note {
+  font-size: 0.85em;
+  color: var(--color-border);
+  margin-top: 20px;
+  text-align: center;
 }
 
 .cart-placeholder {
-  background: rgba(255,255,255,0.02);
-  padding: 16px;
-  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 30px;
+  border-radius: var(--radius);
+  border: 2px dashed var(--color-border);
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+/* --- MODAL STYLES (Manage Item Modal) --- */
+/* The general modal styles are assumed to be inherited from global CSS */
+.remove-modal {
+  background: var(--color-surface);
+}
+
+.remove-modal h2 {
+  color: var(--color-text-primary);
+}
+
+.remove-modal .modal-message {
+  color: var(--color-text-primary);
+}
+
+.remove-modal .modal-error {
+  color: var(--color-secondary-accent); /* Purple for errors */
+  font-weight: 600;
+}
+
+.remove-modal .modification-section {
+  padding: 15px 0;
+  border-top: 1px solid var(--color-bg-primary);
+  margin-top: 10px;
+}
+.remove-modal .modification-section h3 {
+  color: var(--color-text-primary);
+}
+.remove-modal .quantity-controls {
+  justify-content: flex-start;
+  gap: 10px;
+}
+.remove-modal .quantity-input {
+  width: 80px;
+  padding: 10px;
+  border: 2px solid var(--color-accent); /* Cyan/Teal border */
+  border-radius: 6px;
+  font-size: 1.1rem;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+.remove-modal .btn-remove-all {
+  flex: 1;
+  background-color: var(--color-secondary-accent); /* Purple for Delete */
+  color: var(--color-surface);
+  box-shadow: 0 4px 10px rgba(156, 39, 176, 0.4);
+}
+
+.remove-modal .btn-remove-all:hover {
+  background-color: var(--color-hover-secondary);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1000px) {
+  .cart-container {
+    /* Stack items vertically on smaller screens */
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .cart-summary {
+    position: static; /* Disable sticky on mobile */
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 550px) {
+  .cart-page h1 {
+    text-align: center;
+  }
+  .cart-item {
+    /* Allow items to wrap for better mobile flow */
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  /* Reorder elements for mobile display */
+  .item-image {
+    order: -1;
+  }
+
+  .item-details {
+    flex-basis: 100%;
+    order: 1;
+    padding-left: 0;
+  }
+
+  .edit-item-btn {
+    order: 3;
+    margin-left: auto;
+    margin-top: 5px;
+  }
+
+  .checkout-qty-controls {
+    order: 2;
+    margin-top: 5px;
+    margin-left: 0;
+  }
 }

@@ -1,21 +1,134 @@
-/* Sprint 1: Member 5
-   Task: Basic footer styles. Member 5 will finalize visuals. */
+/* === Footer Styles (Aggressive Gaming Theme & Layout) === */
 
 .footer {
-  background: var(--surface);
-  border-top: 1px solid #ddd;
-  padding: 16px 20px;
-  text-align: center;
-  color: var(--text);
-  font-size: 0.9rem;
+  /* Deep Navy background with accent border for a strong close */
+  background: var(--color-text-primary);
+  border-top: 2px solid var(--color-accent);
+  padding: 40px 30px;
+  color: var(--color-surface);
+  margin-top: 80px;
 }
 
-.footer a {
-  color: var(--text);
+.footer__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+
+  /* Desktop Grid Layout */
+  display: grid;
+  /* Brand gets 2/3rds (2fr), Links get 1/3rd (1fr) */
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "brand links"
+    "copy copy"; /* Copyright spans the full width at the bottom */
+
+  gap: 30px 60px;
+  align-items: start;
+}
+
+/* --- Brand Section (Left Column) --- */
+.footer__brand {
+  grid-area: brand;
+  text-align: left;
+}
+
+.footer__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.footer__logo img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.footer__logo h3 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--color-surface);
+}
+
+.footer__brand p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-accent); /* Accent color for tagline */
+  font-weight: 500;
+}
+
+/* --- Links Section (Right Column) --- */
+.footer__links {
+  grid-area: links;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer__links a {
+  color: var(--color-surface);
   text-decoration: none;
-  margin: 0 10px;
+  font-weight: 500;
+  font-size: 16px;
+  transition: color 0.3s ease;
+  padding: 6px 0;
 }
 
-.footer a:hover {
-  text-decoration: underline;
+.footer__links a:hover {
+  color: var(--color-secondary-accent); /* Secondary accent color on hover */
+}
+
+/* --- Copyright Section (Full Width Row) --- */
+.footer__copy {
+  grid-area: copy;
+  text-align: left;
+  padding-top: 25px;
+  /* Visual separation line */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 15px;
+}
+
+.footer__copy p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-border);
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 768px) {
+  .footer {
+    padding: 30px 20px;
+    margin-top: 60px;
+  }
+
+  .footer__inner {
+    /* Stack all grid areas vertically */
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "brand"
+      "links"
+      "copy";
+    gap: 30px;
+    text-align: center;
+  }
+
+  .footer__brand {
+    text-align: center;
+  }
+
+  .footer__logo {
+    justify-content: center; /* Center logo elements */
+  }
+
+  .footer__links {
+    align-items: center; /* Center links in the column */
+  }
+
+  .footer__copy {
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 20px;
+  }
 }

@@ -1,17 +1,281 @@
-/* Sprint 1: Member 5
-   Task: Home page layout skeleton. */
+/* --- Imports and Base Home Layout --- */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 
+.home-page {
+  font-family: var(--font-family-primary);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* --- Hero Section --- */
 .hero {
-  padding: 40px;
-    background: linear-gradient(
-    90deg,
-    rgba(0, 116, 217, 0.05),
-    rgba(46, 204, 64, 0.05)
-  );
-  border-radius: 10px;
+  position: relative;
+  text-align: left;
+  background: var(--color-surface);
+  padding: 160px 60px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  /* Full-width image background */
+  background-image: url("/public/img/hero/gaming-setup-banner.jpg");
+  background-size: cover;
+  background-position: center;
+  animation: fadeIn 1s ease;
+}
+
+/* Dark overlay for contrast over the image */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1;
+}
+
+/* Ensure text and button remain visible above the overlay */
+.hero h1,
+.hero p,
+.hero .btn-main {
+  position: relative;
+  z-index: 2;
+}
+
+.hero h1 {
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: -0.05rem;
+  color: #fff;
   margin-bottom: 20px;
 }
 
+.hero p {
+  max-width: 520px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #fff;
+  margin-bottom: 40px;
+}
+
+.btn-main {
+  /* Pill shape for primary CTA */
+  padding: 14px 36px;
+  border-radius: 40px;
+  font-size: 1rem;
+  box-shadow: 0 4px 20px rgba(29, 100, 137, 0.3);
+}
+
+/* --- Highlights Section (Value Propositions) --- */
+.highlights {
+  text-align: center;
+  padding: 80px 40px;
+  background: var(--color-surface);
+}
+
+.highlights h2,
+.featured h2 {
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin-bottom: 60px;
+  color: var(--color-text-primary);
+  position: relative;
+  display: inline-block;
+}
+
+/* Underline accent using ::after pseudo-element */
+.highlights h2::after,
+.featured h2::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 4px;
+  background-color: var(--color-secondary-accent);
+  border-radius: 2px;
+}
+
+/* Responsive grid layout for highlight cards */
+.highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.highlight-card {
+  background: var(--color-bg-primary);
+  border-radius: 12px;
+  padding: 35px 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+/* Lift and accent border on hover */
+.highlight-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(29, 100, 137, 0.25);
+  border-color: var(--color-accent);
+}
+
+.highlight-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-text-primary);
+}
+
+.highlight-card p {
+  color: var(--color-border);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* --- Featured Products Section --- */
 .featured {
-  padding: 20px 0;
+  background: var(--color-bg-primary);
+  padding: 90px 40px;
+  text-align: center;
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.featured-card {
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid var(--color-bg-primary);
+}
+
+/* Lift effect and secondary accent border on hover */
+.featured-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(29, 100, 137, 0.2);
+  border-color: var(--color-secondary-accent);
+}
+
+/* Image container styling for visual appeal */
+.featured-image-wrapper {
+  background: var(--color-bg-primary);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  padding: 10px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.featured-image-wrapper img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+.featured-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.featured-price {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+}
+
+.featured-desc {
+  font-size: 0.95rem;
+  color: var(--color-border);
+  line-height: 1.5;
+}
+
+/* --- CTA Section (Call to Action Banner) --- */
+.cta {
+  /* Dark background for maximum contrast */
+  background-color: var(--color-text-primary);
+  color: var(--color-surface);
+  padding: 100px 60px;
+  text-align: center;
+}
+
+.cta-content h3 {
+  color: var(--color-surface);
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.cta-content p {
+  font-size: 1.1rem;
+  max-width: 580px;
+  margin: 0 auto 35px;
+}
+
+/* CTA button styling with reversed colors for prominence on dark background */
+.cta-content .btn-main {
+  background-color: var(--color-surface);
+  color: var(
+    --color-text-secondary
+  ); /* Needs to be redefined or use existing variable for text */
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.cta-content .btn-main:hover {
+  background-color: var(--color-accent);
+  color: var(--color-surface);
+  transform: translateY(-3px);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1024px) {
+  .hero {
+    padding: 120px 40px;
+  }
+
+  /* Switch highlights grid to two columns */
+  .highlight-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 80px 20px;
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
+  }
+
+  .highlights,
+  .featured {
+    padding: 70px 20px;
+  }
+
+  /* Stack grids into a single column on small screens */
+  .highlight-grid,
+  .featured-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .highlights h2,
+  .featured h2 {
+    font-size: 2rem;
+    margin-bottom: 45px;
+  }
 }
