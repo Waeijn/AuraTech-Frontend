@@ -4,7 +4,8 @@
   max-width: 1200px; /* Increased width for better table readability */
   margin: 60px auto;
   background-color: var(--color-bg-primary); /* Light page background */
-  padding: 0 40px;
+  /* DOC: Updated padding with clamp for better horizontal scaling */
+  padding: 0 clamp(20px, 4vw, 40px);
 }
 
 .purchase-history-container h1 {
@@ -54,6 +55,7 @@
   border-spacing: 0;
   margin-top: 25px;
   border-radius: var(--radius);
+  /* DOC: Ensures table corners are rounded when collapsed */
   overflow: hidden;
 }
 
@@ -241,5 +243,34 @@
 
   .action-buttons {
     justify-content: flex-end;
+  }
+}
+
+/* DOC: New media query for small mobile devices */
+@media (max-width: 500px) {
+  .purchase-history-container {
+    padding: 30px 15px;
+  }
+
+  .purchase-history-container h1 {
+    font-size: 2.2rem;
+  }
+
+  .purchase-section {
+    padding: 20px;
+  }
+
+  .purchase-section h2 {
+    font-size: 1.4rem;
+  }
+
+  /* Adjust padding and label width for the smallest table view */
+  .purchase-history-table td {
+    padding-left: 45%;
+    padding: 12px 10px 12px 45%;
+  }
+
+  .purchase-history-table td::before {
+    width: 40%;
   }
 }

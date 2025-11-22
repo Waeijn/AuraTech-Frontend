@@ -1,24 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import ProductDetails from "./ProductDetails"; // Assuming this is the component from the previous file
+import ProductDetails from "./ProductDetails";
 import productsData from "../data/products.json";
 import "../styles/product.css";
-import ProductCard from "../components/ProductCard"; // Assuming this is the card component
+import ProductCard from "../components/ProductCard";
 import { useAuth } from "../components/Navbar";
 
 const INVENTORY_KEY = "temporary_inventory";
 
 // --- Utility Functions for Inventory and Cart Checks ---
 
-/**
- * Initializes and retrieves product stock/inventory from local storage.
- * @returns {object} The current inventory object {productId: stockCount}.
- */
 const getInventory = () => {
   let inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY));
   const initialStock = {};
 
-  // Initialize stock for all products from data
   productsData.forEach((p) => {
     initialStock[p.id] = Number(p.stock) || 99999;
   });
@@ -28,14 +23,12 @@ const getInventory = () => {
     return initialStock;
   }
 
-  // Update logic to handle new products or stock resets
   let updated = false;
   productsData.forEach((p) => {
     if (!(p.id in inventory)) {
       inventory[p.id] = Number(p.stock) || 99999;
       updated = true;
     } else if (inventory[p.id] <= 0 && p.stock > 0) {
-      // Reset stock if the item was sold out but product data shows new stock
       inventory[p.id] = Number(p.stock);
       updated = true;
     }
@@ -48,28 +41,15 @@ const getInventory = () => {
   return inventory;
 };
 
-/**
- * Calculates the maximum quantity of a product a user can add to the cart
- * by considering both total stock and current cart quantity.
- * @param {string} productId - The ID of the product.
- * @returns {number} The maximum quantity allowed to add.
- */
 const getMaxAllowedToAdd = (productId) => {
   const inventory = getInventory();
   const currentStock = inventory[productId] || 0;
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const existingItem = cart.find((item) => item.id === productId);
   const currentCartQty = existingItem ? existingItem.quantity : 0;
-  // Stock minus what's already in the cart
   return currentStock - currentCartQty;
 };
 
-/**
- * Core logic to update the cart in local storage with the selected quantity.
- * Includes necessary stock and boundary checks.
- * @param {object} product - The product object being added.
- * @param {number} quantity - The quantity to add.
- */
 const handleAddToCartLogic = (product, quantity) => {
   const inventory = getInventory();
   const currentStock = inventory[product.id] || 0;
@@ -80,7 +60,6 @@ const handleAddToCartLogic = (product, quantity) => {
   const currentCartQuantity = existingItem ? existingItem.quantity : 0;
   const requestedQuantity = quantity;
 
-  // Check if requested quantity exceeds total stock
   if (requestedQuantity > currentStock) {
     alert(
       `Cannot add ${requestedQuantity}: Only ${currentStock} are available in stock.`
@@ -88,7 +67,6 @@ const handleAddToCartLogic = (product, quantity) => {
     return;
   }
 
-  // Check if adding the requested quantity exceeds available stock
   if (currentCartQuantity + requestedQuantity > currentStock) {
     alert(
       `Cannot add ${requestedQuantity}: You already have ${currentCartQuantity} in your cart. Only ${currentStock} total are available.`
@@ -96,11 +74,9 @@ const handleAddToCartLogic = (product, quantity) => {
     return;
   }
 
-  // Update cart with new quantity
   if (existingItem) {
     existingItem.quantity += requestedQuantity;
   } else {
-    // Add new item to cart
     cart.push({
       id: product.id,
       name: product.name,
@@ -117,44 +93,34 @@ const handleAddToCartLogic = (product, quantity) => {
 
 // --- ProductList Component ---
 
-/**
- * ProductList Component
- * Renders the product catalog, handling category filtering, search queries,
- * and managing the Add to Cart quantity modal flow.
- */
 const ProductList = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  // State for filtering and view toggling
-  const [selectedProduct, setSelectedProduct] = useState(null); // Used to switch to ProductDetails view
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // State for the Quantity Modal (Add to Cart flow)
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false); // Login required modal
+  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
   // --- Effects ---
 
-  // Ensures the page is scrolled to the top whenever the component state changes (e.g., view switch)
   useEffect(() => {
     window.scrollTo(0, 0);
   });
 
-  // Exposes a global function to trigger the quantity modal for use by child components (ProductCard)
   useEffect(() => {
     window.showQuantityModal = (product) => {
       setModalProduct(product);
       if (!currentUser) {
-        setIsAuthPromptOpen(true); // Show login prompt if not authenticated
+        setIsAuthPromptOpen(true);
       } else {
-        setQuantity(1); // Reset quantity and open the main modal
+        setQuantity(1);
         setIsModalOpen(true);
       }
     };
-    // Cleanup function
     return () => {
       delete window.showQuantityModal;
     };
@@ -165,16 +131,11 @@ const ProductList = () => {
   const handleCloseModal = () => setIsModalOpen(false);
   const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
 
-  /** Closes auth prompt and redirects to login page. */
   const handleLoginRedirect = () => {
     handleCloseAuthPrompt();
     navigate("/login");
   };
 
-  /**
-   * Updates the quantity in the modal via +/- buttons.
-   * Enforces min (1) and max (stock minus current cart quantity) boundaries.
-   */
   const handleQuantityChange = (delta) => {
     if (!modalProduct) return;
     const maxAllowed = getMaxAllowedToAdd(modalProduct.id);
@@ -185,10 +146,6 @@ const ProductList = () => {
     });
   };
 
-  /**
-   * Updates quantity in the modal via manual input.
-   * Enforces min (1) and max (stock minus current cart quantity) boundaries.
-   */
   const handleManualQuantityChange = (e) => {
     const value = parseInt(e.target.value);
     if (!modalProduct) return;
@@ -199,24 +156,20 @@ const ProductList = () => {
     setQuantity(newQty);
   };
 
-  /** Final action to confirm quantity, call cart logic, and close the modal. */
   const handleFinalAddToCart = () => {
     if (!modalProduct || quantity < 1) return;
     handleAddToCartLogic(modalProduct, quantity);
     handleCloseModal();
   };
 
-  /** Switches the view back from ProductDetails to the main product list. */
   const handleBackToList = () => setSelectedProduct(null);
 
   // --- Data and Filtering Logic ---
 
-  // Get search term from URL query parameters
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("search")?.toLowerCase() || "";
 
-  // Defined list of all product categories
   const categories = [
     "All",
     "Gaming Laptops",
@@ -234,7 +187,6 @@ const ProductList = () => {
     "Accessories",
   ];
 
-  // Filter products based on selected category and search term
   const filteredProducts = productsData.filter((p) => {
     const matchesCategory =
       selectedCategory === "All" || p.category === selectedCategory;
@@ -323,15 +275,13 @@ const ProductList = () => {
       {/* Main Content Area */}
       <div className="product-container">
         {selectedProduct ? (
-          // View 1: Display single product details
           <ProductDetails product={selectedProduct} onBack={handleBackToList} />
         ) : (
-          // View 2: Display product list and filters
           <>
             <div className="product-header">
               <h1 className="product-title">Our Products</h1>
               <p className="product-subtitle">
-                Explore AuraTech’s next-gen gaming gear — engineered for power,
+                Explore AuraTech's next-gen gaming gear — engineered for power,
                 precision, and performance.
               </p>
               <div className="divider"></div>
@@ -364,7 +314,6 @@ const ProductList = () => {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    // Clicking the card navigates to the details view
                     onViewDetails={() => setSelectedProduct(product)}
                   />
                 ))

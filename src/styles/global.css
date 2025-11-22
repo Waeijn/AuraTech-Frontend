@@ -42,7 +42,8 @@ main {
   flex: 1 1 auto;
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 30px 20px;
+  /* Ensure horizontal padding scales down appropriately on small screens */
+  padding: 30px clamp(15px, 4vw, 20px);
 }
 
 /* === Typography === */

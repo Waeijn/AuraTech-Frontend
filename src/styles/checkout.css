@@ -3,7 +3,8 @@
 .checkout-page {
   width: 100%;
   min-height: 100vh;
-  padding: 0px 30px;
+  /* DOC: Updated padding with clamp for better horizontal scaling */
+  padding: 40px clamp(20px, 6vw, 60px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -63,6 +64,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box; /* Ensure padding is inclusive of width/height */
 }
 
 .checkout-form h2 {
@@ -83,8 +85,9 @@
 }
 
 .checkout-form input {
-  width: 95%; /* Shrink inputs slightly for alignment */
-  margin: 0 auto;
+  /* DOC: Set to 100% width, relying on container padding for margin */
+  width: 100%;
+  margin: 0; /* Removed custom margins */
   padding: 12px 10px;
   border-radius: 8px;
   border: 1.3px solid rgba(0, 0, 0, 0.1);
@@ -92,6 +95,7 @@
   color: var(--color-text-primary);
   font-size: 0.9rem;
   transition: all 0.25s ease;
+  box-sizing: border-box;
 }
 
 /* Focus style for editable inputs */
@@ -117,7 +121,8 @@
   align-items: center;
   gap: 10px;
   margin-top: 5px;
-  margin-right: 4%; /* Align buttons with the right edge of the input fields */
+  /* DOC: Removed custom margin-right that relied on 95% input width */
+  margin-right: 0;
 }
 
 .shipping-edit-controls .btn-main,
@@ -136,7 +141,8 @@
 
 /* Place Order Button */
 .checkout-btn {
-  width: 95%;
+  /* DOC: Set to 100% width for stability */
+  width: 100%;
   align-self: center;
   margin-top: 18px;
   padding: 12px 16px;
@@ -170,7 +176,8 @@
 
 /* Cancel Button (Return to Cart) */
 .cancel-btn {
-  width: 95%;
+  /* DOC: Set to 100% width for stability */
+  width: 100%;
   align-self: center;
   margin-top: 10px;
   padding: 12px 16px;
@@ -215,6 +222,7 @@
   border-radius: var(--radius);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
   height: fit-content; /* Only takes up necessary vertical space */
+  box-sizing: border-box;
 }
 
 .order-summary h2 {
@@ -244,6 +252,8 @@
 
 .summary-item-details {
   flex: 1;
+  /* Ensure details text can wrap */
+  min-width: 0;
 }
 
 .summary-item-details h4 {
@@ -263,6 +273,8 @@
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--color-accent);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* Totals Calculations */
@@ -307,20 +319,45 @@
     gap: 25px;
   }
 
+  /* Ensures all inputs/buttons remain full width (100% is set above, this reinforces it) */
   .checkout-form,
   .order-summary {
     padding: 28px;
-  }
-
-  /* Make main buttons full width */
-  .checkout-btn,
-  .cancel-btn {
-    width: 100%;
   }
 
   .shipping-edit-controls {
     /* Reset alignment for full width flow */
     justify-content: space-between;
     margin-right: 0;
+  }
+}
+
+/* DOC: Added media query for small mobile screens */
+@media (max-width: 480px) {
+  .checkout-page {
+    /* Reduced page padding on the smallest screens */
+    padding: 20px 15px;
+  }
+
+  .checkout-page h1 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+  .checkout-page h1::after {
+    width: 200px;
+    height: 4px;
+    margin: 8px auto 0 auto;
+  }
+  .checkout-form,
+  .order-summary {
+    /* Reduced padding inside card containers */
+    padding: 20px;
+  }
+  .summary-item img {
+    width: 40px;
+    height: 40px;
+  }
+  .summary-item-details h4 {
+    font-size: 0.85rem;
   }
 }

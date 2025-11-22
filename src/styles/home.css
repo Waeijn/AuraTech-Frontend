@@ -15,7 +15,8 @@
   position: relative;
   text-align: left;
   background: var(--color-surface);
-  padding: 160px 60px;
+  /* DOC: Updated padding for horizontal scaling */
+  padding: 160px clamp(20px, 8vw, 60px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
   /* Full-width image background */
   background-image: url("/public/img/hero/gaming-setup-banner.jpg");
@@ -68,7 +69,8 @@
 /* --- Highlights Section (Value Propositions) --- */
 .highlights {
   text-align: center;
-  padding: 80px 40px;
+  /* DOC: Updated padding for horizontal scaling */
+  padding: 80px clamp(20px, 4vw, 40px);
   background: var(--color-surface);
 }
 
@@ -137,7 +139,8 @@
 /* --- Featured Products Section --- */
 .featured {
   background: var(--color-bg-primary);
-  padding: 90px 40px;
+  /* DOC: Updated padding for horizontal scaling */
+  padding: 90px clamp(20px, 4vw, 40px);
   text-align: center;
 }
 
@@ -207,7 +210,8 @@
   /* Dark background for maximum contrast */
   background-color: var(--color-text-primary);
   color: var(--color-surface);
-  padding: 100px 60px;
+  /* DOC: Updated padding for horizontal scaling */
+  padding: 100px clamp(20px, 8vw, 60px);
   text-align: center;
 }
 
@@ -255,10 +259,17 @@
 @media (max-width: 600px) {
   .hero {
     padding: 80px 20px;
+    /* DOC: Center hero content on mobile for better balance */
+    text-align: center;
   }
 
   .hero h1 {
     font-size: 2.4rem;
+  }
+
+  /* DOC: Center the description text */
+  .hero p {
+    margin: 0 auto 40px auto;
   }
 
   .highlights,
@@ -277,5 +288,10 @@
   .featured h2 {
     font-size: 2rem;
     margin-bottom: 45px;
+  }
+
+  .cta-content h3 {
+    /* DOC: Scale down large CTA heading on small screens */
+    font-size: 2rem;
   }
 }

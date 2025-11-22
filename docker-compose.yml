@@ -3,7 +3,7 @@ version: "3.9"
 services:
   react-dev:
     image: node:20-alpine
-    container_name: auratech-react-dev
+    container_name: auratech-frontend
     working_dir: /app
     volumes:
       - .:/app
