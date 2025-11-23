@@ -28,6 +28,14 @@ export function AuthProvider({ children }) {
   });
   // State for the currently logged-in user
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true); // <-- NEW LOADING STATE
+
+  // --- 1. Define the Default Admin Account ---
+  const DEFAULT_ADMIN = {
+    name: "System Admin",
+    email: "admin@auratech.com", // This is the email we check against for the 'admin' role
+    password: "adminpassword", // Use a simple, temporary password for development
+  };
 
   /**
    * Registers a new user and saves the updated list to local storage.
@@ -59,9 +67,18 @@ export function AuthProvider({ children }) {
     const user = stored.find(
       (u) => u.email === email && u.password === password
     );
+
     if (user) {
-      setCurrentUser(user);
-      localStorage.setItem("currentUser", JSON.stringify(user));
+      // --- UPDATED ADMIN ROLE CHECK ---
+      const isAdmin = user.email === DEFAULT_ADMIN.email; // <--- Check against the constant
+      const userWithRole = {
+        ...user,
+        role: isAdmin ? "admin" : "user",
+      };
+      // -------------------------------
+
+      setCurrentUser(userWithRole);
+      localStorage.setItem("currentUser", JSON.stringify(userWithRole));
       return { success: true, message: "Login successful!" };
     } else {
       return { success: false, message: "Invalid email or password" };
@@ -76,16 +93,42 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("currentUser");
   };
 
-  // Effect to initialize currentUser state from local storage on component mount
   useEffect(() => {
+    // 1. Load user data from storage
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+      const user = JSON.parse(storedUser);
+      const isAdmin = user.email === DEFAULT_ADMIN.email;
+      setCurrentUser({ ...user, role: isAdmin ? "admin" : "user" });
     }
+
+    // 2. Seed the Default Admin Account (keeping your seeding logic)
+    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+    const adminExists = storedUsers.some(
+      (u) => u.email === DEFAULT_ADMIN.email
+    );
+
+    if (!adminExists) {
+      const updatedUsers = [...storedUsers, DEFAULT_ADMIN];
+      setUsers(updatedUsers);
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+    }
+
+    // 3. Mark loading as complete after ALL checks are done
+    setLoading(false); // <-- SET LOADING TO FALSE
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, register, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        register,
+        login,
+        logout,
+        isAdmin: currentUser?.role === "admin",
+        loading, // <-- EXPOSE LOADING STATE
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
