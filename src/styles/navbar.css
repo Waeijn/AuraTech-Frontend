@@ -65,9 +65,9 @@
 }
 
 .search-input:focus {
+  outline: none;
   border-color: var(--color-secondary-accent);
   box-shadow: 0 0 0 2px rgba(41, 168, 203, 0.3);
-  outline: none;
 }
 
 .search-btn {
@@ -260,6 +260,20 @@
   background-color: var(--color-accent);
 }
 
+/* --- Mobile Menu Toggle (Hidden by Default) --- */
+.navbar__mobile-toggle {
+  /* Styles for the hamburger icon/button */
+  display: none;
+  font-size: 1.7rem;
+  color: var(--color-surface);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  flex-shrink: 0;
+  z-index: 1001;
+}
+
 /* --- Responsive adjustments --- */
 @media (max-width: 1024px) {
   .navbar__container {
@@ -277,20 +291,114 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 20px;
+  }
   .navbar__container {
-    flex-wrap: wrap;
+    /* Keep brand and toggle on one line for mobile header */
+    flex-wrap: nowrap;
     gap: 15px;
   }
-  /* Reorder items to push search bar to a new row */
-  .navbar__search-wrapper {
-    order: 3;
-    width: 100%;
-    margin-top: 10px;
-  }
-  .navbar__brand {
-    order: 1;
-  }
-  .navbar__links {
+
+  /* Show the toggle button for mobile menu */
+  .navbar__mobile-toggle {
+    display: block;
     order: 2;
+  }
+
+  /* Hide the search bar on this mobile size */
+  .navbar__search-wrapper {
+    display: none;
+  }
+
+  /* --- COLLAPSED NAVIGATION LINKS (MOBILE MENU) --- */
+  .navbar__links {
+    /* Initial state: Hidden on mobile */
+    display: none;
+
+    /* Full viewport overlay when open */
+    position: fixed;
+    top: 55px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 55px);
+    background: var(--color-text-primary);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 30px 40px;
+    gap: 10px;
+    z-index: 1000;
+  }
+
+  /* State when JavaScript adds the .is-open class */
+  .navbar__links.is-open {
+    display: flex;
+  }
+
+  .nav-link {
+    width: 100%;
+    padding: 15px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-surface);
+  }
+
+  /* Remove desktop underline effect from mobile nav links */
+  .nav-link::after {
+    display: none;
+  }
+
+  /* Reset User Dropdown for the mobile menu */
+  .user-dropdown-toggle {
+    background: none;
+    padding: 15px 0;
+    width: 100%;
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  /* Dropdown Menu inside the mobile menu */
+  .user-dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    width: 100%;
+    min-width: unset;
+    padding: 10px 0 0 0;
+  }
+
+  .user-dropdown-menu li {
+    padding: 0;
+  }
+
+  .user-dropdown-menu li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .user-dropdown-menu a,
+  .user-dropdown-menu button {
+    color: var(--color-surface);
+    padding: 10px 10px 10px 10px;
+    font-size: 1rem;
+    width: 100%;
+    display: block;
+  }
+
+  .logout-btn {
+    color: #ff5757;
+  }
+
+  .logout-btn:hover {
+    background-color: rgba(255, 87, 87, 0.1);
+  }
+
+  /* Mobile Search inside the open menu */
+  .mobile-search-wrapper {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
   }
 }

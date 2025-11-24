@@ -210,7 +210,17 @@
   cursor: pointer;
 }
 
-/* === Responsive Adjustments (Mobile/Tablet) === */
+/* === Responsive Adjustments === */
+
+/* Tablet/Small Desktop Optimization (1200px and below) */
+@media (max-width: 1200px) {
+  .auth-wrapper {
+    /* Scale down the entire wrapper slightly for better fit on intermediate screens */
+    max-width: 900px;
+  }
+}
+
+/* Mobile/Tablet Collapse (900px and below) */
 @media (max-width: 900px) {
   /* Hide the large brand panel on smaller screens */
   .auth-brand-panel {
@@ -218,7 +228,7 @@
   }
 
   .auth-wrapper {
-    /* Stack form content vertically */
+    /* Stack form content vertically, allowing it to take up the full screen height */
     flex-direction: column;
     height: auto;
     max-height: unset;
@@ -229,7 +239,12 @@
   }
 
   .auth-form-panel {
-    /* Restore vertical padding */
+    /* Increase vertical padding for mobile */
     padding: 50px 1.5rem;
+  }
+
+  .auth-container h1 {
+    font-size: 2rem; /* Slightly smaller title on mobile */
+    margin-bottom: 2rem;
   }
 }

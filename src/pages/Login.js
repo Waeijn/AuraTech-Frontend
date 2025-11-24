@@ -1,13 +1,17 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react"; // <-- Import useEffect
+import { Link, useNavigate } from "react-router-dom"; // <-- Use Link and useNavigate
 import { useAuth } from "../components/Navbar"; // Hook for authentication logic
 import "../styles/auth.css";
 
 /**
  * Login Component
  * Provides a form for existing users to authenticate and log into the application.
+ * Handles role-based redirection after successful login.
  */
 export default function Login() {
-  const { login } = useAuth();
+  // Destructure required state and functions from Auth context
+  const { currentUser, login } = useAuth();
+  const navigate = useNavigate(); // Hook for programmatic navigation
 
   // --- State Hooks ---
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +36,6 @@ export default function Login() {
 
   /**
    * Handles form submission: validates inputs and attempts user login.
-   * Redirects to the home page on success.
    * @param {object} e - The form submission event.
    */
   const handleSubmit = (e) => {
@@ -47,16 +50,33 @@ export default function Login() {
 
     // Attempt login using the Auth Context
     const result = login(formData);
+
+    // Display result message immediately, even if it's a success
     setMessageType(result.success ? "success" : "error");
     setMessage(result.message);
 
-    if (result.success) {
-      // Redirect to home page after a short delay
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
-    }
+    // NOTE: The actual redirection is handled by the useEffect hook below
+    // because state updates (like currentUser) can be asynchronous.
   };
+
+  // --- Redirection Logic (The robust fix for admin login) ---
+
+  useEffect(() => {
+    if (currentUser) {
+      // Login was successful and currentUser state is updated.
+      // Now check the role property (which we set in Navbar.js)
+
+      if (currentUser.role === "admin") {
+        // 1. Admin login: redirect to the admin dashboard
+        navigate("/admin", { replace: true });
+      } else {
+        // 2. Regular user login: redirect to the home page or account page
+        navigate("/", { replace: true });
+      }
+    }
+  }, [currentUser, navigate]); // Depend on currentUser and navigate
+
+  // --- End Redirection Logic ---
 
   return (
     <section className="auth-page">
@@ -138,9 +158,10 @@ export default function Login() {
             {/* Link to Registration Page */}
             <p className="auth-link">
               Don't have an account?{" "}
-              <a href="/register" className="auth-link-text">
+              {/* Use the Link component from react-router-dom */}
+              <Link to="/register" className="auth-link-text">
                 Register here
-              </a>
+              </Link>
             </p>
           </div>
         </div>

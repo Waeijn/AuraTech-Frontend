@@ -1,8 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-// Imports Navbar and authentication utilities from the Navbar component file
 import Navbar, { AuthProvider, useAuth } from "./components/Navbar";
 
-// Import all page components
+// Public and User Pages
 import HomePage from "./pages/HomePage";
 import ProductList from "./pages/ProductList";
 import ProductDetails from "./pages/ProductDetails";
@@ -14,29 +13,76 @@ import Account from "./pages/Account";
 import Footer from "./components/Footer";
 import PurchaseHistory from "./pages/PurchaseHistory";
 
+// Admin Pages
+import Dashboard from "./pages/admin/Dashboard";
+import OrderReview from "./pages/admin/OrderReview";
+import ProductManagement from "./pages/admin/ProductManagement";
+import UserManagement from "./pages/admin/UserManagement";
+
 /**
- * ProtectedRoute Component
- * A wrapper that checks if a user is authenticated. If not, it redirects
- * them to the /login page, preserving the user's intended destination.
- * @param {object} element - The component to render if the user is logged in.
+ * ProtectedRoute - Requires user authentication
  */
 const ProtectedRoute = ({ element: Element }) => {
   const { currentUser } = useAuth();
-  // If authenticated, render the requested component; otherwise, redirect to login
   return currentUser ? <Element /> : <Navigate to="/login" replace />;
 };
 
 /**
- * AppContent Component
- * Contains the main layout (Navbar, Routes, Footer) that needs access
- * to router hooks (like useLocation).
+ * AdminRoute - Requires user to have admin role
+ */
+const AdminRoute = ({ element: Element }) => {
+  const { currentUser } = useAuth();
+  if (currentUser && currentUser.role === "admin") {
+    return <Element />;
+  }
+  return <Navigate to="/" replace />;
+};
+
+/**
+ * AppContent - Main application routing and layout
  */
 function AppContent() {
   const location = useLocation();
+  const { currentUser, loading } = useAuth();
 
+  // Show loading screen while authentication initializes
+  if (loading) {
+    return (
+      <div style={{ padding: "50px", textAlign: "center" }}>
+        <h2>Loading Application...</h2>
+      </div>
+    );
+  }
+
+  // Determine if current route is admin-related
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isAdminUser = currentUser?.role === "admin";
+
+  // Admin layout: No Navbar/Footer, admin pages handle their own layout
+  if (isAdminRoute && isAdminUser) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<AdminRoute element={Dashboard} />} />
+        <Route
+          path="/admin/orders"
+          element={<AdminRoute element={OrderReview} />}
+        />
+        <Route
+          path="/admin/products"
+          element={<AdminRoute element={ProductManagement} />}
+        />
+        <Route
+          path="/admin/users"
+          element={<AdminRoute element={UserManagement} />}
+        />
+        <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+
+  // Standard layout: Navbar + Content + Footer
   return (
     <>
-      {/* Navbar handles its own visibility based on the route */}
       <Navbar />
 
       <main>
@@ -48,7 +94,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes: Require Authentication (Cart, Checkout, Account, History) */}
+          {/* Protected User Routes */}
           <Route path="/cart" element={<ProtectedRoute element={Cart} />} />
           <Route
             path="/checkout"
@@ -63,12 +109,27 @@ function AppContent() {
             element={<ProtectedRoute element={PurchaseHistory} />}
           />
 
-          {/* Fallback Route: Redirects non-matching paths to the home page */}
+          {/* Admin Routes - Accessible from customer layout */}
+          <Route path="/admin" element={<AdminRoute element={Dashboard} />} />
+          <Route
+            path="/admin/orders"
+            element={<AdminRoute element={OrderReview} />}
+          />
+          <Route
+            path="/admin/products"
+            element={<AdminRoute element={ProductManagement} />}
+          />
+          <Route
+            path="/admin/users"
+            element={<AdminRoute element={UserManagement} />}
+          />
+
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
-      {/* Conditionally render Footer only if NOT on login or register pages */}
+      {/* Hide Footer on login/register pages */}
       {location.pathname !== "/login" && location.pathname !== "/register" && (
         <Footer />
       )}
@@ -77,9 +138,7 @@ function AppContent() {
 }
 
 /**
- * App Component
- * The root component of the application. Wraps the main content with the
- * AuthProvider context to make authentication state globally available.
+ * App - Root component with AuthProvider
  */
 export default function App() {
   return (

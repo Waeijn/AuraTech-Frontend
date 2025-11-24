@@ -28,6 +28,14 @@ export function AuthProvider({ children }) {
   });
   // State for the currently logged-in user
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true); // <-- NEW LOADING STATE
+
+  // --- 1. Define the Default Admin Account ---
+  const DEFAULT_ADMIN = {
+    name: "System Admin",
+    email: "admin@auratech.com", // This is the email we check against for the 'admin' role
+    password: "adminpassword", // Use a simple, temporary password for development
+  };
 
   /**
    * Registers a new user and saves the updated list to local storage.
@@ -59,9 +67,18 @@ export function AuthProvider({ children }) {
     const user = stored.find(
       (u) => u.email === email && u.password === password
     );
+
     if (user) {
-      setCurrentUser(user);
-      localStorage.setItem("currentUser", JSON.stringify(user));
+      // --- UPDATED ADMIN ROLE CHECK ---
+      const isAdmin = user.email === DEFAULT_ADMIN.email; // <--- Check against the constant
+      const userWithRole = {
+        ...user,
+        role: isAdmin ? "admin" : "user",
+      };
+      // -------------------------------
+
+      setCurrentUser(userWithRole);
+      localStorage.setItem("currentUser", JSON.stringify(userWithRole));
       return { success: true, message: "Login successful!" };
     } else {
       return { success: false, message: "Invalid email or password" };
@@ -76,16 +93,42 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("currentUser");
   };
 
-  // Effect to initialize currentUser state from local storage on component mount
   useEffect(() => {
+    // 1. Load user data from storage
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+      const user = JSON.parse(storedUser);
+      const isAdmin = user.email === DEFAULT_ADMIN.email;
+      setCurrentUser({ ...user, role: isAdmin ? "admin" : "user" });
     }
+
+    // 2. Seed the Default Admin Account (keeping your seeding logic)
+    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+    const adminExists = storedUsers.some(
+      (u) => u.email === DEFAULT_ADMIN.email
+    );
+
+    if (!adminExists) {
+      const updatedUsers = [...storedUsers, DEFAULT_ADMIN];
+      setUsers(updatedUsers);
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+    }
+
+    // 3. Mark loading as complete after ALL checks are done
+    setLoading(false); // <-- SET LOADING TO FALSE
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, register, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        register,
+        login,
+        logout,
+        isAdmin: currentUser?.role === "admin",
+        loading, // <-- EXPOSE LOADING STATE
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -114,6 +157,8 @@ export default function Navbar() {
   const [results, setResults] = useState([]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  // DOC: New state for mobile menu visibility
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Ref for handling clicks outside the search dropdown
   const searchWrapperRef = useRef(null);
@@ -129,12 +174,20 @@ export default function Navbar() {
     navigate("/login");
   };
 
+  // DOC: Handler for toggling the mobile menu state
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
+    setShowDropdown(false); // Close user dropdown when opening/closing main menu
+  };
+
   /**
    * Intercepts the click on the Cart link.
    * If not logged in, prevents navigation and opens the auth prompt.
    * @param {object} e - The click event.
    */
   const handleCartClick = (e) => {
+    // DOC: Also close mobile menu when navigating
+    if (isMenuOpen) setIsMenuOpen(false);
     if (!currentUser) {
       e.preventDefault();
       setIsAuthPromptOpen(true);
@@ -157,6 +210,8 @@ export default function Navbar() {
     if (searchTerm.trim() !== "") {
       navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
       setSearchTerm("");
+      // DOC: Close mobile menu after search
+      setIsMenuOpen(false);
     }
   };
 
@@ -169,6 +224,14 @@ export default function Navbar() {
     navigate(`/product/${product.id}`);
     setSearchTerm("");
     setResults([]);
+    // DOC: Close mobile menu after selection
+    setIsMenuOpen(false);
+  };
+
+  // DOC: Close menu and dropdown on link click to ensure navigation works correctly
+  const handleLinkClick = () => {
+    setIsMenuOpen(false);
+    setShowDropdown(false);
   };
 
   // --- Effects ---
@@ -215,6 +278,18 @@ export default function Navbar() {
     }
   }, [location.pathname, debouncedSearchTerm, navigate]);
 
+  // DOC: Effect to prevent body scroll when the mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMenuOpen]);
+
   // Global click listener to close the search results and user dropdowns
   useEffect(() => {
     function handleClickOutside(e) {
@@ -229,6 +304,9 @@ export default function Navbar() {
       if (!e.target.closest(".user-dropdown")) {
         setShowDropdown(false);
       }
+
+      // DOC: Closing mobile menu when clicking outside of the entire navigation area is complex
+      // due to the overlay, so we rely on link clicks and toggle button.
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -275,12 +353,17 @@ export default function Navbar() {
               alt="Logo"
               className="navbar__logo-img"
             />
-            <Link to="/" className="navbar__brand-text">
+            <Link
+              to="/"
+              className="navbar__brand-text"
+              onClick={handleLinkClick}
+            >
               AuraTech
             </Link>
           </div>
 
           {/* Search Bar with Live Results Dropdown */}
+          {/* DOC: Search bar is hidden by CSS on mobile, shown on desktop */}
           <div
             className="navbar__search-wrapper"
             ref={searchWrapperRef}
@@ -324,12 +407,12 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Navigation and Auth Links */}
-          <nav className="navbar__links">
-            <Link to="/" className="nav-link">
+          {/* Navigation and Auth Links (Mobile Menu Controlled) */}
+          <nav className={`navbar__links ${isMenuOpen ? "is-open" : ""}`}>
+            <Link to="/" className="nav-link" onClick={handleLinkClick}>
               Home
             </Link>
-            <Link to="/products" className="nav-link">
+            <Link to="/products" className="nav-link" onClick={handleLinkClick}>
               Products
             </Link>
             <Link to="/cart" className="nav-link" onClick={handleCartClick}>
@@ -339,10 +422,18 @@ export default function Navbar() {
             {!currentUser ? (
               // Links for unauthenticated users
               <>
-                <Link to="/login" className="nav-link">
+                <Link
+                  to="/login"
+                  className="nav-link"
+                  onClick={handleLinkClick}
+                >
                   Login
                 </Link>
-                <Link to="/register" className="nav-link">
+                <Link
+                  to="/register"
+                  className="nav-link"
+                  onClick={handleLinkClick}
+                >
                   Register
                 </Link>
               </>
@@ -360,18 +451,12 @@ export default function Navbar() {
                 {showDropdown && (
                   <ul className="user-dropdown-menu">
                     <li>
-                      <Link
-                        to="/account"
-                        onClick={() => setShowDropdown(false)}
-                      >
+                      <Link to="/account" onClick={handleLinkClick}>
                         My Account
                       </Link>
                     </li>
                     <li>
-                      <Link
-                        to="/purchase-history"
-                        onClick={() => setShowDropdown(false)}
-                      >
+                      <Link to="/purchase-history" onClick={handleLinkClick}>
                         My Purchase
                       </Link>
                     </li>
@@ -380,7 +465,7 @@ export default function Navbar() {
                         className="logout-btn"
                         onClick={() => {
                           handleLogout();
-                          setShowDropdown(false);
+                          handleLinkClick();
                         }}
                       >
                         Logout
@@ -390,7 +475,38 @@ export default function Navbar() {
                 )}
               </div>
             )}
+
+            {/* DOC: Mobile search functionality moved inside the menu for better responsiveness */}
+            {isMenuOpen && (
+              <div
+                className="navbar__search-wrapper mobile-search-wrapper"
+                position="relative"
+              >
+                <form className="navbar__search" onSubmit={handleSearch}>
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="search-input"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-label="Search products"
+                  />
+                  <button type="submit" className="search-btn">
+                    Search
+                  </button>
+                </form>
+              </div>
+            )}
           </nav>
+
+          {/* DOC: Mobile Menu Toggle button */}
+          <button
+            className="navbar__mobile-toggle"
+            onClick={handleMenuToggle}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {isMenuOpen ? "✕" : "☰"}
+          </button>
         </div>
       </header>
     </>

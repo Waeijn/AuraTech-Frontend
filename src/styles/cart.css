@@ -1,7 +1,7 @@
 /* === Cart Page Layout and Structure === */
 
 .cart-page {
-  padding: 40px 20px;
+  padding: 40px clamp(20px, 4vw, 60px);
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -51,6 +51,8 @@
   /* Keeps the summary panel fixed while scrolling items */
   position: sticky;
   top: 20px;
+  /* DOC: Ensure padding and border are included in the element's width */
+  box-sizing: border-box;
 }
 
 .cart-summary h2 {
@@ -198,10 +200,17 @@
 
 .summary-row p {
   color: var(--color-surface);
+  /* Ensure long label text can wrap inside the flex container */
+  word-break: break-word;
+  flex-shrink: 1;
+  min-width: 0;
 }
 .summary-row p:last-child {
   font-weight: 700;
   color: var(--color-accent); /* Cyan/Teal amount */
+  /* Ensure price remains fixed and doesn't wrap or shrink */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* Total Section Highlighting */
@@ -329,6 +338,7 @@
     /* Allow items to wrap for better mobile flow */
     flex-wrap: wrap;
     justify-content: flex-start;
+    padding: 15px; /* Slightly reduced padding on mobile */
   }
 
   /* Reorder elements for mobile display */
@@ -338,8 +348,10 @@
 
   .item-details {
     flex-basis: 100%;
+    min-width: 0;
     order: 1;
     padding-left: 0;
+    margin-bottom: 10px;
   }
 
   .edit-item-btn {
@@ -351,6 +363,37 @@
   .checkout-qty-controls {
     order: 2;
     margin-top: 5px;
-    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+/* Very small screen adjustments (e.g., phones in landscape or very small devices) */
+@media (max-width: 400px) {
+  .cart-page {
+    /* DOC: Reduce page padding on the smallest screens to give content maximum width */
+    padding: 20px 10px;
+  }
+
+  .cart-item {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .cart-summary {
+    /* DOC: Reduce padding inside the summary panel for tiny screens */
+    padding: 20px 10px;
+  }
+
+  .item-image img {
+    width: 80px;
+    height: 80px;
+  }
+  .item-details h3 {
+    font-size: 1.1em;
+  }
+  .item-price-qty {
+    /* Stacking price and quantity controls vertically on the smallest screen */
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
