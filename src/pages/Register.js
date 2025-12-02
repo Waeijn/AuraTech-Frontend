@@ -1,16 +1,13 @@
 import { useState } from "react";
-import { useAuth } from "../components/Navbar"; // Hook for authentication context
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 
-/**
- * Register Component
- * Provides a form for new users to register an account.
- * Includes client-side validation for required fields and password matching.
- */
-export default function Register() {
-  const { register } = useAuth();
+// API Configuration
+const API_BASE_URL = "http://localhost:8082/api";
 
-  // --- State Hooks ---
+export default function Register() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -18,97 +15,94 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-  // State for displaying status messages (success/error)
+  
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // --- Handlers ---
-
-  /** Updates form data state on input change. */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  /**
-   * Handles form submission: validates inputs and attempts user registration.
-   * Redirects to the login page on successful registration.
-   * @param {object} e - The form submission event.
-   */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(""); // Clear previous messages
+    setMessage("");
+    setMessageType("");
 
-    // 1. Client-side Validation: Check for required fields
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      setMessageType("error");
-      setMessage("All fields are required");
-      return;
-    }
-
-    // 2. Client-side Validation: Check for password match
+    // 1. Client-side Validation
     if (formData.password !== formData.confirmPassword) {
       setMessageType("error");
       setMessage("Passwords do not match");
       return;
     }
 
-    // 3. Client-side Validation: Check for minimum password length
     if (formData.password.length < 6) {
       setMessageType("error");
       setMessage("Password must be at least 6 characters");
       return;
     }
 
-    // Attempt registration via Auth Context
-    const result = register(formData);
-    setMessageType(result.success ? "success" : "error");
-    setMessage(result.message);
+    setIsLoading(true);
 
-    if (result.success) {
-      // Clear form on successful registration
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
+    try {
+      // 2. REAL API CALL
+      const response = await fetch(`${API_BASE_URL}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.confirmPassword
+        }),
       });
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 1500);
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessageType("success");
+        setMessage("Registration successful! Redirecting...");
+        
+        // Optional: Auto-login by saving token immediately
+        if (data.data && data.data.token) {
+           localStorage.setItem("ACCESS_TOKEN", data.data.token);
+        }
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+      } else {
+        setMessageType("error");
+        // Handle Laravel validation errors (e.g. email already taken)
+        setMessage(data.message || "Registration failed.");
+      }
+    } catch (error) {
+      console.error("Register Error:", error);
+      setMessageType("error");
+      setMessage("Server connection failed. Try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <section className="auth-page">
       <div className="auth-wrapper">
-        {/* LEFT SIDE: Brand Panel (Marketing/Visual Section) */}
         <div className="auth-brand-panel">
           <div className="brand-content">
-            <img
-              src="/img/logo/LOGO.png"
-              alt="AuraTech Logo"
-              className="brand-logo"
-            />
+            <img src="/img/logo/LOGO.png" alt="AuraTech Logo" className="brand-logo" />
             <h2>AuraTech</h2>
             <p className="brand-tagline">Power. Precision. Performance.</p>
           </div>
         </div>
 
-        {/* RIGHT SIDE: Registration Form Panel */}
         <div className="auth-form-panel">
           <div className="auth-container">
             <h1>Register</h1>
-            {/* Display status messages (success/error) */}
             {message && (
               <div className={`form-message form-message-${messageType}`}>
                 {message}
@@ -144,7 +138,6 @@ export default function Register() {
                 Password
                 <input
                   name="password"
-                  // Conditionally set input type for show/hide password feature
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
@@ -166,7 +159,6 @@ export default function Register() {
                 />
               </label>
 
-              {/* Password visibility toggle control */}
               <div className="password-toggle-wrapper">
                 <input
                   type="checkbox"
@@ -180,17 +172,16 @@ export default function Register() {
                 </label>
               </div>
 
-              <button type="submit" className="form-button">
-                Register
+              <button type="submit" className="form-button" disabled={isLoading}>
+                {isLoading ? "Creating Account..." : "Register"}
               </button>
             </form>
 
-            {/* Link to Login Page */}
             <p className="auth-link">
               Already have an account?{" "}
-              <a href="/login" className="auth-link-text">
+              <Link to="/login" className="auth-link-text">
                 Login here
-              </a>
+              </Link>
             </p>
           </div>
         </div>

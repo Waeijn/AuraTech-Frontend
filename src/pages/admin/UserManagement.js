@@ -1,69 +1,118 @@
-// src/pages/admin/UserManagement.js
-
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
+
+const API_BASE_URL = "http://localhost:8082/api";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
 
-  // Load users from localStorage
+  // 1. Fetch Users from API
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("ACCESS_TOKEN");
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        headers: { 
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json" 
+        }
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Safety check: ensure data.data exists, otherwise fallback to empty array
+        setUsers(data.data || []);
+      } else {
+        console.error("Failed to fetch users");
+      }
+    } catch (error) {
+      console.error("Error loading users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
-    // Add role to each user if not present
-    const usersWithRoles = storedUsers.map((user) => ({
-      ...user,
-      role: user.email === "admin@auratech.com" ? "admin" : user.role || "user",
-      registeredDate: user.registeredDate || new Date().toISOString(),
-    }));
-    setUsers(usersWithRoles);
+    fetchUsers();
   }, []);
 
-  // Filter users
+  // 2. Filter Logic
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    
+    // Check role
+    const userRole = user.role || (user.is_admin ? "admin" : "user");
+    const matchesRole = roleFilter === "all" || userRole === roleFilter;
+    
     return matchesSearch && matchesRole;
   });
 
-  // Delete user
-  const handleDeleteUser = (userEmail) => {
-    // Prevent deleting admin account
+  // 3. Delete User API
+  const handleDeleteUser = async (userId, userEmail) => {
     if (userEmail === "admin@auratech.com") {
-      alert("Cannot delete the admin account!");
+      alert("Cannot delete the main admin account!");
       return;
     }
 
-    if (window.confirm(`Are you sure you want to delete user: ${userEmail}?`)) {
-      const updatedUsers = users.filter((user) => user.email !== userEmail);
-      setUsers(updatedUsers);
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
+    if (!window.confirm(`Are you sure you want to delete user: ${userEmail}?`)) return;
+
+    try {
+      const token = localStorage.getItem("ACCESS_TOKEN");
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        alert("User deleted successfully.");
+        fetchUsers(); // Refresh list
+      } else {
+        alert("Failed to delete user.");
+      }
+    } catch (error) {
+      alert("Error deleting user.");
     }
   };
 
-  // Toggle user role
-  const handleRoleToggle = (userEmail, currentRole) => {
-    // Prevent changing admin account role
-    if (userEmail === "admin@auratech.com") {
-      alert("Cannot modify the admin account role!");
+  // 4. Toggle Role API
+  const handleRoleToggle = async (user) => {
+    if (user.email === "admin@auratech.com") {
+      alert("Cannot modify the main admin account!");
       return;
     }
 
+    const currentRole = user.role || (user.is_admin ? "admin" : "user");
     const newRole = currentRole === "admin" ? "user" : "admin";
-    const updatedUsers = users.map((user) =>
-      user.email === userEmail ? { ...user, role: newRole } : user
-    );
-    setUsers(updatedUsers);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+    try {
+      const token = localStorage.getItem("ACCESS_TOKEN");
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
+        method: "PUT",
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+
+      if (response.ok) {
+        alert(`User role updated to ${newRole}`);
+        fetchUsers();
+      } else {
+        alert("Failed to update role.");
+      }
+    } catch (error) {
+      alert("Error updating role.");
+    }
   };
 
-  // Get role badge color
-  const getRoleColor = (role) => {
-    return role === "admin" ? "#7b1fa2" : "#0097a7";
-  };
+  const getRoleColor = (role) => (role === "admin" ? "#7b1fa2" : "#0097a7");
+
+  if (loading) return <AdminLayout><p style={{padding:"20px"}}>Loading users...</p></AdminLayout>;
 
   return (
     <AdminLayout>
@@ -72,21 +121,15 @@ export default function UserManagement() {
         <p>Manage registered users and their permissions</p>
       </div>
 
-      {/* Controls */}
       <div className="admin-controls">
         <div className="filter-group">
           <label>Filter by Role:</label>
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="admin-select"
-          >
+          <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="admin-select">
             <option value="all">All Users</option>
             <option value="user">Regular Users</option>
             <option value="admin">Administrators</option>
           </select>
         </div>
-
         <div className="search-group">
           <input
             type="text"
@@ -98,101 +141,42 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Users Table */}
       <div className="admin-table-container">
         {filteredUsers.length === 0 ? (
-          <div className="empty-state">
-            <p>No users found.</p>
-          </div>
+          <div className="empty-state"><p>No users found.</p></div>
         ) : (
           <table className="admin-table">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
-                <th>Registered</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
-                <tr key={user.email}>
+                <tr key={user.id}>
+                  <td>#{user.id}</td>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>
-                    <span
-                      className="status-badge"
-                      style={{ backgroundColor: getRoleColor(user.role) }}
-                    >
-                      {user.role}
+                    <span className="status-badge" style={{ backgroundColor: getRoleColor(user.role || (user.is_admin ? "admin" : "user")) }}>
+                      {user.role || (user.is_admin ? "admin" : "user")}
                     </span>
                   </td>
-                  <td>{new Date(user.registeredDate).toLocaleDateString()}</td>
                   <td>
                     <div className="action-buttons">
                       {user.email !== "admin@auratech.com" && (
                         <>
-                          <button
-                            onClick={() =>
-                              handleRoleToggle(user.email, user.role)
-                            }
-                            className="btn-action btn-role"
-                            title={
-                              user.role === "admin"
-                                ? "Demote to User"
-                                : "Promote to Admin"
-                            }
-                          >
-                            {user.role === "admin" ? (
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                              </svg>
-                            ) : (
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
-                              </svg>
-                            )}
+                          <button onClick={() => handleRoleToggle(user)} className="btn-action btn-role" title="Toggle Role">
+                            Change Role
                           </button>
-                          <button
-                            onClick={() => handleDeleteUser(user.email)}
-                            className="btn-delete"
-                            title="Delete User"
-                          >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
+                          <button onClick={() => handleDeleteUser(user.id, user.email)} className="btn-delete" title="Delete User">
+                             🗑️
                           </button>
                         </>
-                      )}
-                      {user.email === "admin@auratech.com" && (
-                        <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>
-                          Protected
-                        </span>
                       )}
                     </div>
                   </td>
@@ -201,41 +185,6 @@ export default function UserManagement() {
             </tbody>
           </table>
         )}
-      </div>
-
-      {/* Summary Stats */}
-      <div className="admin-grid" style={{ marginTop: "30px" }}>
-        <div className="admin-card">
-          <h3>Total Users</h3>
-          <p>{users.length}</p>
-        </div>
-        <div className="admin-card">
-          <h3>Administrators</h3>
-          <p style={{ color: "#7b1fa2" }}>
-            {users.filter((u) => u.role === "admin").length}
-          </p>
-        </div>
-        <div className="admin-card">
-          <h3>Regular Users</h3>
-          <p style={{ color: "#0097a7" }}>
-            {users.filter((u) => u.role === "user").length}
-          </p>
-        </div>
-        <div className="admin-card">
-          <h3>New This Month</h3>
-          <p style={{ color: "#10b981" }}>
-            {
-              users.filter((u) => {
-                const regDate = new Date(u.registeredDate);
-                const now = new Date();
-                return (
-                  regDate.getMonth() === now.getMonth() &&
-                  regDate.getFullYear() === now.getFullYear()
-                );
-              }).length
-            }
-          </p>
-        </div>
       </div>
     </AdminLayout>
   );

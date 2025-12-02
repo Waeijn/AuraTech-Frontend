@@ -1,7 +1,7 @@
-// src/pages/admin/Dashboard.js
-
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
+
+const API_BASE_URL = "http://localhost:8082/api";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -11,87 +11,72 @@ export default function Dashboard() {
     criticalStock: 0,
     loading: true,
   });
-
   const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
-    // TODO: Replace with Laravel API call
-    // fetchDashboardStats();
-    loadLocalStats();
+    fetchDashboardData();
   }, []);
 
-  // Temporary function using localStorage - Replace with API call
-  const loadLocalStats = () => {
+  const fetchDashboardData = async () => {
     try {
-      // Get orders from localStorage
-      const orders = JSON.parse(localStorage.getItem("orders")) || [];
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      const inventory =
-        JSON.parse(localStorage.getItem("temporary_inventory")) || {};
+      const token = localStorage.getItem("ACCESS_TOKEN");
+      const headers = { 
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      };
 
-      // Calculate stats
-      const totalSales = orders.reduce(
-        (sum, order) => sum + (order.total || 0),
-        0
-      );
-      const newOrders = orders.filter((o) => o.status === "pending").length;
-      const pendingUsers = users.filter((u) => u.role !== "admin").length;
-      const criticalStock = Object.values(inventory).filter(
-        (stock) => stock <= 5
-      ).length;
+      // 1. Fetch Orders 
+      const ordersRes = await fetch(`${API_BASE_URL}/orders?per_page=100`, { headers });
+      const ordersData = await ordersRes.json();
+      
+      // 2. Fetch Products
+      const productsRes = await fetch(`${API_BASE_URL}/products?per_page=100`);
+      const productsData = await productsRes.json();
 
-      setStats({
-        totalSales,
-        newOrders,
-        pendingUsers,
-        criticalStock,
-        loading: false,
-      });
+      // 3. Fetch Users (ADDED THIS TO FIX USER COUNT)
+      const usersRes = await fetch(`${API_BASE_URL}/users`, { headers });
+      const usersData = await usersRes.json();
 
-      // Get recent activity
-      const recentOrders = orders
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
-      setRecentActivity(recentOrders);
+      if (ordersData.success && productsData.success) {
+        const orders = ordersData.data || [];
+        const products = productsData.data || [];
+        const users = usersData.success ? (usersData.data || []) : [];
+
+        // Calculate Total Sales
+        const totalSales = orders.reduce((sum, order) => {
+            // Use the total from the DB if available, otherwise calculate
+            return sum + Number(order.total);
+        }, 0);
+
+        const newOrders = orders.filter((o) => o.status === "pending").length;
+        
+        // Count users (excluding admin if preferred, or all users)
+        const pendingUsers = users.length; 
+        
+        // Critical Stock: Items with stock <= 5
+        const criticalStock = products.filter((p) => p.stock <= 5).length;
+
+        setStats({
+          totalSales,
+          newOrders,
+          pendingUsers, // Now using real data
+          criticalStock,
+          loading: false,
+        });
+
+        // Set Recent Activity (Last 5 orders)
+        setRecentActivity(orders.slice(0, 5));
+      }
     } catch (error) {
-      console.error("Error loading stats:", error);
+      console.error("Dashboard fetch error:", error);
       setStats((prev) => ({ ...prev, loading: false }));
     }
   };
 
-  // TODO: Implement Laravel API integration
-  /*
-  const fetchDashboardStats = async () => {
-    try {
-      const response = await fetch('/api/admin/dashboard/stats', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Accept': 'application/json',
-        },
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      
-      const data = await response.json();
-      setStats({
-        totalSales: data.total_sales,
-        newOrders: data.new_orders,
-        pendingUsers: data.pending_users,
-        criticalStock: data.critical_stock,
-        loading: false,
-      });
-      setRecentActivity(data.recent_activity || []);
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      setStats(prev => ({ ...prev, loading: false }));
-    }
-  };
-  */
-
   if (stats.loading) {
     return (
       <AdminLayout>
-        <div className="loading-container">
+        <div className="loading-container" style={{ padding: "40px", textAlign: "center" }}>
           <h2>Loading dashboard...</h2>
         </div>
       </AdminLayout>
@@ -105,18 +90,17 @@ export default function Dashboard() {
         <p>Welcome, Admin! Here is a summary of your key metrics.</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="admin-grid">
         <div className="admin-card">
           <h3>Total Sales</h3>
-          <p>₱{stats.totalSales.toLocaleString()}</p>
+          <p>₱{stats.totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
         </div>
         <div className="admin-card">
-          <h3>New Orders</h3>
+          <h3>New Orders (Pending)</h3>
           <p>{stats.newOrders}</p>
         </div>
         <div className="admin-card">
-          <h3>Pending Users</h3>
+          <h3>Total Users</h3>
           <p>{stats.pendingUsers}</p>
         </div>
         <div className="admin-card" style={{ borderLeftColor: "#ef4444" }}>
@@ -127,11 +111,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Activity Section */}
       <div style={{ marginTop: "40px" }}>
-        <h2
-          style={{ marginBottom: "20px", color: "var(--color-text-primary)" }}
-        >
+        <h2 style={{ marginBottom: "20px", color: "var(--color-text-primary)" }}>
           Recent Activity
         </h2>
         <div className="admin-table-container">
@@ -153,27 +134,25 @@ export default function Dashboard() {
               <tbody>
                 {recentActivity.map((order) => (
                   <tr key={order.id}>
-                    <td>#{order.id}</td>
-                    <td>{order.userName}</td>
+                    <td>{order.order_number}</td>
+                    <td>{order.shipping_name || order.user?.name}</td>
                     <td className="price-cell">
-                      ₱{order.total.toLocaleString()}
+                      ₱{Number(order.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td>
                       <span
                         className="status-badge"
                         style={{
                           backgroundColor:
-                            order.status === "completed"
-                              ? "#10b981"
-                              : order.status === "pending"
-                              ? "#f59e0b"
+                            order.status === "completed" ? "#10b981"
+                              : order.status === "pending" ? "#f59e0b"
                               : "#3b82f6",
                         }}
                       >
                         {order.status}
                       </span>
                     </td>
-                    <td>{new Date(order.date).toLocaleDateString()}</td>
+                    <td>{new Date(order.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>

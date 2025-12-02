@@ -1,5 +1,4 @@
 /* === Authentication Page Styles (Split Layout & Gaming Theme) === */
-
 .auth-page {
   display: flex;
   align-items: center;
@@ -10,7 +9,10 @@
   overflow: hidden;
 }
 
+
+
 /* Wrapper for the desktop split view */
+
 .auth-wrapper {
   display: flex;
   flex-direction: row;
@@ -23,7 +25,10 @@
   overflow: hidden;
 }
 
+
+
 /* --- LEFT SIDE: BRAND PANEL (40% Width) --- */
+
 .auth-brand-panel {
   flex: 0 0 40%;
   display: flex;
@@ -34,14 +39,15 @@
   background-color: var(--color-text-primary);
   color: var(--color-surface);
   padding: 3rem;
-
   background-image: url("/public/img/hero/gaming-setup-banner.jpg");
   background-size: cover;
   background-position: center;
   position: relative;
+
 }
 
 /* Dark overlay to ensure text visibility on the background image */
+
 .auth-brand-panel::before {
   content: "";
   position: absolute;
@@ -53,7 +59,9 @@
   z-index: 1;
 }
 
+
 /* Content needs a higher z-index than the overlay */
+
 .brand-content {
   position: relative;
   z-index: 2;
@@ -121,6 +129,7 @@
   color: var(--color-accent);
   border: 1px solid var(--color-accent);
 }
+
 
 .form-message-error {
   background-color: rgba(156, 39, 176, 0.1); /* Lightened secondary accent */
@@ -211,8 +220,8 @@
 }
 
 /* === Responsive Adjustments === */
-
 /* Tablet/Small Desktop Optimization (1200px and below) */
+
 @media (max-width: 1200px) {
   .auth-wrapper {
     /* Scale down the entire wrapper slightly for better fit on intermediate screens */
@@ -221,10 +230,12 @@
 }
 
 /* Mobile/Tablet Collapse (900px and below) */
+
 @media (max-width: 900px) {
   /* Hide the large brand panel on smaller screens */
   .auth-brand-panel {
     display: none;
+
   }
 
   .auth-wrapper {

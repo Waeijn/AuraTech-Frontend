@@ -10,8 +10,8 @@ import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Account from "./pages/Account";
-import Footer from "./components/Footer";
 import PurchaseHistory from "./pages/PurchaseHistory";
+import Footer from "./components/Footer";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -24,15 +24,17 @@ import UserManagement from "./pages/admin/UserManagement";
  */
 const ProtectedRoute = ({ element: Element }) => {
   const { currentUser } = useAuth();
+  // Check if user is logged in
   return currentUser ? <Element /> : <Navigate to="/login" replace />;
 };
 
 /**
- * AdminRoute - Requires user to have admin role
+ * AdminRoute - Requires user to have admin role (is_admin = 1 or true)
  */
 const AdminRoute = ({ element: Element }) => {
   const { currentUser } = useAuth();
-  if (currentUser && currentUser.role === "admin") {
+  // Check if user exists and has admin role
+  if (currentUser && (currentUser.is_admin || currentUser.role === "admin")) {
     return <Element />;
   }
   return <Navigate to="/" replace />;
@@ -56,25 +58,16 @@ function AppContent() {
 
   // Determine if current route is admin-related
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const isAdminUser = currentUser?.role === "admin";
+  const isAdminUser = currentUser?.is_admin || currentUser?.role === "admin";
 
-  // Admin layout: No Navbar/Footer, admin pages handle their own layout
+  // Admin layout: No Navbar/Footer
   if (isAdminRoute && isAdminUser) {
     return (
       <Routes>
         <Route path="/admin" element={<AdminRoute element={Dashboard} />} />
-        <Route
-          path="/admin/orders"
-          element={<AdminRoute element={OrderReview} />}
-        />
-        <Route
-          path="/admin/products"
-          element={<AdminRoute element={ProductManagement} />}
-        />
-        <Route
-          path="/admin/users"
-          element={<AdminRoute element={UserManagement} />}
-        />
+        <Route path="/admin/orders" element={<AdminRoute element={OrderReview} />} />
+        <Route path="/admin/products" element={<AdminRoute element={ProductManagement} />} />
+        <Route path="/admin/users" element={<AdminRoute element={UserManagement} />} />
         <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
       </Routes>
     );
@@ -84,7 +77,7 @@ function AppContent() {
   return (
     <>
       <Navbar />
-
+      
       <main>
         <Routes>
           {/* Public Routes */}
@@ -96,33 +89,12 @@ function AppContent() {
 
           {/* Protected User Routes */}
           <Route path="/cart" element={<ProtectedRoute element={Cart} />} />
-          <Route
-            path="/checkout"
-            element={<ProtectedRoute element={Checkout} />}
-          />
-          <Route
-            path="/account"
-            element={<ProtectedRoute element={Account} />}
-          />
-          <Route
-            path="/purchase-history"
-            element={<ProtectedRoute element={PurchaseHistory} />}
-          />
+          <Route path="/checkout" element={<ProtectedRoute element={Checkout} />} />
+          <Route path="/account" element={<ProtectedRoute element={Account} />} />
+          <Route path="/purchase-history" element={<ProtectedRoute element={PurchaseHistory} />} />
 
-          {/* Admin Routes - Accessible from customer layout */}
+          {/* Admin Routes - Accessible via URL if admin */}
           <Route path="/admin" element={<AdminRoute element={Dashboard} />} />
-          <Route
-            path="/admin/orders"
-            element={<AdminRoute element={OrderReview} />}
-          />
-          <Route
-            path="/admin/products"
-            element={<AdminRoute element={ProductManagement} />}
-          />
-          <Route
-            path="/admin/users"
-            element={<AdminRoute element={UserManagement} />}
-          />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

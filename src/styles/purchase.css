@@ -274,3 +274,25 @@
     width: 40%;
   }
 }
+/* --- Simple Text-Based Empty State --- */
+.empty-state-text {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between text and button */
+  align-items: flex-start; /* Aligns left (change to 'center' if you prefer) */
+}
+
+.empty-state-text p {
+  font-size: 1.1rem;
+  color: var(--color-border); /* Subtle grey color */
+  margin: 0;
+}
+
+.start-shopping-btn {
+  text-decoration: none;
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+}
