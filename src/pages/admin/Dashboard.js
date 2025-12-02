@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-
-const API_BASE_URL = "http://localhost:8082/api";
+import { api } from "../../utils/api"; 
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -13,60 +12,57 @@ export default function Dashboard() {
   });
   const [recentActivity, setRecentActivity] = useState([]);
 
+  // --- HELPER: Match User Side Calculation (10% Ship + 12% Tax) ---
+  const calculateOrderTotal = (order) => {
+    // If no items, fallback to DB total
+    if (!order.items || order.items.length === 0) return Number(order.total || 0);
+
+    const subtotal = order.items.reduce((sum, item) => {
+        // Handle potential naming differences
+        const price = Number(item.product_price || item.product?.price || item.price || 0);
+        return sum + (price * item.quantity);
+    }, 0);
+
+    const shipping = subtotal * 0.10;
+    const tax = subtotal * 0.12; 
+
+    return subtotal + shipping + tax;
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const headers = { 
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      };
+      // 1. Fetch Data using Service Layer
+      const ordersRes = await api.get('/orders?per_page=100');
+      const productsRes = await api.get('/products?per_page=100');
+      const usersRes = await api.get('/users');
 
-      // 1. Fetch Orders 
-      const ordersRes = await fetch(`${API_BASE_URL}/orders?per_page=100`, { headers });
-      const ordersData = await ordersRes.json();
-      
-      // 2. Fetch Products
-      const productsRes = await fetch(`${API_BASE_URL}/products?per_page=100`);
-      const productsData = await productsRes.json();
+      const orders = ordersRes.success ? ordersRes.data : [];
+      const products = productsRes.success ? productsRes.data : [];
+      const users = usersRes.success ? usersRes.data : [];
 
-      // 3. Fetch Users (ADDED THIS TO FIX USER COUNT)
-      const usersRes = await fetch(`${API_BASE_URL}/users`, { headers });
-      const usersData = await usersRes.json();
+      // 2. Calculate Stats using the HELPER
+      // FIX: Sum up the CALCULATED totals to match the receipt
+      const totalSales = orders.reduce((sum, order) => {
+          return sum + calculateOrderTotal(order);
+      }, 0);
 
-      if (ordersData.success && productsData.success) {
-        const orders = ordersData.data || [];
-        const products = productsData.data || [];
-        const users = usersData.success ? (usersData.data || []) : [];
+      const newOrders = orders.filter((o) => o.status === "pending").length;
+      const criticalStock = products.filter((p) => p.stock <= 5).length;
 
-        // Calculate Total Sales
-        const totalSales = orders.reduce((sum, order) => {
-            // Use the total from the DB if available, otherwise calculate
-            return sum + Number(order.total);
-        }, 0);
+      setStats({
+        totalSales, 
+        newOrders,
+        pendingUsers: users.length,
+        criticalStock,
+        loading: false,
+      });
 
-        const newOrders = orders.filter((o) => o.status === "pending").length;
-        
-        // Count users (excluding admin if preferred, or all users)
-        const pendingUsers = users.length; 
-        
-        // Critical Stock: Items with stock <= 5
-        const criticalStock = products.filter((p) => p.stock <= 5).length;
+      setRecentActivity(orders.slice(0, 5));
 
-        setStats({
-          totalSales,
-          newOrders,
-          pendingUsers, // Now using real data
-          criticalStock,
-          loading: false,
-        });
-
-        // Set Recent Activity (Last 5 orders)
-        setRecentActivity(orders.slice(0, 5));
-      }
     } catch (error) {
       console.error("Dashboard fetch error:", error);
       setStats((prev) => ({ ...prev, loading: false }));
@@ -83,6 +79,7 @@ export default function Dashboard() {
     );
   }
 
+  // --- DESIGN: EXACTLY THE SAME ---
   return (
     <AdminLayout>
       <div className="dashboard-header">
@@ -137,7 +134,8 @@ export default function Dashboard() {
                     <td>{order.order_number}</td>
                     <td>{order.shipping_name || order.user?.name}</td>
                     <td className="price-cell">
-                      ₱{Number(order.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      {/* FIX: Use Helper here too */}
+                      ₱{calculateOrderTotal(order).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td>
                       <span

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/product.css";
 import { useAuth } from "../components/Navbar";
-
-const API_BASE_URL = "http://localhost:8082/api";
+import { productService } from "../services/productService"; // Import Service
+import { cartService } from "../services/cartService";       // Import Service
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -19,16 +19,16 @@ const ProductDetails = () => {
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
-  // 1. Fetch Product Data from API
+  // 1. Fetch Product Data (Using Service)
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/products/${id}`);
-        const data = await response.json();
+        // Use Service
+        const response = await productService.getById(id);
 
-        if (response.ok && data.success) {
-          setProduct(data.data);
+        if (response.success) {
+          setProduct(response.data);
         } else {
           setError("Product not found");
         }
@@ -43,7 +43,7 @@ const ProductDetails = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // 2. Add to Cart Logic (API)
+  // 2. Add to Cart Logic (Using Service)
   const handleFinalAddToCart = async () => {
     if (!product || quantity < 1) return;
 
@@ -53,26 +53,14 @@ const ProductDetails = () => {
     }
 
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const response = await fetch(`${API_BASE_URL}/cart/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          product_id: product.id,
-          quantity: quantity
-        })
-      });
+      // Use Service
+      const response = await cartService.add(product.id, quantity);
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         alert(`Added ${quantity} x ${product.name} to cart!`);
         setIsModalOpen(false);
       } else {
-        alert(result.message || "Failed to add to cart");
+        alert(response.message || "Failed to add to cart");
       }
     } catch (err) {
       console.error("Cart Error:", err);
@@ -80,7 +68,7 @@ const ProductDetails = () => {
     }
   };
 
-  // UI Handlers
+  // UI Handlers (Unchanged)
   const handleShowModal = () => {
     if (!currentUser) {
       setIsAuthPromptOpen(true);
@@ -158,11 +146,9 @@ const ProductDetails = () => {
             </button>
           </div>
 
-          {/* Render Specs if they exist */}
           {product.specifications && (
             <div className="specifications-section">
               <h3>Technical Specifications</h3>
-              {/* Note: Ensure backend sends specs as JSON/Array */}
               <p>{JSON.stringify(product.specifications)}</p> 
             </div>
           )}

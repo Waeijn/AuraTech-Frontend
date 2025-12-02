@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../components/Navbar";
 import "../styles/checkout.css";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE_URL = "http://localhost:8082/api";
+import { orderService } from "../services/orderService"; // Import Service
+import { cartService } from "../services/cartService";   // Import Service
 
 export default function Checkout() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // State (Added 'tax' to totals)
+  // --- STATE (Exact same as your original) ---
   const [cartItems, setCartItems] = useState([]);
   const [totals, setTotals] = useState({ subtotal: 0, shipping: 0, tax: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -34,17 +34,16 @@ export default function Checkout() {
 
     const fetchCheckoutData = async () => {
       try {
-        const token = localStorage.getItem("ACCESS_TOKEN");
-        const response = await fetch(`${API_BASE_URL}/cart`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        const data = await response.json();
+        // REFACTOR: Use cartService instead of fetch
+        const data = await cartService.get();
 
-        if (response.ok && data.success) {
-          const items = data.data.items;
+        // Note: Check if data comes back as { success: true, data: { ... } } or just the data object
+        // Based on your previous working code, we assume data.success check
+        if (data.success) {
+          const items = data.data.items || [];
           setCartItems(items);
           
-          // --- CALCULATION LOGIC (With Tax) ---
+          // --- CALCULATION LOGIC (Preserved) ---
           const sub = items.reduce((sum, item) => {
              const price = Number(item.product.price) || 0; 
              const qty = Number(item.quantity) || 1;
@@ -80,8 +79,7 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      
+      // REFACTOR: Use orderService instead of fetch
       const payload = {
         shipping_name: formData.fullname,
         shipping_email: formData.email,
@@ -94,23 +92,13 @@ export default function Checkout() {
         payment_method: formData.payment_method
       };
 
-      const response = await fetch(`${API_BASE_URL}/orders/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
+      const response = await orderService.checkout(payload);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setOrderReceipt(data.data);
+      if (response.success) {
+        setOrderReceipt(response.data);
         setIsSubmitted(true);
       } else {
-        alert(data.message || "Checkout failed. Please check your details.");
+        alert(response.message || "Checkout failed. Please check your details.");
       }
     } catch (error) {
       console.error("Checkout Error:", error);
@@ -120,8 +108,8 @@ export default function Checkout() {
     }
   };
 
+  // --- UI RENDER (Exact same as your original) ---
   if (isSubmitted && orderReceipt) {
-    // Show Frontend Total to match display
     const totalVal = totals.total; 
     
     return (

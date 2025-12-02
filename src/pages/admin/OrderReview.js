@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-
-const API_BASE_URL = "http://localhost:8082/api";
+import { api } from "../../utils/api";
 
 export default function OrderReview() {
   const [orders, setOrders] = useState([]);
@@ -9,18 +8,28 @@ export default function OrderReview() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // --- NEW: Helper to Calculate Grand Total (Matches User Side) ---
+  const calculateOrderTotal = (order) => {
+    // Fallback if items are missing
+    if (!order.items || order.items.length === 0) return Number(order.total || 0);
+
+    const subtotal = order.items.reduce((sum, item) => {
+        // Handle inconsistent backend naming (product_price vs product.price)
+        const price = Number(item.product_price || item.product?.price || item.price || 0);
+        return sum + (price * item.quantity);
+    }, 0);
+
+    const shipping = subtotal * 0.10;
+    const tax = subtotal * 0.12; 
+
+    return subtotal + shipping + tax;
+  };
+
   const fetchOrders = async () => {
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const response = await fetch(`${API_BASE_URL}/orders?per_page=100`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setOrders(data.data);
-      } else {
-        console.error("Failed to load orders:", data.message);
+      const response = await api.get('/orders?per_page=100');
+      if (response.success) {
+        setOrders(response.data);
       }
     } catch (error) {
       console.error("Admin fetch error:", error);
@@ -33,7 +42,6 @@ export default function OrderReview() {
     fetchOrders();
   }, []);
 
-  // Filter Logic
   const filteredOrders = orders.filter((order) => {
     const matchesFilter = filter === "all" || order.status === filter;
     
@@ -49,33 +57,17 @@ export default function OrderReview() {
     return matchesFilter && matchesSearch;
   });
 
-  // REAL API INTEGRATION HERE
   const handleStatusChange = async (orderId, newStatus) => {
-    // 1. Optimistic UI Update (Update screen immediately)
     const updatedOrders = orders.map((order) =>
       order.id === orderId ? { ...order, status: newStatus } : order
     );
     setOrders(updatedOrders);
 
-    // 2. Send Update to Backend
     try {
-        const token = localStorage.getItem("ACCESS_TOKEN");
-        const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ status: newStatus })
-        });
-        
-        if (!response.ok) {
-            alert("Failed to update status on server. Please refresh.");
-            fetchOrders(); // Revert changes on failure
-        }
+      await api.put(`/orders/${orderId}`, { status: newStatus });
     } catch (error) {
-        console.error("Error updating order:", error);
-        fetchOrders();
+      alert("Failed to update status.");
+      fetchOrders();
     }
   };
 
@@ -105,21 +97,15 @@ export default function OrderReview() {
         </div>
         <div className="admin-card">
           <h3>Pending</h3>
-          <p style={{ color: "#f59e0b" }}>
-            {orders.filter((o) => o.status === "pending").length}
-          </p>
+          <p style={{ color: "#f59e0b" }}>{orders.filter((o) => o.status === "pending").length}</p>
         </div>
         <div className="admin-card">
           <h3>Processing</h3>
-          <p style={{ color: "#3b82f6" }}>
-            {orders.filter((o) => o.status === "processing").length}
-          </p>
+          <p style={{ color: "#3b82f6" }}>{orders.filter((o) => o.status === "processing").length}</p>
         </div>
         <div className="admin-card">
           <h3>Completed</h3>
-          <p style={{ color: "#10b981" }}>
-            {orders.filter((o) => o.status === "completed").length}
-          </p>
+          <p style={{ color: "#10b981" }}>{orders.filter((o) => o.status === "completed").length}</p>
         </div>
       </div>
 
@@ -166,7 +152,10 @@ export default function OrderReview() {
                   <td>{order.order_number}</td>
                   <td>{order.shipping_name || order.user?.name}</td>
                   <td>{order.shipping_email || order.user?.email}</td>
-                  <td className="price-cell">₱{Number(order.total).toLocaleString()}</td>
+                  <td className="price-cell">
+                    {/* FIX: Use Calculated Total here to match User Side */}
+                    ₱{calculateOrderTotal(order).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
                   <td>
                     <span className="status-badge" style={{ backgroundColor: getStatusColor(order.status) }}>
                       {order.status}

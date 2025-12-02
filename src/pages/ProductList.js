@@ -4,9 +4,8 @@ import ProductDetails from "./ProductDetails";
 import "../styles/product.css";
 import ProductCard from "../components/ProductCard";
 import { useAuth } from "../components/Navbar";
-
-// API URL Configuration
-const API_BASE_URL = "http://localhost:8082/api";
+import { productService } from "../services/productService"; // Import Service
+import { cartService } from "../services/cartService";       // Import Service
 
 const ProductList = () => {
   const navigate = useNavigate();
@@ -14,7 +13,7 @@ const ProductList = () => {
   const location = useLocation();
 
   // State
-  const [products, setProducts] = useState([]); // Stores Real API Data
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,14 +26,13 @@ const ProductList = () => {
   const [modalProduct, setModalProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
-  // --- 1. Fetch Products from Backend ---
+  // --- 1. Fetch Products (Using Service) ---
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        // FETCH CALL
-        const response = await fetch(`${API_BASE_URL}/products?per_page=100`); // Get all for now
-        const result = await response.json();
+        // Use Service: No API URL needed
+        const result = await productService.getAll({ per_page: 100 });
 
         if (result.success) {
           setProducts(result.data);
@@ -53,7 +51,7 @@ const ProductList = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // --- 2. Add to Cart (Real API Call) ---
+  // --- 2. Add to Cart (Using Service) ---
   const handleAddToCartLogic = async (product, qty) => {
     if (!currentUser) {
       setIsAuthPromptOpen(true);
@@ -61,30 +59,18 @@ const ProductList = () => {
     }
 
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      
-      const response = await fetch(`${API_BASE_URL}/cart/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // Pass Token
-        },
-        body: JSON.stringify({
-          product_id: product.id,
-          quantity: qty
-        })
-      });
+      // Use Service: No token handling needed
+      const response = await cartService.add(product.id, qty);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         alert(`Added ${qty} x ${product.name} to cart!`);
         handleCloseModal();
       } else {
-        alert(data.message || "Failed to add to cart");
+        alert(response.message || "Failed to add to cart");
       }
     } catch (err) {
       console.error("Cart Error:", err);
+      // Service layer throws errors, so we catch them here
       alert("Error adding item to cart.");
     }
   };
@@ -124,11 +110,9 @@ const ProductList = () => {
 
   const handleBackToList = () => setSelectedProduct(null);
 
-  // --- Filtering Logic ---
+  // --- Filtering Logic (Same as before) ---
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("search")?.toLowerCase() || "";
-
-  // Extract unique categories from API data + 'All'
   const categories = ["All", ...new Set(products.map(p => p.category_name || p.category))];
 
   const filteredProducts = products.filter((p) => {
@@ -146,7 +130,6 @@ const ProductList = () => {
 
   return (
     <>
-      {/* Auth Prompt Modal */}
       <div className={`modal-overlay ${isAuthPromptOpen ? "open" : ""}`}>
         <div className="quantity-modal confirmation-modal">
           <h2>Login Required</h2>
@@ -158,18 +141,15 @@ const ProductList = () => {
         </div>
       </div>
 
-      {/* Quantity Selection Modal */}
       <div className={`modal-overlay ${isModalOpen ? "open" : ""}`}>
         <div className="quantity-modal">
           <h2>Select Quantity</h2>
           <p>{modalProduct?.name}</p>
-
           <div className="quantity-controls">
             <button className="quantity-btn" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>-</button>
             <input type="number" min="1" value={quantity} onChange={handleManualQuantityChange} className="quantity-input-field" />
             <button className="quantity-btn" onClick={() => handleQuantityChange(1)}>+</button>
           </div>
-
           <div className="modal-actions">
             <button className="btn-main" onClick={handleFinalAddToCart}>Add to Cart</button>
             <button className="btn-cancel" onClick={handleCloseModal}>Cancel</button>
@@ -184,12 +164,7 @@ const ProductList = () => {
           <>
             <div className="product-header">
               <h1 className="product-title">Our Products</h1>
-              
-              <p className="product-subtitle">
-                Explore AuraTech&apos;s next-gen gaming gear — engineered for power,
-                precision, and performance.
-              </p>
-
+              <p className="product-subtitle">Explore AuraTech&apos;s next-gen gaming gear.</p>
               <div className="divider"></div>
             </div>
 
@@ -212,7 +187,7 @@ const ProductList = () => {
                     key={product.id}
                     product={product}
                     onViewDetails={() => setSelectedProduct(product)}
-                    onAddToCart={() => handleShowQuantityModal(product)} // Pass handler
+                    onAddToCart={() => handleShowQuantityModal(product)}
                   />
                 ))
               ) : (

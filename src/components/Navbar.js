@@ -5,12 +5,11 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { authService } from "../services/authService"; // Import Service
 import "../styles/navbar.css";
 
 const AuthContext = createContext();
-const API_BASE_URL = "http://localhost:8082/api";
 
 /**
  * AuthProvider Component
@@ -18,67 +17,70 @@ const API_BASE_URL = "http://localhost:8082/api";
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // Add useNavigate here for smoother redirects
 
   // Check for existing session on load
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      if (token) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/me`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await response.json();
-          if (data.success) {
-            setCurrentUser(data.data.user);
-          } else {
-            localStorage.removeItem("ACCESS_TOKEN");
-          }
-        } catch (error) {
-          console.error("Auth check failed:", error);
-        }
+      // 1. Fast Client-Side Check: Do we even have a token?
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return; // Stop here if no token, prevents unnecessary API call
       }
-      setLoading(false);
+
+      // 2. Server-Side Verify: Is the token valid?
+      try {
+        const response = await authService.me();
+        if (response.success) {
+          setCurrentUser(response.data.user);
+        }
+      } catch (error) {
+        // Token is invalid/expired. Clear it.
+        console.warn("Session expired or invalid.");
+        localStorage.removeItem('token');
+        setCurrentUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
     checkAuth();
   }, []);
 
-  // --- FIX: Added missing register function ---
   const register = async (userData) => {
-    // This is a placeholder since the actual API call is in Register.js
-    console.log("Register triggered via context", userData);
-    return { success: true };
-  };
-  // -------------------------------------------
-
-  const login = (userData) => {
-    setCurrentUser(userData);
+    return await authService.register(userData);
   };
 
+  const login = (user, token) => {
+    setCurrentUser(user);
+  };
+
+  // --- FIX: SMOOTH LOGOUT ---
   const logout = async () => {
-    const token = localStorage.getItem("ACCESS_TOKEN");
-    if (token) {
-      try {
-        await fetch(`${API_BASE_URL}/logout`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } catch (err) {
-        console.error(err);
-      }
+    // 1. Start loading state IMMEDIATELY to hide UI
+    setLoading(true); 
+    try {
+      // 2. Wait for backend to invalidate token
+      await authService.logout(); 
+    } catch (err) {
+      console.warn("Logout API call failed, but clearing local session anyway.", err);
+    } finally {
+      // 3. Clear local state and stop loading
+      setCurrentUser(null);
+      setLoading(false);
+      // 4. Navigate away (using replace to prevent back-button return)
+      navigate("/login", { replace: true });
     }
-    localStorage.removeItem("ACCESS_TOKEN");
-    setCurrentUser(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
-        register, // This caused the error because it wasn't defined above
+        register,
         login,
         logout,
-        isAdmin: currentUser?.role === "admin",
+        isAdmin: currentUser?.role === "admin" || currentUser?.is_admin === 1,
         loading,
         setCurrentUser,
       }}
@@ -94,7 +96,7 @@ export const useAuth = () => useContext(AuthContext);
  * Navbar Component
  */
 export default function Navbar() {
-  const { currentUser, logout, setCurrentUser } = useAuth();
+  const { currentUser, logout } = useAuth(); // Removed setCurrentUser as it's not needed here
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -106,13 +108,27 @@ export default function Navbar() {
 
   const searchWrapperRef = useRef(null);
 
-  // --- API Live Search ---
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) {
+        setResults([]);
+      }
+      if (showDropdown && !event.target.closest('.user-dropdown')) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showDropdown]);
+
+  // Simple Fetch-based Search (Can be refactored to productService later)
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchTerm.trim().length > 1) {
         try {
           const response = await fetch(
-            `${API_BASE_URL}/products?search=${searchTerm}`
+            `http://localhost:8082/api/products?search=${searchTerm}`
           );
           const data = await response.json();
           if (data.success) {
@@ -146,14 +162,9 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    // 1. Clear Local State IMMEDIATELY
-    setCurrentUser(null);
-
-    // 2. Clear token
-    logout();
-
-    // 3. Force redirect
-    window.location.href = "/";
+    // The logout function in context now handles loading and navigation
+    setShowDropdown(false);
+    await logout(); 
   };
 
   if (["/login", "/register"].includes(location.pathname)) return null;
@@ -161,10 +172,10 @@ export default function Navbar() {
   return (
     <>
       {isAuthPromptOpen && (
-        <div className="modal-overlay open">
+        <div className="modal-overlay open" style={{zIndex: 2000}}>
           <div className="quantity-modal confirmation-modal">
             <h2>Login Required</h2>
-            <p>You must be logged in to view your cart.</p>
+            <p>You must be logged in to access this page.</p>
             <div className="modal-actions">
               <button
                 className="btn-main"
@@ -234,20 +245,8 @@ export default function Navbar() {
           </div>
 
           <nav className={`navbar__links ${isMenuOpen ? "is-open" : ""}`}>
-            <Link
-              to="/"
-              className="nav-link"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/products"
-              className="nav-link"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Products
-            </Link>
+            <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>Home</Link>
+            <Link to="/products" className="nav-link" onClick={() => setIsMenuOpen(false)}>Products</Link>
             <Link
               to="/cart"
               className="nav-link"
@@ -264,20 +263,8 @@ export default function Navbar() {
 
             {!currentUser ? (
               <>
-                <Link
-                  to="/login"
-                  className="nav-link"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="nav-link"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Register
-                </Link>
+                <Link to="/login" className="nav-link" onClick={() => setIsMenuOpen(false)}>Login</Link>
+                <Link to="/register" className="nav-link" onClick={() => setIsMenuOpen(false)}>Register</Link>
               </>
             ) : (
               <div className="user-dropdown">
@@ -290,17 +277,12 @@ export default function Navbar() {
                 {showDropdown && (
                   <ul className="user-dropdown-menu">
                     <li>
-                      <Link
-                        to="/purchase-history"
-                        onClick={() => setShowDropdown(false)}
-                      >
-                        My Orders
+                      <Link to={currentUser.role === 'admin' || currentUser.is_admin === 1 ? "/admin" : "/purchase-history"} onClick={() => setShowDropdown(false)}>
+                        {currentUser.role === 'admin' || currentUser.is_admin === 1 ? "Dashboard" : "My Orders"}
                       </Link>
                     </li>
                     <li>
-                      <button className="logout-btn" onClick={handleLogout}>
-                        Logout
-                      </button>
+                      <button className="logout-btn" onClick={handleLogout}>Logout</button>
                     </li>
                   </ul>
                 )}
@@ -308,10 +290,7 @@ export default function Navbar() {
             )}
           </nav>
 
-          <button
-            className="navbar__mobile-toggle"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
+          <button className="navbar__mobile-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? "✕" : "☰"}
           </button>
         </div>

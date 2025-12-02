@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
-
-// API URL Configuration
-const API_BASE_URL = "http://localhost:8082/api";
+import { productService } from "../services/productService"; // Import Service
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- 1. Fetch Featured Products from API ---
+  // --- 1. Fetch Featured Products (Refactored) ---
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/products?per_page=100`);
-        const result = await response.json();
+        // Use Service Layer: Pass params for pagination
+        const result = await productService.getAll({ per_page: 100 });
 
         if (result.success && Array.isArray(result.data)) {
           // Filter for products where 'featured' is true (or 1)
@@ -35,13 +33,14 @@ export default function HomePage() {
 
   // --- Handlers ---
   const handleProductClick = (productId) => {
-    navigate(`/product/${productId}`);
+    navigate(`/product/${productId}`); // Correct route is usually /product/:id
   };
 
   const handleShopNowClick = () => {
     navigate("/products");
   };
 
+  // --- DESIGN: EXACTLY THE SAME AS BEFORE ---
   return (
     <section className="home-page">
       {/* 1. HERO SECTION */}

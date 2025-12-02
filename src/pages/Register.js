@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authService } from "../services/authService"; 
 import "../styles/auth.css";
-
-// API Configuration
-const API_BASE_URL = "http://localhost:8082/api";
 
 export default function Register() {
   const navigate = useNavigate();
-
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -15,7 +12,6 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-  
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -46,44 +42,30 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      // 2. REAL API CALL
-      const response = await fetch(`${API_BASE_URL}/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          password_confirmation: formData.confirmPassword
-        }),
+      // 2. USE SERVICE (Replaces manual fetch)
+      // The service automatically handles headers and saves the token upon success
+      const response = await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         setMessageType("success");
         setMessage("Registration successful! Redirecting...");
         
-        // Optional: Auto-login by saving token immediately
-        if (data.data && data.data.token) {
-           localStorage.setItem("ACCESS_TOKEN", data.data.token);
-        }
-
+        // Madelyn's service saves the token, so the user is now logged in.
+        // We redirect to home or login page.
         setTimeout(() => {
-          navigate("/login");
+          navigate("/"); // Redirect to Home since they are auto-logged in
         }, 1500);
-      } else {
-        setMessageType("error");
-        // Handle Laravel validation errors (e.g. email already taken)
-        setMessage(data.message || "Registration failed.");
-      }
+      } 
     } catch (error) {
       console.error("Register Error:", error);
       setMessageType("error");
-      setMessage("Server connection failed. Try again.");
+      // The service throws an error with the message from the backend
+      setMessage(error.message || "Registration failed.");
     } finally {
       setIsLoading(false);
     }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-
-const API_BASE_URL = "http://localhost:8082/api";
+import { productService } from "../../services/productService"; // Import Service
 
 export default function ProductManagement() {
   const [products, setProducts] = useState([]);
@@ -13,12 +12,12 @@ export default function ProductManagement() {
     name: "", description: "", price: "", stock: "", category_id: ""
   });
 
-  // Fetch Products
+  // Fetch Products (Refactored to use Service)
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/products?per_page=100`);
-      const data = await response.json();
-      if (data.success) setProducts(data.data);
+      // Use Service: Pass params for pagination/all items
+      const result = await productService.getAll({ per_page: 100 });
+      if (result.success) setProducts(result.data);
     } catch (err) {
       console.error("Admin fetch error:", err);
     } finally {
@@ -28,38 +27,30 @@ export default function ProductManagement() {
 
   useEffect(() => { fetchProducts(); }, []);
 
-  // Delete Product
+  // Delete Product (Refactored to use Service)
   const handleDelete = async (id) => {
     if(!window.confirm("Delete this product?")) return;
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      await fetch(`${API_BASE_URL}/products/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+      // Use Service: Token handled automatically
+      await productService.delete(id);
       fetchProducts();
     } catch (err) {
       alert("Delete failed");
     }
   };
 
-  // Add Product (Simplified)
+  // Add Product (Refactored to use Service)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const response = await fetch(`${API_BASE_URL}/products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
+      // Use Service
+      const response = await productService.create(formData);
       
-      if (response.ok) {
+      if (response.success) {
         alert("Product added!");
         setIsModalOpen(false);
+        // Optional: Clear form here if you want
+        // setFormData({ name: "", description: "", price: "", stock: "", category_id: "" });
         fetchProducts();
       } else {
         alert("Failed to add product");
@@ -103,16 +94,43 @@ export default function ProductManagement() {
         </table>
       </div>
 
-      {/* Add Modal */}
+      {/* Add Modal (Design Preserved) */}
       {isModalOpen && (
         <div className="modal-overlay open">
           <div className="admin-modal">
             <h2>Add Product</h2>
             <form onSubmit={handleSubmit}>
-              <input placeholder="Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="form-input" />
-              <input placeholder="Price" type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required className="form-input" />
-              <input placeholder="Stock" type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} required className="form-input" />
-              <input placeholder="Category ID (e.g. 1)" type="number" value={formData.category_id} onChange={e => setFormData({...formData, category_id: e.target.value})} required className="form-input" />
+              <input 
+                placeholder="Name" 
+                value={formData.name} 
+                onChange={e => setFormData({...formData, name: e.target.value})} 
+                required 
+                className="form-input" 
+              />
+              <input 
+                placeholder="Price" 
+                type="number" 
+                value={formData.price} 
+                onChange={e => setFormData({...formData, price: e.target.value})} 
+                required 
+                className="form-input" 
+              />
+              <input 
+                placeholder="Stock" 
+                type="number" 
+                value={formData.stock} 
+                onChange={e => setFormData({...formData, stock: e.target.value})} 
+                required 
+                className="form-input" 
+              />
+              <input 
+                placeholder="Category ID (e.g. 1)" 
+                type="number" 
+                value={formData.category_id} 
+                onChange={e => setFormData({...formData, category_id: e.target.value})} 
+                required 
+                className="form-input" 
+              />
               
               <div className="modal-actions">
                 <button type="submit" className="btn-main">Save</button>

@@ -1,30 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom"; 
 import { useAuth } from "../components/Navbar";
+import { orderService } from "../services/orderService"; // Import Service
 import "../styles/purchase.css";
-
-const API_BASE_URL = "http://localhost:8082/api";
 
 export default function PurchaseHistory() {
   const { currentUser } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Orders
+  // Fetch Orders (Using Service)
   const fetchOrders = async (isBackground = false) => {
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      if (!token) return;
-
       if (!isBackground) setLoading(true);
 
-      const response = await fetch(`${API_BASE_URL}/orders`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const data = await response.json();
+      // Service handles token automatically
+      const response = await orderService.getAll();
 
-      if (response.ok && data.success) {
-        setOrders(data.data);
+      if (response.success) {
+        setOrders(response.data);
       }
     } catch (error) {
       console.error("Error fetching history:", error);
@@ -39,23 +33,19 @@ export default function PurchaseHistory() {
     }
   }, [currentUser]);
 
-  // Cancel Handler
+  // Cancel Handler (Using Service)
   const handleCancelOrder = async (orderId) => {
     if(!window.confirm("Are you sure you want to cancel this order?")) return;
 
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const response = await fetch(`${API_BASE_URL}/orders/${orderId}/cancel`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+      // Use Service
+      const response = await orderService.cancel(orderId);
       
-      if (response.ok) {
+      if (response.success) {
         alert("Order cancelled successfully.");
         fetchOrders(true); 
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Could not cancel order.");
+        alert(response.message || "Could not cancel order.");
       }
     } catch (err) {
       alert("Error cancelling order.");
@@ -81,7 +71,6 @@ export default function PurchaseHistory() {
       <h1>My Orders</h1>
 
       {orders.length === 0 ? (
-        // --- NEW TEXT-BASED EMPTY STATE ---
         <div className="empty-state-text">
             <p>You haven't placed any orders yet.</p>
             <Link to="/products" className="btn-main start-shopping-btn">

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-
-const API_BASE_URL = "http://localhost:8082/api";
+import { api } from "../../utils/api"; // FIX: Import Service Layer
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -9,23 +8,12 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
-  // 1. Fetch Users from API
+  // 1. Fetch Users (FIX: Use api.get)
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json" 
-        }
-      });
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Safety check: ensure data.data exists, otherwise fallback to empty array
-        setUsers(data.data || []);
-      } else {
-        console.error("Failed to fetch users");
+      const response = await api.get('/users');
+      if (response.success) {
+        setUsers(response.data || []);
       }
     } catch (error) {
       console.error("Error loading users:", error);
@@ -38,47 +26,36 @@ export default function UserManagement() {
     fetchUsers();
   }, []);
 
-  // 2. Filter Logic
+  // 2. Filter Logic (Preserved)
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Check role
     const userRole = user.role || (user.is_admin ? "admin" : "user");
     const matchesRole = roleFilter === "all" || userRole === roleFilter;
     
     return matchesSearch && matchesRole;
   });
 
-  // 3. Delete User API
+  // 3. Delete User (FIX: Use api.delete)
   const handleDeleteUser = async (userId, userEmail) => {
     if (userEmail === "admin@auratech.com") {
       alert("Cannot delete the main admin account!");
       return;
     }
-
     if (!window.confirm(`Are you sure you want to delete user: ${userEmail}?`)) return;
 
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        alert("User deleted successfully.");
-        fetchUsers(); // Refresh list
-      } else {
-        alert("Failed to delete user.");
-      }
+      await api.delete(`/users/${userId}`);
+      alert("User deleted successfully.");
+      fetchUsers(); 
     } catch (error) {
       alert("Error deleting user.");
     }
   };
 
-  // 4. Toggle Role API
+  // 4. Toggle Role (FIX: Use api.put)
   const handleRoleToggle = async (user) => {
     if (user.email === "admin@auratech.com") {
       alert("Cannot modify the main admin account!");
@@ -89,22 +66,9 @@ export default function UserManagement() {
     const newRole = currentRole === "admin" ? "user" : "admin";
 
     try {
-      const token = localStorage.getItem("ACCESS_TOKEN");
-      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
-        method: "PUT",
-        headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify({ role: newRole })
-      });
-
-      if (response.ok) {
-        alert(`User role updated to ${newRole}`);
-        fetchUsers();
-      } else {
-        alert("Failed to update role.");
-      }
+      await api.put(`/users/${user.id}`, { role: newRole });
+      alert(`User role updated to ${newRole}`);
+      fetchUsers();
     } catch (error) {
       alert("Error updating role.");
     }
@@ -114,6 +78,7 @@ export default function UserManagement() {
 
   if (loading) return <AdminLayout><p style={{padding:"20px"}}>Loading users...</p></AdminLayout>;
 
+  // --- DESIGN: EXACTLY THE SAME AS BEFORE ---
   return (
     <AdminLayout>
       <div className="admin-page-header">
