@@ -33,8 +33,6 @@ export const apiFetch = async (endpoint, options = {}) => {
     const data = await response.json();
 
     if (!response.ok) {
-      // --- THE FIX IS HERE ---
-      // Only force a redirect if we get a 401 AND we are not already on the login page.
       if (response.status === 401 && window.location.pathname !== '/login') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

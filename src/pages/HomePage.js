@@ -33,14 +33,13 @@ export default function HomePage() {
 
   // --- Handlers ---
   const handleProductClick = (productId) => {
-    navigate(`/product/${productId}`); // Correct route is usually /product/:id
+    navigate(`/product/${productId}`); 
   };
 
   const handleShopNowClick = () => {
     navigate("/products");
   };
 
-  // --- DESIGN: EXACTLY THE SAME AS BEFORE ---
   return (
     <section className="home-page">
       {/* 1. HERO SECTION */}

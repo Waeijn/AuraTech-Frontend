@@ -117,12 +117,10 @@ const ProductList = () => {
 
   const handleBackToList = () => setSelectedProduct(null);
 
-  // --- NEW FIX: Handle clearing the search ---
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("search")?.toLowerCase() || "";
 
   const handleClearSearch = () => {
-    // This removes the "?search=..." from the URL, effectively resetting the list
     navigate(location.pathname); 
   };
   // ------------------------------------------

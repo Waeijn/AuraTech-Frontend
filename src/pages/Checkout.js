@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { orderService } from "../services/orderService"; 
 
 const TAX_RATE = 0.12; 
-// 👇 FIX: Set to 5000 to match your backend exactly (₱5,000.00)
 const SHIPPING_FEE = 5000; 
 const SHIPPING_KEY_PREFIX = "shippingInfo_";
 
@@ -162,7 +161,7 @@ export default function Checkout() {
   if (isSubmitted && receiptData) {
     return (
       <section className="checkout-page thank-you-page">
-        <h1>Order Placed! 🥳</h1>
+        <h1>Order Placed!</h1>
         <div className="receipt-box">
           <h3>Purchase Receipt</h3>
           <p className="receipt-message-header">Order ID: #{receiptData.orderId}</p>
@@ -260,7 +259,6 @@ export default function Checkout() {
             </div>
             <div className="summary-row">
               <p>Shipping Fee:</p>
-              {/* This will now show ₱5,000.00 */}
               <p>₱{shipping.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
             <div className="summary-total" style={{ borderTop: "1px solid #444", paddingTop: "10px", marginTop: "10px" }}>

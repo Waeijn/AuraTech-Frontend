@@ -32,7 +32,6 @@ export default function PurchaseHistory() {
         alert("Order cancelled successfully.");
         refreshHistory();
       } catch (e) { 
-        // 👇 FIX: Show the exact reason from the server (e.g. "Only pending orders can be cancelled")
         const reason = e.response?.data?.message || "Cancel failed. Please try again.";
         alert(reason); 
       }
@@ -93,7 +92,6 @@ export default function PurchaseHistory() {
                 <td>{formatPrice(order.total || order.total_amount)}</td>
                 <td><span className={`status-tag status-${order.status?.toLowerCase()}`}>{order.status}</span></td>
                 <td>
-                  {/* 👇 FIX: Conditional Rendering. Only show button if status is 'pending' */}
                   {(order.status || "").toLowerCase() === 'pending' ? (
                     <button className="btn-cancel-order" onClick={() => handleCancelOrder(order.id)}>Cancel</button>
                   ) : (

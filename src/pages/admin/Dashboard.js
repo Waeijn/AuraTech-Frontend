@@ -38,8 +38,7 @@ export default function Dashboard() {
       }
 
       // 2. Calculate Stats from real data
-      const totalSales = orders
-        // 👇 FIX: Filter out 'cancelled' orders before adding to total
+      const totalSales = orderService
         .filter(order => (order.status || "").toLowerCase() !== 'cancelled')
         .reduce(
           (sum, order) => sum + (order.total_amount || order.total || 0),

@@ -37,14 +37,13 @@ export default function Login() {
       setMessageType("success");
       setMessage("Login successful! Redirecting...");
 
-      // FIX: Use Mades's isAdmin() helper for consistent checking
       const adminCheck = isAdmin();
       
       setTimeout(() => {
         if (adminCheck) {
-          window.location.href = "/admin"; // Force reload to Admin Dashboard
+          window.location.href = "/admin"; 
         } else {
-          window.location.href = "/"; // Force reload to User Home
+          window.location.href = "/"; 
         }
       }, 1000);
 

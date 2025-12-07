@@ -87,8 +87,7 @@ export default function Register() {
             <p className="brand-tagline">Power. Precision. Performance.</p>
           </div>
         </div>
-
-        {/* UI FIX: Added styles to allow scrolling if content gets too tall */}
+        
         <div 
           className="auth-form-panel" 
           style={{ 

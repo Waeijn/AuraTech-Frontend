@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import "../styles/cart.css";
 import { cartService } from "../services/cartService";
 
-// 👇 FIX: Match Checkout and Backend (₱5,000.00)
 const TAX_RATE = 0.12; 
 const SHIPPING_FEE = 5000; 
 

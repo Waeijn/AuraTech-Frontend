@@ -67,13 +67,11 @@ export default function UserManagement() {
     if (!userToUpdate) return;
 
     const newRole = currentRole === "admin" ? "user" : "admin";
-    
-    // 👇 CRITICAL FIX: Only send these 3 fields.
+
     const payload = {
       name: userToUpdate.name,
       email: userToUpdate.email,
       is_admin: newRole === "admin" ? 1 : 0 
-      // role: newRole  <-- MAKE SURE THIS IS DELETED
     };
 
     try {
