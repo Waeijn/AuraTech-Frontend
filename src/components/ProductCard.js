@@ -3,44 +3,50 @@ import "../styles/product.css";
 
 /**
  * ProductCard Component
- * Displays a single product's image, name, price, and stock status.
- * Now receives real API data via props.
+ * Displays product info. Stock is now managed by the backend, 
+ * so local inventory checks have been removed.
  */
-export default function ProductCard({ product, onAddToCart, onViewDetails }) {
+export default function ProductCard({ product }) {
   const navigate = useNavigate();
 
-  const handleViewDetails = () => {
-    if (onViewDetails) {
-      onViewDetails(product);
-    } else {
-      navigate(`/product/${product.id}`);
-    }
-  };
-
-  const handleAddToCartClick = (e) => {
+  const handleAddToCart = (e) => {
     e.stopPropagation();
-    if (onAddToCart) {
-      onAddToCart(product);
+
+    // The modal function is defined globally in ProductList.js
+    if (window.showQuantityModal) {
+      window.showQuantityModal(product);
+    } else {
+      console.error("Quantity modal not initialized.");
     }
   };
 
-  // Stock logic comes directly from the API product object now
-  const stock = product.stock || 0;
+  const handleViewDetails = () => {
+    navigate(`/product/${product.id}`);
+  };
+
+  // API Integration: Stock comes directly from the product object
+  const currentStock = product.stock || 0;
 
   return (
     <div className="product-card">
       <div className="product-image-wrapper">
         <img 
-          src={product.image || "/img/products/placeholder.png"} 
-          alt={product.name} 
+          src={product.image || product.images?.[0]?.url || "/img/products/placeholder.png"} 
+          alt={product.name}
+          onError={(e) => { e.target.src = "/img/products/placeholder.png" }}
         />
       </div>
 
       <h3>{product.name}</h3>
-      <p className="product-price">₱{Number(product.price).toLocaleString()}</p>
+      {/* Display raw price as requested (preserves 34.99 or 3499 formatting from DB) */}
+      <p className="product-price">₱{product.price.toLocaleString()}</p>
 
-      <p className={`product-stock ${stock > 0 ? "in-stock" : "out-of-stock"}`}>
-        {stock > 0 ? `In Stock: ${stock}` : "Out of Stock"}
+      <p
+        className={`product-stock ${
+          currentStock > 0 ? "in-stock" : "out-of-stock"
+        }`}
+      >
+        {currentStock > 0 ? `In Stock: ${currentStock}` : "Out of Stock"}
       </p>
 
       <div className="card-buttons">
@@ -49,8 +55,8 @@ export default function ProductCard({ product, onAddToCart, onViewDetails }) {
         </button>
         <button
           className="btn-secondary"
-          onClick={handleAddToCartClick}
-          disabled={stock === 0}
+          onClick={handleAddToCart}
+          disabled={currentStock === 0}
         >
           Add to Cart
         </button>

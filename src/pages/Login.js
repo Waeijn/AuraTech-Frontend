@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../components/Navbar";
-import { authService } from "../services/authService"; // Import Service
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { authService } from "../services/authService"; 
+import { isAdmin } from "../utils/auth"; // Use Mades's Helper
 import "../styles/auth.css";
 
 export default function Login() {
-  const { currentUser, login } = useAuth();
-  const navigate = useNavigate();
-  
-  // --- STATE (Exact same as your orig file) ---
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -16,19 +12,7 @@ export default function Login() {
   });
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  // --- REDIRECT LOGIC (Preserved from your orig file) ---
-  useEffect(() => {
-    if (currentUser) {
-      // If Admin, go to Dashboard. Else, Home.
-      if (currentUser.is_admin || currentUser.role === "admin") {
-        navigate("/admin", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
-    }
-  }, [currentUser, navigate]);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,43 +22,39 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-    setMessageType("");
-    setIsLoading(true);
 
     if (!formData.email || !formData.password) {
       setMessageType("error");
       setMessage("Email and password are required");
-      setIsLoading(false);
       return;
     }
 
     try {
-      // --- SERVICE LAYER INTEGRATION ---
-      // Replaced fetch with authService.login
-      // The service automatically saves the token to localStorage
-      const response = await authService.login(formData);
+      setLoading(true);
+      // API Call
+      await authService.login(formData);
+      
+      setMessageType("success");
+      setMessage("Login successful! Redirecting...");
 
-      if (response.success) {
-        setMessageType("success");
-        setMessage("Login successful!");
+      // FIX: Use Mades's isAdmin() helper for consistent checking
+      const adminCheck = isAdmin();
+      
+      setTimeout(() => {
+        if (adminCheck) {
+          window.location.href = "/admin"; // Force reload to Admin Dashboard
+        } else {
+          window.location.href = "/"; // Force reload to User Home
+        }
+      }, 1000);
 
-        // Update Context
-        // This triggers the useEffect above to handle the redirect
-        if (login) {
-          login(response.data.user, response.data.token); 
-        } 
-      } 
     } catch (error) {
-      console.error("Login Error:", error);
       setMessageType("error");
-      // Service throws error with message
-      setMessage(error.message || "Invalid credentials");
-    } finally {
-      setIsLoading(false);
+      setMessage(error.message || "Invalid email or password");
+      setLoading(false);
     }
   };
 
-  // --- JSX (Exact copy from login-orig.txt) ---
   return (
     <section className="auth-page">
       <div className="auth-wrapper">
@@ -106,6 +86,7 @@ export default function Login() {
                   required
                   className="form-input"
                   placeholder="Enter your email"
+                  disabled={loading}
                 />
               </label>
 
@@ -119,6 +100,7 @@ export default function Login() {
                   required
                   className="form-input"
                   placeholder="Enter your password"
+                  disabled={loading}
                 />
               </label>
 
@@ -135,8 +117,8 @@ export default function Login() {
                 </label>
               </div>
 
-              <button type="submit" className="form-button" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+              <button type="submit" className="form-button" disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
               </button>
             </form>
 

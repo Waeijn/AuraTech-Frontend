@@ -1,121 +1,137 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom"; 
 import { useAuth } from "../components/Navbar";
-import { orderService } from "../services/orderService"; // Import Service
 import "../styles/purchase.css";
+import { orderService } from "../services/orderService"; 
 
 export default function PurchaseHistory() {
   const { currentUser } = useAuth();
-  const [orders, setOrders] = useState([]);
+  const [allHistory, setAllHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Orders (Using Service)
-  const fetchOrders = async (isBackground = false) => {
-    try {
-      if (!isBackground) setLoading(true);
-
-      // Service handles token automatically
-      const response = await orderService.getAll();
-
-      if (response.success) {
-        setOrders(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching history:", error);
-    } finally {
-      if (!isBackground) setLoading(false);
-    }
-  };
-
-  useEffect(() => {
+  const refreshHistory = useCallback(async () => {
     if (currentUser) {
-      fetchOrders();
+      try {
+        setLoading(true);
+        const response = await orderService.getAll();
+        setAllHistory(response.data || []);
+      } catch (error) { 
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     }
   }, [currentUser]);
 
-  // Cancel Handler (Using Service)
-  const handleCancelOrder = async (orderId) => {
-    if(!window.confirm("Are you sure you want to cancel this order?")) return;
+  useEffect(() => { refreshHistory(); }, [refreshHistory]);
 
-    try {
-      // Use Service
-      const response = await orderService.cancel(orderId);
-      
-      if (response.success) {
+  const handleCancelOrder = async (orderId) => {
+    if (window.confirm("Are you sure you want to cancel?")) {
+      try {
+        await orderService.cancel(orderId);
         alert("Order cancelled successfully.");
-        fetchOrders(true); 
-      } else {
-        alert(response.message || "Could not cancel order.");
+        refreshHistory();
+      } catch (e) { 
+        // 👇 FIX: Show the exact reason from the server (e.g. "Only pending orders can be cancelled")
+        const reason = e.response?.data?.message || "Cancel failed. Please try again.";
+        alert(reason); 
       }
-    } catch (err) {
-      alert("Error cancelling order.");
     }
   };
 
-  // Helper to Recalculate Total
-  const calculateOrderTotal = (order) => {
-    if (!order.items) return 0;
-    const subtotal = order.items.reduce((sum, item) => {
-        return sum + (Number(item.product_price || item.price) * item.quantity);
-    }, 0);
-    const shipping = subtotal * 0.10;
-    const tax = subtotal * 0.12;
-    return subtotal + shipping + tax;
-  };
+  const formatPrice = (amt) => Number(amt).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
+  const formatDate = (date) => date ? new Date(date).toLocaleDateString() : new Date().toLocaleDateString();
 
-  if (!currentUser) return <div className="purchase-history-container"><p>Please log in.</p></div>;
-  if (loading) return <div className="purchase-history-container"><p>Loading history...</p></div>;
+  if (loading) {
+    return <div className="purchase-history-container"><p>Loading orders...</p></div>;
+  }
+
+  if (allHistory.length === 0) {
+    return (
+      <div className="purchase-history-container">
+        <h1>My Orders</h1>
+        <div className="empty-state-container">
+          <div className="empty-state-icon">📦</div>
+          <h2 className="empty-state-title">No orders yet</h2>
+          <p className="empty-state-subtext">Looks like you haven't made your first purchase.</p>
+          <Link to="/products" className="btn-start-shopping">Start Shopping</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const activeOrders = allHistory.filter(o => 
+    ['for shipping', 'pending', 'processing'].includes(o.status?.toLowerCase())
+  );
+  
+  const completedOrders = allHistory.filter(o => 
+    ['delivered', 'cancelled'].includes(o.status?.toLowerCase())
+  );
 
   return (
     <div className="purchase-history-container">
       <h1>My Orders</h1>
+      <p className="history-subtext">Track and manage your purchase history</p>
 
-      {orders.length === 0 ? (
-        <div className="empty-state-text">
-            <p>You haven't placed any orders yet.</p>
-            <Link to="/products" className="btn-main start-shopping-btn">
-                Start Shopping
-            </Link>
-        </div>
-      ) : (
-        <>
-            <p className="history-subtext">Track and manage your purchase history</p>
-            <table className="purchase-history-table">
-            <thead>
-                <tr>
-                <th>Order ID</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {orders.map((order) => (
-                <tr key={order.id}>
-                    <td>{order.order_number}</td>
-                    <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                    <td>₱{calculateOrderTotal(order).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td>
-                    <span className={`status-tag ${order.status.toLowerCase()}`}>
-                        {order.status}
+      {/* ACTIVE ORDERS */}
+      <table className="purchase-history-table">
+        <thead>
+          <tr>
+            <th>ORDER ID</th>
+            <th>DATE</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {activeOrders.length > 0 ? (
+            activeOrders.map(order => (
+              <tr key={order.id}>
+                <td><strong>#{order.id}</strong></td>
+                <td>{formatDate(order.created_at || order.date)}</td>
+                <td>{formatPrice(order.total || order.total_amount)}</td>
+                <td><span className={`status-tag status-${order.status?.toLowerCase()}`}>{order.status}</span></td>
+                <td>
+                  {/* 👇 FIX: Conditional Rendering. Only show button if status is 'pending' */}
+                  {(order.status || "").toLowerCase() === 'pending' ? (
+                    <button className="btn-cancel-order" onClick={() => handleCancelOrder(order.id)}>Cancel</button>
+                  ) : (
+                    <span style={{ fontSize: "0.9rem", color: "#888", fontStyle: "italic" }}>
+                      In Progress
                     </span>
-                    </td>
-                    <td>
-                    {order.status === 'pending' && (
-                        <button 
-                        className="btn-cancel-order" 
-                        onClick={() => handleCancelOrder(order.id)}
-                        >
-                        Cancel
-                        </button>
-                    )}
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-            </table>
-        </>
+                  )}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr><td colSpan="5" style={{textAlign: "center", padding: "30px", color: "#888"}}>No active orders.</td></tr>
+          )}
+        </tbody>
+      </table>
+      
+      <div className="history-separator"></div>
+      
+      {/* COMPLETED ORDERS */}
+      <h2>Completed History</h2>
+      {completedOrders.length > 0 ? (
+        <table className="purchase-history-table">
+          <thead>
+            <tr><th>ORDER ID</th><th>DATE</th><th>TOTAL</th><th>STATUS</th></tr>
+          </thead>
+          <tbody>
+            {completedOrders.map(order => (
+              <tr key={order.id}>
+                <td><strong>#{order.id}</strong></td>
+                <td>{formatDate(order.created_at || order.date)}</td>
+                <td>{formatPrice(order.total || order.total_amount)}</td>
+                <td><span className={`status-tag status-${order.status?.toLowerCase()}`}>{order.status}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="empty-state-text">No completed history.</p>
       )}
     </div>
   );

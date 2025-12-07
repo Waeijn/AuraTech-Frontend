@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import { api } from "../../utils/api"; 
+import { orderService } from "../../services/orderService";
+import { productService } from "../../services/productService";
+import { api } from "../../utils/api";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -10,61 +12,62 @@ export default function Dashboard() {
     criticalStock: 0,
     loading: true,
   });
+
   const [recentActivity, setRecentActivity] = useState([]);
 
-  // --- HELPER: Match User Side Calculation (10% Ship + 12% Tax) ---
-  const calculateOrderTotal = (order) => {
-    // If no items, fallback to DB total
-    if (!order.items || order.items.length === 0) return Number(order.total || 0);
-
-    const subtotal = order.items.reduce((sum, item) => {
-        // Handle potential naming differences
-        const price = Number(item.product_price || item.product?.price || item.price || 0);
-        return sum + (price * item.quantity);
-    }, 0);
-
-    const shipping = subtotal * 0.10;
-    const tax = subtotal * 0.12; 
-
-    return subtotal + shipping + tax;
-  };
-
   useEffect(() => {
-    fetchDashboardData();
+    loadDashboardStats();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const loadDashboardStats = async () => {
     try {
-      // 1. Fetch Data using Service Layer
-      const ordersRes = await api.get('/orders?per_page=100');
-      const productsRes = await api.get('/products?per_page=100');
-      const usersRes = await api.get('/users');
+      // 1. Fetch real data from APIs
+      const orderRes = await orderService.getAll();
+      const orders = orderRes.data || [];
 
-      const orders = ordersRes.success ? ordersRes.data : [];
-      const products = productsRes.success ? productsRes.data : [];
-      const users = usersRes.success ? usersRes.data : [];
+      const productRes = await productService.getAll();
+      const products = Array.isArray(productRes.data) ? productRes.data : (productRes.data?.data || []);
 
-      // 2. Calculate Stats using the HELPER
-      // FIX: Sum up the CALCULATED totals to match the receipt
-      const totalSales = orders.reduce((sum, order) => {
-          return sum + calculateOrderTotal(order);
-      }, 0);
+      // Fetch users count if possible, otherwise rely on local fallback or simple API
+      let usersCount = 0;
+      try {
+        const userRes = await api.get('/users');
+        usersCount = userRes.data?.length || 0;
+      } catch (e) {
+        console.warn("User stats fetch failed");
+      }
 
-      const newOrders = orders.filter((o) => o.status === "pending").length;
-      const criticalStock = products.filter((p) => p.stock <= 5).length;
+      // 2. Calculate Stats from real data
+      const totalSales = orders
+        // 👇 FIX: Filter out 'cancelled' orders before adding to total
+        .filter(order => (order.status || "").toLowerCase() !== 'cancelled')
+        .reduce(
+          (sum, order) => sum + (order.total_amount || order.total || 0),
+          0
+        );
+
+      const newOrders = orders.filter((o) => (o.status || "").toLowerCase() === "pending").length;
+      
+      const criticalStock = products.filter(
+        (p) => (p.stock || 0) <= 5
+      ).length;
 
       setStats({
-        totalSales, 
+        totalSales,
         newOrders,
-        pendingUsers: users.length,
+        pendingUsers: usersCount,
         criticalStock,
         loading: false,
       });
 
-      setRecentActivity(orders.slice(0, 5));
+      // 3. Get recent activity
+      const recentOrders = [...orders]
+        .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
+        .slice(0, 5);
+      setRecentActivity(recentOrders);
 
     } catch (error) {
-      console.error("Dashboard fetch error:", error);
+      console.error("Error loading stats:", error);
       setStats((prev) => ({ ...prev, loading: false }));
     }
   };
@@ -72,14 +75,13 @@ export default function Dashboard() {
   if (stats.loading) {
     return (
       <AdminLayout>
-        <div className="loading-container" style={{ padding: "40px", textAlign: "center" }}>
+        <div className="loading-container">
           <h2>Loading dashboard...</h2>
         </div>
       </AdminLayout>
     );
   }
 
-  // --- DESIGN: EXACTLY THE SAME ---
   return (
     <AdminLayout>
       <div className="dashboard-header">
@@ -87,17 +89,18 @@ export default function Dashboard() {
         <p>Welcome, Admin! Here is a summary of your key metrics.</p>
       </div>
 
+      {/* Stats Cards */}
       <div className="admin-grid">
         <div className="admin-card">
           <h3>Total Sales</h3>
           <p>₱{stats.totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
         </div>
         <div className="admin-card">
-          <h3>New Orders (Pending)</h3>
+          <h3>New Orders</h3>
           <p>{stats.newOrders}</p>
         </div>
         <div className="admin-card">
-          <h3>Total Users</h3>
+          <h3>Pending Users</h3>
           <p>{stats.pendingUsers}</p>
         </div>
         <div className="admin-card" style={{ borderLeftColor: "#ef4444" }}>
@@ -108,6 +111,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Recent Activity Section */}
       <div style={{ marginTop: "40px" }}>
         <h2 style={{ marginBottom: "20px", color: "var(--color-text-primary)" }}>
           Recent Activity
@@ -129,30 +133,39 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentActivity.map((order) => (
-                  <tr key={order.id}>
-                    <td>{order.order_number}</td>
-                    <td>{order.shipping_name || order.user?.name}</td>
-                    <td className="price-cell">
-                      {/* FIX: Use Helper here too */}
-                      ₱{calculateOrderTotal(order).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </td>
-                    <td>
-                      <span
-                        className="status-badge"
-                        style={{
-                          backgroundColor:
-                            order.status === "completed" ? "#10b981"
-                              : order.status === "pending" ? "#f59e0b"
-                              : "#3b82f6",
-                        }}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                  </tr>
-                ))}
+                {recentActivity.map((order) => {
+                   const userName = order.user?.name || order.userName || "Guest";
+                   const total = order.total_amount || order.total || 0;
+                   const status = order.status || "pending";
+                   
+                   return (
+                      <tr key={order.id}>
+                        <td>#{order.id}</td>
+                        <td>{userName}</td>
+                        <td className="price-cell">
+                          ₱{total.toLocaleString()}
+                        </td>
+                        <td>
+                          <span
+                            className="status-badge"
+                            style={{
+                              backgroundColor:
+                                status === "completed" || status === "delivered"
+                                  ? "#10b981"
+                                  : status === "pending"
+                                  ? "#f59e0b"
+                                  : status === "cancelled"
+                                  ? "#ef4444"
+                                  : "#3b82f6",
+                            }}
+                          >
+                            {status}
+                          </span>
+                        </td>
+                        <td>{new Date(order.created_at || order.date).toLocaleDateString()}</td>
+                      </tr>
+                   );
+                })}
               </tbody>
             </table>
           )}

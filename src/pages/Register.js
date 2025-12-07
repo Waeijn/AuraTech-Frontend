@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { authService } from "../services/authService"; 
+import { authService } from "../services/authService"; // Integration
 import "../styles/auth.css";
 
 export default function Register() {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -14,19 +12,26 @@ export default function Register() {
   });
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-    setMessageType("");
 
-    // 1. Client-side Validation
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setMessageType("error");
+      setMessage("All fields are required");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setMessageType("error");
       setMessage("Passwords do not match");
@@ -39,35 +44,36 @@ export default function Register() {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      // 2. USE SERVICE (Replaces manual fetch)
-      // The service automatically handles headers and saves the token upon success
-      const response = await authService.register({
+      setLoading(true);
+      
+      // API Call - Sending 'password_confirmation' for Laravel
+      await authService.register({
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        password_confirmation: formData.confirmPassword
+        password_confirmation: formData.confirmPassword 
       });
 
-      if (response.success) {
-        setMessageType("success");
-        setMessage("Registration successful! Redirecting...");
-        
-        // Madelyn's service saves the token, so the user is now logged in.
-        // We redirect to home or login page.
-        setTimeout(() => {
-          navigate("/"); // Redirect to Home since they are auto-logged in
-        }, 1500);
-      } 
+      setMessageType("success");
+      setMessage("Registration successful! Redirecting...");
+      
+      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1500);
+
     } catch (error) {
-      console.error("Register Error:", error);
       setMessageType("error");
-      // The service throws an error with the message from the backend
-      setMessage(error.message || "Registration failed.");
-    } finally {
-      setIsLoading(false);
+      console.error("Registration Error:", error);
+      
+      let errorMsg = error.message || "Registration failed.";
+      if (errorMsg.includes("Unexpected token") || errorMsg.includes("<!DOCTYPE")) {
+          errorMsg = "Connection Error: Check API_BASE_URL config.";
+      }
+      setMessage(errorMsg);
+      setLoading(false);
     }
   };
 
@@ -82,8 +88,18 @@ export default function Register() {
           </div>
         </div>
 
-        <div className="auth-form-panel">
-          <div className="auth-container">
+        {/* UI FIX: Added styles to allow scrolling if content gets too tall */}
+        <div 
+          className="auth-form-panel" 
+          style={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            justifyContent: "center", 
+            overflowY: "auto", 
+            maxHeight: "100vh" 
+          }}
+        >
+          <div className="auth-container" style={{ margin: "auto", padding: "20px 0" }}>
             <h1>Register</h1>
             {message && (
               <div className={`form-message form-message-${messageType}`}>
@@ -102,6 +118,7 @@ export default function Register() {
                   required
                   className="form-input"
                   placeholder="Enter your full name"
+                  disabled={loading}
                 />
               </label>
               <label className="form-label">
@@ -114,6 +131,7 @@ export default function Register() {
                   required
                   className="form-input"
                   placeholder="Enter your email"
+                  disabled={loading}
                 />
               </label>
               <label className="form-label">
@@ -126,6 +144,7 @@ export default function Register() {
                   required
                   className="form-input"
                   placeholder="Enter your password"
+                  disabled={loading}
                 />
               </label>
               <label className="form-label">
@@ -138,6 +157,7 @@ export default function Register() {
                   required
                   className="form-input"
                   placeholder="Confirm your password"
+                  disabled={loading}
                 />
               </label>
 
@@ -154,16 +174,16 @@ export default function Register() {
                 </label>
               </div>
 
-              <button type="submit" className="form-button" disabled={isLoading}>
-                {isLoading ? "Creating Account..." : "Register"}
+              <button type="submit" className="form-button" disabled={loading}>
+                {loading ? "Registering..." : "Register"}
               </button>
             </form>
 
             <p className="auth-link">
               Already have an account?{" "}
-              <Link to="/login" className="auth-link-text">
+              <a href="/login" className="auth-link-text">
                 Login here
-              </Link>
+              </a>
             </p>
           </div>
         </div>

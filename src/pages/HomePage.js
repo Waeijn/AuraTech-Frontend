@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
-import { productService } from "../services/productService"; // Import Service
+import { productService } from "../services/productService"; 
 
 export default function HomePage() {
   const navigate = useNavigate();
