@@ -6,6 +6,13 @@ import "../styles/account.css";
 const SHIPPING_KEY_PREFIX = "shippingInfo_";
 
 // Utility Functions for Local Storage
+
+/**
+ * Retrieves the stored shipping information for a given user email.
+ * @param {string} email - The unique email of the current user.
+ * @returns {object} Stored shipping data { address: string, city: string } or default empty object.
+ */
+
 const getShippingInfo = (email) => {
   const key = SHIPPING_KEY_PREFIX + email;
   const stored = localStorage.getItem(key);
@@ -17,6 +24,7 @@ const getShippingInfo = (email) => {
  * @param {string} email - The unique email of the current user.
  * @param {object} data - Shipping data { address: string, city: string }.
  */
+
 const saveShippingInfo = (email, data) => {
   const key = SHIPPING_KEY_PREFIX + email;
   localStorage.setItem(key, JSON.stringify(data));
