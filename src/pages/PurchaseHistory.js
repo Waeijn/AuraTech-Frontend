@@ -6,9 +6,12 @@ import { orderService } from "../services/orderService";
 
 export default function PurchaseHistory() {
   const { currentUser } = useAuth();
+
+  // State
   const [allHistory, setAllHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch Purchase History
   const refreshHistory = useCallback(async () => {
     if (currentUser) {
       try {
@@ -25,6 +28,7 @@ export default function PurchaseHistory() {
 
   useEffect(() => { refreshHistory(); }, [refreshHistory]);
 
+  // Cancel Order
   const handleCancelOrder = async (orderId) => {
     if (window.confirm("Are you sure you want to cancel?")) {
       try {
@@ -41,10 +45,12 @@ export default function PurchaseHistory() {
   const formatPrice = (amt) => Number(amt).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
   const formatDate = (date) => date ? new Date(date).toLocaleDateString() : new Date().toLocaleDateString();
 
+  // Loading State
   if (loading) {
     return <div className="purchase-history-container"><p>Loading orders...</p></div>;
   }
 
+  // Empty State: No Orders
   if (allHistory.length === 0) {
     return (
       <div className="purchase-history-container">
@@ -59,6 +65,7 @@ export default function PurchaseHistory() {
     );
   }
 
+  // Split Orders by Status
   const activeOrders = allHistory.filter(o => 
     ['for shipping', 'pending', 'processing'].includes(o.status?.toLowerCase())
   );
@@ -67,6 +74,7 @@ export default function PurchaseHistory() {
     ['delivered', 'cancelled'].includes(o.status?.toLowerCase())
   );
 
+  // Render
   return (
     <div className="purchase-history-container">
       <h1>My Orders</h1>

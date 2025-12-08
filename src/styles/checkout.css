@@ -1,9 +1,8 @@
-/* === AuraTech Checkout Page (Refined + Modernized) === */
+/*  AuraTech Checkout Page Styles  */
 
 .checkout-page {
   width: 100%;
   min-height: 100vh;
-  /* DOC: Updated padding with clamp for better horizontal scaling */
   padding: 40px clamp(20px, 6vw, 60px);
   display: flex;
   flex-direction: column;
@@ -44,18 +43,17 @@
   );
 }
 
-/* === Two-Column Layout (Form and Summary) === */
+/*  Two-Column Layout (Form and Summary) */
 .checkout-container {
   display: grid;
-  /* Form panel takes slightly more width (1.3fr) */
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1.3fr 1fr; /* Form panel slightly larger */
   gap: 40px;
   max-width: 1200px;
   width: 100%;
   padding-bottom: 60px; /* Space at the bottom */
 }
 
-/* === Left Panel: Shipping Form === */
+/*  Left Panel: Shipping Form */
 .checkout-form {
   background: var(--color-surface);
   padding: 35px 40px;
@@ -64,7 +62,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-sizing: border-box; /* Ensure padding is inclusive of width/height */
+  box-sizing: border-box;
 }
 
 .checkout-form h2 {
@@ -85,9 +83,8 @@
 }
 
 .checkout-form input {
-  /* DOC: Set to 100% width, relying on container padding for margin */
   width: 100%;
-  margin: 0; /* Removed custom margins */
+  margin: 0;
   padding: 12px 10px;
   border-radius: 8px;
   border: 1.3px solid rgba(0, 0, 0, 0.1);
@@ -106,7 +103,7 @@
   outline: none;
 }
 
-/* Styling for read-only fields (e.g., logged-in user name/email) */
+/* Styling for read-only fields (logged-in user) */
 .checkout-form input[readonly] {
   background-color: #f2f2f2;
   color: #666;
@@ -114,14 +111,13 @@
   cursor: default;
 }
 
-/* === Shipping Edit Controls (Logged-in users only) === */
+/* Shipping edit controls (logged-in users only) */
 .shipping-edit-controls {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 10px;
   margin-top: 5px;
-  /* DOC: Removed custom margin-right that relied on 95% input width */
   margin-right: 0;
 }
 
@@ -141,7 +137,6 @@
 
 /* Place Order Button */
 .checkout-btn {
-  /* DOC: Set to 100% width for stability */
   width: 100%;
   align-self: center;
   margin-top: 18px;
@@ -152,7 +147,6 @@
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
-  /* Primary gradient accent */
   background: linear-gradient(
     90deg,
     var(--color-accent),
@@ -176,7 +170,6 @@
 
 /* Cancel Button (Return to Cart) */
 .cancel-btn {
-  /* DOC: Set to 100% width for stability */
   width: 100%;
   align-self: center;
   margin-top: 10px;
@@ -196,7 +189,7 @@
   color: var(--color-accent);
 }
 
-/* Validation & Helper Messages */
+/* Validation and Helper Messages */
 .validation-warning {
   font-size: 0.9rem;
   color: var(--color-secondary-accent);
@@ -213,15 +206,14 @@
   text-align: center;
 }
 
-/* === Right Panel: Dark Order Summary === */
+/* Right Panel: Dark Order Summary */
 .order-summary {
-  /* Inherits dark background from Cart styles */
   background: var(--color-text-primary);
   color: var(--color-surface);
   padding: 35px;
   border-radius: var(--radius);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
-  height: fit-content; /* Only takes up necessary vertical space */
+  height: fit-content;
   box-sizing: border-box;
 }
 
@@ -234,7 +226,7 @@
   padding-bottom: 10px;
 }
 
-/* Order Items in Summary List */
+/* Order items in summary list */
 .summary-item {
   display: flex;
   align-items: center;
@@ -252,7 +244,6 @@
 
 .summary-item-details {
   flex: 1;
-  /* Ensure details text can wrap */
   min-width: 0;
 }
 
@@ -281,6 +272,7 @@
 .summary-calculations-wrapper {
   margin-top: 20px;
 }
+
 .summary-row {
   display: flex;
   justify-content: space-between;
@@ -290,7 +282,6 @@
   border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
-/* Final Total Highlighting */
 .summary-total {
   border-top: 2px solid rgba(255, 255, 255, 0.1);
   padding-top: 15px;
@@ -307,11 +298,9 @@
 }
 
 .summary-total h3:last-child {
-  /* Secondary accent color for the final price */
   color: var(--color-secondary-accent);
 }
 
-/* === Responsive Adjustments === */
 @media (max-width: 900px) {
   .checkout-container {
     /* Stack columns vertically on tablet/mobile */
@@ -332,7 +321,6 @@
   }
 }
 
-/* DOC: Added media query for small mobile screens */
 @media (max-width: 480px) {
   .checkout-page {
     /* Reduced page padding on the smallest screens */
@@ -362,7 +350,6 @@
   }
 }
 
-/* === Payment Method Section === */
 .checkout-form h2 {
   margin-top: 10px; /* Spacing for the "Payment Method" header */
 }
@@ -376,8 +363,8 @@
 
 .radio-label {
   display: flex;
-  align-items: center; /* Aligns dot and text vertically */
-  gap: 12px;           /* Space between dot and text */
+  align-items: center;
+  gap: 12px;
   font-size: 0.95rem;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -388,13 +375,11 @@
   transition: all 0.2s ease;
 }
 
-/* Hover effect for better UX */
 .radio-label:hover {
   background: #f0f0f0;
   border-color: rgba(0,0,0,0.1);
 }
 
-/* Specific fix for Radio Buttons to override the global input style */
 .radio-label input[type="radio"] {
   width: auto;      /* Stop it from being 100% width */
   margin: 0;        /* Remove default margins */
@@ -404,45 +389,38 @@
   cursor: pointer;
 }
 
-/* === Improved Receipt / Thank You Page === */
-
-/* 1. Center everything nicely on the screen */
+/* Thank You / Receipt Page */
 .thank-you-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 80vh; /* Occupy most of the screen height */
+  min-height: 80vh;
   text-align: center;
-  
-  /* Optional: Remove the grid pattern for this page only for a cleaner look */
-  background-image: none; 
-  background-color: #f8f9fa; /* Soft grey background */
+  background-image: none;
+  background-color: #f8f9fa;
 }
 
 .thank-you-page h1 {
   font-size: 3rem;
   margin-bottom: 30px;
-  /* Keep the underline effect but center it */
 }
 
 .thank-you-page h1::after {
-  margin: 15px auto 0; /* Ensure underline is centered */
+  margin: 15px auto 0;
 }
 
-/* 2. Make the Receipt Card bigger and more focused */
 .receipt-box {
   background: #ffffff;
   width: 100%;
-  max-width: 600px; /* Wider card looks better */
+  max-width: 600px;
   padding: 50px;
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08); /* Softer, deeper shadow */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
   margin-bottom: 40px;
   border: 1px solid rgba(0,0,0,0.03);
 }
 
-/* 3. Typography adjustments inside the receipt */
 .receipt-box h3 {
   font-size: 1.5rem;
   margin-bottom: 30px;
@@ -469,18 +447,17 @@
 .receipt-amount {
   font-size: 2.5rem;
   font-weight: 800;
-  color: var(--color-secondary-accent); /* Purple */
+  color: var(--color-secondary-accent);
   margin: 5px 0 20px 0;
 }
 
-/* Fix the Receipt Button Size */
 .thank-you-page .btn-main {
   width: auto !important;
-  min-width: 180px;    /* Reduced from 250px */
+  min-width: 180px;
   height: auto !important;
-  padding: 12px 24px;  /* Reduced padding */
+  padding: 12px 24px;
   border-radius: 50px;
-  font-size: 1rem;     /* Standard font size */
+  font-size: 1rem;
   font-weight: 600;
   margin-top: 20px;
   box-shadow: 0 6px 15px rgba(108, 92, 231, 0.25);
@@ -490,4 +467,52 @@
 .thank-you-page .btn-main:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(108, 92, 231, 0.35);
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 900px) {
+  .checkout-container {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .checkout-form,
+  .order-summary {
+    padding: 28px;
+  }
+
+  .shipping-edit-controls {
+    justify-content: space-between;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-page {
+    padding: 20px 15px;
+  }
+
+  .checkout-page h1 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+
+  .checkout-page h1::after {
+    width: 200px;
+    height: 4px;
+  }
+
+  .checkout-form,
+  .order-summary {
+    padding: 20px;
+  }
+
+  .summary-item img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .summary-item-details h4 {
+    font-size: 0.85rem;
+  }
 }

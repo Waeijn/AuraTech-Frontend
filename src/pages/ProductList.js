@@ -12,26 +12,31 @@ const ProductList = () => {
   const { currentUser } = useAuth();
   const location = useLocation();
 
+  // Main product list state
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  // Modal and cart states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
 
+  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   });
 
+  // Fetch all products on mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
+
         const response = await productService.getAll({ per_page: 100 });
         const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
         
@@ -53,12 +58,15 @@ const ProductList = () => {
         setLoading(false);
       }
     };
+
     fetchProducts();
   }, []);
 
+  // Expose global function to open quantity modal (used in other components)
   useEffect(() => {
     window.showQuantityModal = (product) => {
       setModalProduct(product);
+
       if (!currentUser) {
         setIsAuthPromptOpen(true);
       } else {
@@ -66,16 +74,19 @@ const ProductList = () => {
         setIsModalOpen(true);
       }
     };
+
     return () => {
       delete window.showQuantityModal;
     };
   }, [currentUser]);
 
+  // Get maximum allowed quantity for current modal product
   const getMaxAllowedToAdd = (productId) => {
     if (!modalProduct) return 0;
     return modalProduct.stock;
   };
 
+  // Modal handlers
   const handleCloseModal = () => setIsModalOpen(false);
   const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
   const handleLoginRedirect = () => {
@@ -83,29 +94,36 @@ const ProductList = () => {
     navigate("/login");
   };
 
+  // Change quantity using +/- buttons
   const handleQuantityChange = (delta) => {
     if (!modalProduct) return;
     const maxAllowed = getMaxAllowedToAdd(modalProduct.id);
+
     setQuantity((prev) => {
       const newQty = prev + delta;
       return Math.min(Math.max(1, newQty), maxAllowed);
     });
   };
 
+  // Change quantity manually from input field
   const handleManualQuantityChange = (e) => {
     const value = parseInt(e.target.value);
     if (!modalProduct) return;
+
     const maxAllowed = getMaxAllowedToAdd(modalProduct.id);
     let newQty = isNaN(value) || value < 1 ? 1 : value;
     newQty = Math.min(newQty, maxAllowed);
     setQuantity(newQty);
   };
 
+  // Add selected product to cart
   const handleFinalAddToCart = async () => {
     if (!modalProduct || quantity < 1) return;
+
     try {
       setAddingToCart(true);
       await cartService.add(modalProduct.id, quantity);
+
       alert(`Added ${quantity} x ${modalProduct.name} to cart!`);
       handleCloseModal();
     } catch (error) {
@@ -117,20 +135,22 @@ const ProductList = () => {
 
   const handleBackToList = () => setSelectedProduct(null);
 
+  // Handle search term from query params
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("search")?.toLowerCase() || "";
 
   const handleClearSearch = () => {
     navigate(location.pathname); 
   };
-  // ------------------------------------------
 
+  // List of categories
   const categories = [
     "All", "Gaming Laptops", "Smartphones", "Smartwatches", "Audio",
     "Mouse & Keyboards", "Monitors", "Cameras", "Gaming Chairs",
     "Game Consoles", "Microphones", "Stands & Mounts", "PC Components", "Accessories",
   ];
 
+  // Filter products by category and search term
   const filteredProducts = products.filter((p) => {
     const matchesCategory = selectedCategory === "All" || 
         (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
@@ -139,6 +159,7 @@ const ProductList = () => {
       p.name.toLowerCase().includes(searchTerm) ||
       (p.category && p.category.toLowerCase().includes(searchTerm)) ||
       (p.description && p.description.toLowerCase().includes(searchTerm));
+
     return matchesCategory && matchesSearch;
   });
 
@@ -146,6 +167,7 @@ const ProductList = () => {
 
   return (
     <>
+      {/* AUTH REQUIRED MODAL */}
       <div className={`modal-overlay ${isAuthPromptOpen ? "open" : ""}`}>
         <div className="quantity-modal confirmation-modal">
           <h2>Login Required</h2>
@@ -157,16 +179,20 @@ const ProductList = () => {
         </div>
       </div>
 
+      {/* QUANTITY SELECTION MODAL */}
       <div className={`modal-overlay ${isModalOpen ? "open" : ""}`}>
         <div className="quantity-modal">
           <h2>Select Quantity</h2>
           <p>{modalProduct?.name}</p>
+
           <div className="quantity-controls">
             <button className="quantity-btn" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1 || addingToCart}>-</button>
             <input type="number" min="1" max={maxQtyAllowed} value={quantity} onChange={handleManualQuantityChange} className="quantity-input-field" disabled={maxQtyAllowed === 0 || addingToCart} />
             <button className="quantity-btn" onClick={() => handleQuantityChange(1)} disabled={quantity >= maxQtyAllowed || maxQtyAllowed === 0 || addingToCart}>+</button>
           </div>
+
           <p className="modal-stock-info">Max available to add: {maxQtyAllowed}</p>
+
           <div className="modal-actions">
             <button className="btn-main" onClick={handleFinalAddToCart} disabled={quantity > maxQtyAllowed || maxQtyAllowed === 0 || addingToCart}>
               {addingToCart ? "Adding..." : `Add ${quantity} to Cart`}
@@ -176,6 +202,7 @@ const ProductList = () => {
         </div>
       </div>
 
+      {/* MAIN PRODUCT LIST OR DETAILS VIEW */}
       <div className="product-container">
         {selectedProduct ? (
           <ProductDetails product={selectedProduct} onBack={handleBackToList} />
@@ -187,7 +214,7 @@ const ProductList = () => {
                 precision, and performance.</p>
               <div className="divider"></div>
               
-              {/* --- UPDATED: Search Results Message with Clear Button --- */}
+              {/* Show search term if present */}
               {searchTerm && (
                 <div style={{ marginTop: "10px", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px" }}>
                   <p className="search-results-msg" style={{ margin: 0 }}>
@@ -210,9 +237,9 @@ const ProductList = () => {
                   </button>
                 </div>
               )}
-              {/* ----------------------------------------------------- */}
             </div>
 
+            {/* Category Filter Buttons */}
             <div className="category-filter">
               {categories.map((cat) => (
                 <button key={cat} className={`category-btn ${selectedCategory === cat ? "active" : ""}`} onClick={() => setSelectedCategory(cat)}>
@@ -221,6 +248,7 @@ const ProductList = () => {
               ))}
             </div>
 
+            {/* Product Grid */}
             <div className="product-grid">
               {loading ? (
                  <p style={{ gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>Loading products...</p>
@@ -231,7 +259,6 @@ const ProductList = () => {
               ) : (
                 <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: "20px" }}>
                   <p>No products found for "{searchTerm}".</p>
-                  {/* Backup clear button if list is empty */}
                   {searchTerm && (
                     <button onClick={handleClearSearch} className="btn-main" style={{ marginTop: "15px" }}>
                       Clear Search & Show All

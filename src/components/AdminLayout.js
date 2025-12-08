@@ -1,5 +1,3 @@
-// src/components/AdminLayout.js
-
 import React from "react";
 import AdminSidebar from "./AdminSidebar";
 // Import the admin-specific styles

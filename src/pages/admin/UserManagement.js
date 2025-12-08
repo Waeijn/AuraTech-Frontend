@@ -3,11 +3,13 @@ import AdminLayout from "../../components/AdminLayout";
 import { api } from "../../utils/api"; 
 
 export default function UserManagement() {
+  // State Management 
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
+  // Fetch Users on Mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -32,6 +34,7 @@ export default function UserManagement() {
     }
   };
 
+  // Filtering Users 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       (user.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -40,6 +43,7 @@ export default function UserManagement() {
     return matchesSearch && matchesRole;
   });
 
+  // Delete User
   const handleDeleteUser = async (userEmail, userId) => {
     if (userEmail === "admin@auratech.com") {
       alert("Cannot delete the admin account!");
@@ -57,6 +61,7 @@ export default function UserManagement() {
     }
   };
 
+  // Toggle Role
   const handleRoleToggle = async (userEmail, userId, currentRole) => {
     if (userEmail === "admin@auratech.com") {
       alert("Cannot modify the admin account role!");
@@ -95,11 +100,13 @@ export default function UserManagement() {
 
   return (
     <AdminLayout>
+      {/* Header */}
       <div className="admin-page-header">
         <h1>User Management</h1>
         <p>Manage registered users and their permissions</p>
       </div>
 
+      {/* Filters and Search */}
       <div className="admin-controls">
         <div className="filter-group">
           <label>Filter by Role:</label>
@@ -115,6 +122,7 @@ export default function UserManagement() {
         </div>
       </div>
 
+      {/* Users Table */}
       <div className="admin-table-container">
         {loading ? <p>Loading users...</p> : filteredUsers.length === 0 ? (
           <div className="empty-state"><p>No users found.</p></div>

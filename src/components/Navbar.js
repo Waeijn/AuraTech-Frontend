@@ -9,23 +9,20 @@ import React, {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/navbar.css";
 
-// API Services
+// API & Auth Utilities
 import { authService } from "../services/authService";
 import { productService } from "../services/productService";
 import { getUser, logout as performLogout } from "../utils/auth";
 
-// --- Authentication Context Setup ---
 const AuthContext = createContext();
 
-/**
- * AuthProvider Component
- * Manages user state via API integration.
- */
+// Global authentication manager using API + local storage.
+
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize from utils/auth logic on mount
+  // Load auth state from local storage at startup
   useEffect(() => {
     const storedUser = getUser();
     if (storedUser) {
@@ -54,6 +51,7 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Clears both API session and local storage
   const logout = () => {
     authService.logout(); // API call
     performLogout();      // Clear local storage
@@ -78,8 +76,10 @@ export function AuthProvider({ children }) {
 
 export const useAuth = () => useContext(AuthContext);
 
-// --- Navbar Component ---
-
+/**
+ * Handles navigation, search, authentication prompts,
+ * dropdowns, mobile menu, and live search suggestions.
+ */
 export default function Navbar() {
   const { currentUser, logout } = useAuth();
   const location = useLocation();
@@ -87,16 +87,13 @@ export default function Navbar() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
-  const [products, setProducts] = useState([]); // Loaded from API
+  const [products, setProducts] = useState([]); // Search index
   const [results, setResults] = useState([]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const searchWrapperRef = useRef(null);
-
-  // --- Handlers ---
-
   const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
 
   const handleLoginRedirect = () => {
@@ -104,11 +101,13 @@ export default function Navbar() {
     navigate("/login");
   };
 
+  // Mobile menu toggle
   const handleMenuToggle = () => {
     setIsMenuOpen((prev) => !prev);
     setShowDropdown(false);
   };
 
+  // Requires login to access cart
   const handleCartClick = (e) => {
     if (isMenuOpen) setIsMenuOpen(false);
     if (!currentUser) {
@@ -122,6 +121,7 @@ export default function Navbar() {
     navigate("/");
   };
 
+  // Navigate to search results page
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim() !== "") {
@@ -138,35 +138,35 @@ export default function Navbar() {
     setIsMenuOpen(false);
   };
 
+  // Close menus on link click
   const handleLinkClick = () => {
     setIsMenuOpen(false);
     setShowDropdown(false);
   };
 
-  // --- Effects ---
-
-  // API Integration: Load products for search index
+  // Load products for live search
   useEffect(() => {
     const fetchSearchData = async () => {
       try {
         const response = await productService.getAll();
         const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
         
-        // Normalize for search
         const normalized = data.map(p => ({
           id: p.id,
           name: p.name,
           image: p.images?.[0]?.url || p.image || "/img/products/placeholder.png"
         }));
+
         setProducts(normalized);
       } catch (error) {
         console.error("Search index error:", error);
       }
     };
+
     fetchSearchData();
   }, []);
 
-  // Debounce Search
+  // Search input debouncing
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -174,7 +174,7 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Live Filtering
+  // Live search result filtering
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setResults([]);
@@ -185,7 +185,7 @@ export default function Navbar() {
     setResults(filtered.slice(0, 10));
   }, [searchTerm, products]);
 
-  // URL Sync
+  // Sync search with URL when on /products
   useEffect(() => {
     if (location.pathname === "/products") {
       if (debouncedSearchTerm.trim() !== "") {
@@ -194,7 +194,7 @@ export default function Navbar() {
     }
   }, [location.pathname, debouncedSearchTerm, navigate]);
 
-  // Scroll Lock
+  // Prevent scrolling when mobile menu is open
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
@@ -204,7 +204,7 @@ export default function Navbar() {
     return () => { document.body.style.overflow = "unset"; };
   }, [isMenuOpen]);
 
-  // Click Outside
+  // Close dropdowns & search when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
@@ -218,13 +218,14 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Hide navbar on login/register pages
   if (location.pathname === "/login" || location.pathname === "/register") {
     return null;
   }
 
   return (
     <>
-      {/* Auth Modal */}
+      {/* Authentication Prompt */}
       {isAuthPromptOpen && (
         <div className={`modal-overlay open`}>
           <div className="quantity-modal confirmation-modal">
@@ -238,9 +239,10 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Navbar Structure - Preserved Exactly */}
+      {/* Navbar */}
       <header className="navbar">
         <div className="navbar__container">
+          {/* Brand */}
           <div className="navbar__brand">
             <img src="/img/logo/LOGO.png" alt="Logo" className="navbar__logo-img" />
             <Link to="/" className="navbar__brand-text" onClick={handleLinkClick}>AuraTech</Link>
@@ -285,6 +287,7 @@ export default function Navbar() {
                 <button className="user-dropdown-toggle" onClick={() => setShowDropdown((prev) => !prev)}>
                   Hello, {currentUser.name} <span style={{ fontSize: "0.8rem" }}>▼</span>
                 </button>
+
                 {showDropdown && (
                   <ul className="user-dropdown-menu">
                     <li><Link to="/account" onClick={handleLinkClick}>My Account</Link></li>
@@ -295,6 +298,7 @@ export default function Navbar() {
               </div>
             )}
 
+            {/* Mobile Search */}
             {isMenuOpen && (
               <div className="navbar__search-wrapper mobile-search-wrapper" position="relative">
                 <form className="navbar__search" onSubmit={handleSearch}>

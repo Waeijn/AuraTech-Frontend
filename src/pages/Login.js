@@ -23,6 +23,7 @@ export default function Login() {
     e.preventDefault();
     setMessage("");
 
+    // Client-side validation
     if (!formData.email || !formData.password) {
       setMessageType("error");
       setMessage("Email and password are required");
@@ -57,6 +58,8 @@ export default function Login() {
   return (
     <section className="auth-page">
       <div className="auth-wrapper">
+
+        {/* Brand panel with logo and tagline */}
         <div className="auth-brand-panel">
           <div className="brand-content">
             <img src="/img/logo/LOGO.png" alt="AuraTech Logo" className="brand-logo" />
@@ -65,9 +68,12 @@ export default function Login() {
           </div>
         </div>
 
+        {/* Login form panel */}
         <div className="auth-form-panel">
           <div className="auth-container">
             <h1>Login</h1>
+
+            {/* Display success or error messages */}
             {message && (
               <div className={`form-message form-message-${messageType}`}>
                 {message}
@@ -75,6 +81,8 @@ export default function Login() {
             )}
 
             <form onSubmit={handleSubmit} className="auth-form">
+
+              {/* Email input */}
               <label className="form-label">
                 Email
                 <input
@@ -89,6 +97,7 @@ export default function Login() {
                 />
               </label>
 
+              {/* Password input with show/hide toggle */}
               <label className="form-label">
                 Password
                 <input
@@ -116,11 +125,13 @@ export default function Login() {
                 </label>
               </div>
 
+              {/* Submit button */}
               <button type="submit" className="form-button" disabled={loading}>
                 {loading ? "Logging in..." : "Login"}
               </button>
             </form>
 
+            {/* Link to register page */}
             <p className="auth-link">
               Don't have an account?{" "}
               <Link to="/register" className="auth-link-text">

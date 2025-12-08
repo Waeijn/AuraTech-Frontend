@@ -1,5 +1,3 @@
-// src/components/AdminSidebar.js
-
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "./Navbar";
@@ -11,6 +9,7 @@ const AdminSidebar = () => {
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
+  // Automatically close sidebar on mobile after navigation
   const closeSidebar = () => {
     if (window.innerWidth <= 768) {
       setIsOpen(false);
@@ -22,7 +21,7 @@ const AdminSidebar = () => {
     navigate("/");
   };
 
-  // Add admin-page class to body on mount, remove on unmount
+  // Ensure admin pages have their own body styling
   useEffect(() => {
     document.body.classList.add("admin-page");
     return () => {
@@ -30,7 +29,7 @@ const AdminSidebar = () => {
     };
   }, []);
 
-  // Close sidebar when clicking outside on mobile
+  // Detect clicks outside the sidebar (mobile) to close it
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -46,7 +45,7 @@ const AdminSidebar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  // Prevent body scroll when sidebar is open on mobile
+  // Prevent background scrolling when sidebar is open (mobile)
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -60,7 +59,7 @@ const AdminSidebar = () => {
 
   return (
     <>
-      {/* Mobile Toggle Button */}
+      {/* Mobile sidebar toggle button */}
       <button
         className="sidebar-toggle-button"
         onClick={toggleSidebar}
@@ -69,13 +68,13 @@ const AdminSidebar = () => {
         {isOpen ? "✕" : "☰"}
       </button>
 
-      {/* Overlay for mobile */}
+      {/* Overlay behind sidebar for mobile */}
       <div
         className={`sidebar-overlay ${isOpen ? "active" : ""}`}
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Sidebar */}
+      {/* Main admin sidebar */}
       <aside className={`admin-sidebar ${isOpen ? "is-open" : ""}`}>
         <h3>Admin Panel</h3>
         <nav>
@@ -120,7 +119,7 @@ const AdminSidebar = () => {
           </ul>
         </nav>
 
-        {/* Admin Info & Logout Section */}
+        {/* Footer: shows logged-in admin + logout */}
         <div className="admin-sidebar-footer">
           <div className="admin-user-info">
             <p className="admin-user-name">{currentUser?.name}</p>

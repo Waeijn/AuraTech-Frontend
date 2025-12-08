@@ -14,6 +14,7 @@ export default function Register() {
   const [messageType, setMessageType] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Update form values on input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -22,22 +23,26 @@ export default function Register() {
     }));
   };
 
+  // Submit registration form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
+    // Validate required fields
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
       setMessageType("error");
       setMessage("All fields are required");
       return;
     }
 
+    // Validate password match
     if (formData.password !== formData.confirmPassword) {
       setMessageType("error");
       setMessage("Passwords do not match");
       return;
     }
 
+    // Validate minimum password length
     if (formData.password.length < 6) {
       setMessageType("error");
       setMessage("Password must be at least 6 characters");
@@ -47,7 +52,7 @@ export default function Register() {
     try {
       setLoading(true);
       
-      // API Call - Sending 'password_confirmation' for Laravel
+      // API call for registration, sending password_confirmation for Laravel backend
       await authService.register({
         name: formData.name,
         email: formData.email,
@@ -100,6 +105,7 @@ export default function Register() {
         >
           <div className="auth-container" style={{ margin: "auto", padding: "20px 0" }}>
             <h1>Register</h1>
+
             {message && (
               <div className={`form-message form-message-${messageType}`}>
                 {message}
@@ -120,6 +126,7 @@ export default function Register() {
                   disabled={loading}
                 />
               </label>
+
               <label className="form-label">
                 Email
                 <input
@@ -133,6 +140,7 @@ export default function Register() {
                   disabled={loading}
                 />
               </label>
+
               <label className="form-label">
                 Password
                 <input
@@ -146,6 +154,7 @@ export default function Register() {
                   disabled={loading}
                 />
               </label>
+
               <label className="form-label">
                 Confirm Password
                 <input

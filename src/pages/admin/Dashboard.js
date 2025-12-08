@@ -21,7 +21,7 @@ export default function Dashboard() {
 
   const loadDashboardStats = async () => {
     try {
-      // 1. Fetch real data from APIs
+      // Fetch real data from APIs
       const orderRes = await orderService.getAll();
       const orders = orderRes.data || [];
 
@@ -37,7 +37,7 @@ export default function Dashboard() {
         console.warn("User stats fetch failed");
       }
 
-      // 2. Calculate Stats from real data
+      // Calculate Stats from real data
       const totalSales = orderService
         .filter(order => (order.status || "").toLowerCase() !== 'cancelled')
         .reduce(
@@ -59,7 +59,7 @@ export default function Dashboard() {
         loading: false,
       });
 
-      // 3. Get recent activity
+      // Get recent activity
       const recentOrders = [...orders]
         .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
         .slice(0, 5);

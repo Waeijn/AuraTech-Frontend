@@ -8,14 +8,14 @@ const TAX_RATE = 0.12;
 const SHIPPING_FEE = 5000; 
 const SHIPPING_KEY_PREFIX = "shippingInfo_";
 
-// --- Utility Functions ---
-
+// Utility function to retrieve stored shipping info for current user
 const getShippingInfo = (email) => {
   const key = SHIPPING_KEY_PREFIX + email;
   const stored = localStorage.getItem(key);
   return stored ? JSON.parse(stored) : { address: "", city: "", state: "", zip: "" };
 };
 
+// Utility function to save shipping info for current user
 const saveShippingInfo = (email, data) => {
   const key = SHIPPING_KEY_PREFIX + email;
   localStorage.setItem(key, JSON.stringify(data));
@@ -25,7 +25,7 @@ export default function Checkout() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Form State
+  // Form state: holds shipping info, contact, and payment method
   const [formData, setFormData] = useState({
     fullname: currentUser?.name || "",
     email: currentUser?.email || "",
@@ -40,13 +40,13 @@ export default function Checkout() {
   const [isShippingEditing, setIsShippingEditing] = useState(false);
   const [addressWarning, setAddressWarning] = useState("");
   
-  // Order State
-  const [checkoutItems, setCheckoutItems] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [receiptData, setReceiptData] = useState(null);
+  // Order state
+  const [checkoutItems, setCheckoutItems] = useState([]); // Items selected for checkout
+  const [isSubmitting, setIsSubmitting] = useState(false); // Submission loading state
+  const [isSubmitted, setIsSubmitted] = useState(false); // Tracks if order has been successfully submitted
+  const [receiptData, setReceiptData] = useState(null); // Stores receipt info after order is placed
 
-  // 1. Load Data on Mount
+  // Load stored shipping info and checkout items on component mount
   useEffect(() => {
     if (currentUser) {
       const shippingInfo = getShippingInfo(currentUser.email);
@@ -74,7 +74,7 @@ export default function Checkout() {
     window.scrollTo(0, 0);
   }, [currentUser]);
 
-  // 2. Calculate Totals (Matches Backend Logic 1:1)
+  // Calculate totals: subtotal, tax, shipping, total
   const calculateTotals = () => {
     const subtotal = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const tax = subtotal * TAX_RATE;
@@ -85,7 +85,7 @@ export default function Checkout() {
 
   const { subtotal, tax, shipping, total } = calculateTotals();
 
-  // 3. Handlers
+  // Handler for input changes in the form
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -103,15 +103,18 @@ export default function Checkout() {
     setIsShippingEditing(false);
   };
 
+  // Submit order to backend service
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAddressWarning("");
 
+    // Prevent submission if user is still editing shipping address
     if (isShippingEditing) {
       setAddressWarning("Please save your address edits first.");
       return;
     }
     
+    // Validate required address fields
     if (!formData.address || !formData.city || !formData.state) {
       setAddressWarning("Shipping address, city, and state are required.");
       return;
@@ -146,7 +149,7 @@ export default function Checkout() {
         email: formData.email
       });
 
-      setIsSubmitted(true);
+      setIsSubmitted(true); // Show receipt page
 
     } catch (error) {
       console.error("Checkout Error:", error);
@@ -157,7 +160,7 @@ export default function Checkout() {
     }
   };
 
-  // --- Render Receipt ---
+  // Render receipt page after order submission
   if (isSubmitted && receiptData) {
     return (
       <section className="checkout-page thank-you-page">
@@ -180,15 +183,14 @@ export default function Checkout() {
     );
   }
 
-  // --- Render Checkout Form ---
-  const isAddressSet = formData.address && formData.city && formData.state;
+  const isAddressSet = formData.address && formData.city && formData.state; // Determines if checkout can proceed
 
   return (
     <section className="checkout-page">
       <h1>Checkout</h1>
       <div className="checkout-container">
-        
-        {/* LEFT: Shipping Form */}
+
+        {/* Shipping Form Section */}
         <form className="checkout-form" onSubmit={handleSubmit}>
           <h2>Shipping Information</h2>
 
@@ -206,6 +208,7 @@ export default function Checkout() {
             <label style={{ flex: 1 }}>Zip Code <input name="zip" placeholder="4025" value={formData.zip} onChange={handleChange} readOnly={!isShippingEditing && !!currentUser} /></label>
           </div>
 
+          {/* Button to edit or save shipping info */}
           {currentUser && (
             <div className="shipping-edit-controls">
               {isShippingEditing ? (
@@ -231,7 +234,7 @@ export default function Checkout() {
           <button type="button" className="cancel-btn" onClick={() => navigate("/cart")}>Cancel & Return to Cart</button>
         </form>
 
-        {/* RIGHT: Order Summary */}
+        {/* Order Summary Section */}
         <div className="order-summary">
           <h2>Your Order ({checkoutItems.reduce((acc, i) => acc + i.quantity, 0)} Items)</h2>
           

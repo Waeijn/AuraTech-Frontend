@@ -1,10 +1,8 @@
-/* --- Base Layout and Container --- */
-
+/* Base Layout and Container */
 .purchase-history-container {
-  max-width: 1200px; /* Increased width for better table readability */
+  max-width: 1200px;
   margin: 60px auto;
-  background-color: var(--color-bg-primary); /* Light page background */
-  /* DOC: Updated padding with clamp for better horizontal scaling */
+  background-color: var(--color-bg-primary);
   padding: 0 clamp(20px, 4vw, 40px);
 }
 
@@ -30,7 +28,7 @@
   margin: 40px 0;
 }
 
-/* --- Individual Order Section Card --- */
+/* Individual Order Section */
 .purchase-section {
   margin-bottom: 40px;
   background: var(--color-surface);
@@ -43,19 +41,18 @@
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  border-bottom: 3px solid var(--color-accent); /* Cyan accent underline */
+  border-bottom: 3px solid var(--color-accent);
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
 
-/* --- Table Styles --- */
+/* Table Styles */
 .purchase-history-table {
   width: 100% !important;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 25px;
   border-radius: var(--radius);
-  /* DOC: Ensures table corners are rounded when collapsed */
   overflow: hidden;
 }
 
@@ -63,11 +60,11 @@
 .purchase-history-table td {
   text-align: left;
   padding: 15px 12px;
-  border-bottom: 1px solid var(--color-bg-primary); /* Light row separator */
+  border-bottom: 1px solid var(--color-bg-primary);
 }
 
 .purchase-history-table th {
-  background-color: var(--color-bg-primary); /* Light gray header */
+  background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   font-weight: 700;
   font-size: 0.95em;
@@ -80,10 +77,9 @@
 }
 
 .purchase-history-table tr:hover {
-  background-color: var(--color-bg-primary); /* Subtle hover effect */
+  background-color: var(--color-bg-primary);
 }
 
-/* Styling for item list within the table cell */
 .item-list {
   list-style: none;
   padding: 0;
@@ -92,14 +88,13 @@
   color: var(--color-text-primary);
 }
 
-/* Total column styling (Electric Purple accent) */
 .order-total {
   font-weight: 700;
   color: var(--color-secondary-accent);
   font-size: 1.1em;
 }
 
-/* --- Status Tags --- */
+/* Status Tags */
 .status-tag {
   padding: 6px 10px;
   border-radius: 4px;
@@ -108,31 +103,27 @@
   white-space: nowrap;
 }
 
-/* Specific color for 'For Shipping' status */
 .status-for-shipping {
   color: var(--color-surface);
-  background-color: var(--color-accent); /* Vibrant Cyan background */
+  background-color: var(--color-accent);
 }
 
-/* Specific color for 'Delivered' status */
 .status-delivered {
   color: #155724;
-  background-color: #c8e6c9; /* Light green/success */
+  background-color: #c8e6c9;
 }
 
-/* Specific color for 'Cancelled' status */
 .status-cancelled {
   color: #721c24;
-  background-color: #fbe6e6; /* Light red/danger */
+  background-color: #fbe6e6;
 }
 
-/* --- Action Buttons --- */
+/* Action Buttons */
 .action-buttons {
   display: flex;
   gap: 8px;
 }
 
-/* 'Received' button (Primary Accent) */
 .btn-action-primary {
   background-color: var(--color-accent);
   color: var(--color-surface);
@@ -150,7 +141,6 @@
   background-color: var(--color-hover-dark);
 }
 
-/* 'Cancel' button (Secondary Accent/Purple) */
 .btn-cancel-order {
   background-color: var(--color-secondary-accent);
   color: var(--color-surface);
@@ -168,23 +158,21 @@
   background-color: var(--color-hover-secondary);
 }
 
-/* --- Responsive design (Mobile Table View) --- */
+/* Responsive design (Mobile Table View) */
 @media (max-width: 900px) {
   .purchase-history-container {
     padding: 40px 20px;
   }
 
-  /* Force table structure change to vertical stacking on mobile */
   .purchase-history-table {
     display: block;
     border-radius: 0;
   }
 
   .purchase-history-table thead {
-    display: none; /* Hide desktop header */
+    display: none;
   }
 
-  /* Make rows and cells behave as block elements */
   .purchase-history-table,
   .purchase-history-table tbody,
   .purchase-history-table tr,
@@ -200,7 +188,6 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   }
 
-  /* Position data label and align content */
   .purchase-history-table td {
     text-align: right;
     padding-left: 50%;
@@ -208,7 +195,6 @@
     border: none;
   }
 
-  /* Insert column header text via data-label attribute for accessibility */
   .purchase-history-table td::before {
     content: attr(data-label);
     position: absolute;
@@ -222,11 +208,24 @@
   }
 
   /* Hardcoded content for the 'data-label' attribute based on column index */
+  /* Hardcoded content for the 'data-label' attribu
+   te based on column in
+ dex */
   .purchase-history-table td:nth-child(1)::before {
+   
+ 
     content: "Order ID";
+   
+ 
   }
+   
+ 
   .purchase-history-table td:nth-child(2)::before {
+   
+ 
     content: "Date";
+   
+ 
   }
   .purchase-history-table td:nth-child(3)::before {
     content: "Items";
@@ -246,19 +245,14 @@
   }
 }
 
-/* DOC: New media query for small mobile devices */
 @media (max-width: 500px) {
   .purchase-history-container {
-  /* FORCE STRETCH: Use 95vw to fill 95% of the screen width */
-  width: 95vw !important; 
-  max-width: 100% !important; 
-  
-  /* FORCE HEIGHT: Fill 85% of the screen height */
-  min-height: 85vh; 
-  
-  margin: 40px auto;
-  background-color: var(--color-bg-primary); 
-  padding: 0 40px; 
+    width: 95vw !important;
+    max-width: 100% !important;
+    min-height: 85vh;
+    margin: 40px auto;
+    background-color: var(--color-bg-primary);
+    padding: 0 40px;
   }
 
   .purchase-history-container h1 {
@@ -273,7 +267,6 @@
     font-size: 1.4rem;
   }
 
-  /* Adjust padding and label width for the smallest table view */
   .purchase-history-table td {
     padding-left: 45%;
     padding: 12px 10px 12px 45%;
@@ -283,18 +276,19 @@
     width: 40%;
   }
 }
-/* --- Simple Text-Based Empty State --- */
+
+/* Empty State */
 .empty-state-text {
   margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Space between text and button */
-  align-items: flex-start; /* Aligns left (change to 'center' if you prefer) */
+  gap: 20px;
+  align-items: flex-start;
 }
 
 .empty-state-text p {
   font-size: 1.1rem;
-  color: var(--color-border); /* Subtle grey color */
+  color: var(--color-border);
   margin: 0;
 }
 
@@ -306,13 +300,12 @@
   font-size: 1rem;
 }
 
-/* --- Empty State Styling --- */
 .empty-state-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 50vh; /* centers it vertically */
+  min-height: 50vh;
   text-align: center;
   color: var(--color-text-primary);
 }
@@ -320,7 +313,7 @@
 .empty-state-icon {
   font-size: 4rem;
   margin-bottom: 20px;
-  color: #ccc; /* Light grey for the icon */
+  color: #ccc;
 }
 
 .empty-state-title {
@@ -335,7 +328,7 @@
 }
 
 .btn-start-shopping {
-  background-color: var(--color-accent); /* Cyan */
+  background-color: var(--color-accent);
   color: var(--color-surface);
   padding: 12px 30px;
   border-radius: 8px;
