@@ -1,10 +1,12 @@
-// src/pages/admin/OrderReview.js
-
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import { orderService } from "../../services/orderService"; 
 import { api } from "../../utils/api"; 
 
+/**
+ * Displays all customer orders with filtering, searching,
+ * status management, and deletion functionality.
+ */
 export default function OrderReview() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -15,6 +17,10 @@ export default function OrderReview() {
     fetchOrders();
   }, []);
 
+  /**
+   * Fetches all orders from API
+   * and stores them in state.
+   */
   const fetchOrders = async () => {
     try {
       const response = await orderService.getAll();
@@ -26,6 +32,10 @@ export default function OrderReview() {
     }
   };
 
+  /**
+   * Applies search and filter logic on all orders.
+   * Supports searching by: order ID, name, or email.
+   */
   const filteredOrders = orders.filter((order) => {
     const status = order.status || "";
     const userName = order.user?.name || order.userName || "Guest";
@@ -37,12 +47,19 @@ export default function OrderReview() {
       orderId.includes(searchTerm.toLowerCase()) ||
       userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       userEmail.toLowerCase().includes(searchTerm.toLowerCase());
+
     return matchesFilter && matchesSearch;
   });
 
+  /**
+   * Updates order status in the backend
+   * and instantly updates UI without page refresh.
+   */
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await api.put(`/orders/${orderId}`, { status: newStatus });
+
+      // Update local state so UI changes instantly
       const updatedOrders = orders.map((order) =>
         order.id === orderId ? { ...order, status: newStatus } : order
       );
@@ -52,10 +69,16 @@ export default function OrderReview() {
     }
   };
 
+  /**
+   * Deletes an order permanently.
+   * Asks for confirmation before removing.
+   */
   const handleDeleteOrder = async (orderId) => {
     if (window.confirm("Are you sure you want to delete this order?")) {
       try {
         await api.delete(`/orders/${orderId}`);
+
+        // Remove order from UI
         const updatedOrders = orders.filter((order) => order.id !== orderId);
         setOrders(updatedOrders);
       } catch (error) {
@@ -64,6 +87,9 @@ export default function OrderReview() {
     }
   };
 
+  /**
+   * Returns corresponding color based on status.
+   */
   const getStatusColor = (status) => {
     const s = (status || "").toLowerCase();
     switch (s) {
@@ -77,11 +103,13 @@ export default function OrderReview() {
 
   return (
     <AdminLayout>
+      {/* Page Header */}
       <div className="admin-page-header">
         <h1>Order Review</h1>
         <p>Manage and track all customer orders</p>
       </div>
 
+      {/* Filter + Search Controls */}
       <div className="admin-controls">
         <div className="filter-group">
           <label>Filter by Status:</label>
@@ -93,6 +121,7 @@ export default function OrderReview() {
             <option value="cancelled">Cancelled</option>
           </select>
         </div>
+
         <div className="search-group">
           <input
             type="text"
@@ -104,6 +133,7 @@ export default function OrderReview() {
         </div>
       </div>
 
+      {/* Orders Table */}
       <div className="admin-table-container">
         {loading ? <p>Loading orders...</p> : filteredOrders.length === 0 ? (
           <div className="empty-state"><p>No orders found.</p></div>
@@ -113,18 +143,17 @@ export default function OrderReview() {
               <tr>
                 <th>Order ID</th>
                 <th>Customer</th>
-                {/* RESTORED EMAIL HEADER */}
-                <th>Email</th> 
+                <th>Email</th> {/* Important column restored */}
                 <th>Total</th>
                 <th>Items</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {filteredOrders.map((order) => {
                 const userName = order.user?.name || order.userName || "Guest";
-                // RESTORED EMAIL VARIABLE
                 const userEmail = order.user?.email || order.userEmail || "N/A"; 
                 const total = order.total_amount || order.total || 0;
                 const itemsCount = order.items ? order.items.length : 0;
@@ -133,18 +162,22 @@ export default function OrderReview() {
                   <tr key={order.id}>
                     <td>#{order.id}</td>
                     <td>{userName}</td>
-                    {/* RESTORED EMAIL CELL */}
                     <td>{userEmail}</td>
                     <td className="price-cell">₱{total.toLocaleString()}</td>
                     <td>{itemsCount} item(s)</td>
+
+                    {/* Status Badge */}
                     <td>
                       <span className="status-badge" style={{ backgroundColor: getStatusColor(order.status) }}>
                         {order.status}
                       </span>
                     </td>
+
+                    {/* Status Change + Delete */}
                     <td>
                       <div className="action-buttons" style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                         
+                        {/* Update order status */}
                         <select
                           value={order.status}
                           onChange={(e) => handleStatusChange(order.id, e.target.value)}
@@ -156,6 +189,7 @@ export default function OrderReview() {
                           <option value="cancelled">Cancelled</option>
                         </select>
 
+                        {/* Delete order */}
                         <button
                           onClick={() => handleDeleteOrder(order.id)}
                           className="btn-delete"
@@ -166,6 +200,7 @@ export default function OrderReview() {
 
                       </div>
                     </td>
+
                   </tr>
                 );
               })}
@@ -174,24 +209,28 @@ export default function OrderReview() {
         )}
       </div>
 
-      {/* --- STATISTICS CARDS --- */}
+      {/* STATISTICS CARDS */}
       <div className="admin-grid" style={{ marginTop: "30px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
         <div className="admin-card">
           <h3>Total Orders</h3>
           <p>{orders.length}</p>
         </div>
+
         <div className="admin-card">
           <h3>Pending</h3>
           <p style={{ color: "#f59e0b" }}>{orders.filter((o) => (o.status || "").toLowerCase() === "pending").length}</p>
         </div>
+
         <div className="admin-card">
           <h3>Processing</h3>
           <p style={{ color: "#3b82f6" }}>{orders.filter((o) => (o.status || "").toLowerCase() === "processing").length}</p>
         </div>
+
         <div className="admin-card">
           <h3>Completed</h3>
           <p style={{ color: "#10b981" }}>{orders.filter((o) => (o.status || "").toLowerCase() === "completed").length}</p>
         </div>
+
         <div className="admin-card">
           <h3>Cancelled</h3>
           <p style={{ color: "#ef4444" }}>{orders.filter((o) => (o.status || "").toLowerCase() === "cancelled").length}</p>

@@ -8,7 +8,7 @@ export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- 1. Fetch Featured Products (Refactored) ---
+  // Fetch featured products on component mount
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
@@ -31,18 +31,19 @@ export default function HomePage() {
     fetchFeatured();
   }, []);
 
-  // --- Handlers ---
+  // Navigate to product details page
   const handleProductClick = (productId) => {
     navigate(`/product/${productId}`); 
   };
 
+  // Navigate to full shop page
   const handleShopNowClick = () => {
     navigate("/products");
   };
 
   return (
     <section className="home-page">
-      {/* 1. HERO SECTION */}
+      {/* HERO SECTION */}
       <div className="hero">
         <h1>Welcome to AuraTech</h1>
         <p>
@@ -54,7 +55,7 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* 2. HIGHLIGHTS SECTION */}
+      {/* HIGHLIGHTS SECTION */}
       <section className="highlights">
         <h2>Why Shop with AuraTech?</h2>
         <div className="highlight-grid">
@@ -77,7 +78,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. FEATURED PRODUCTS SECTION */}
+      {/* FEATURED PRODUCTS SECTION */}
       <section className="featured">
         <h2>Featured Products</h2>
         {loading ? (
@@ -112,7 +113,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 4. CTA SECTION */}
+      {/* CALL TO ACTION SECTION */}
       <div className="cta">
         <div className="cta-content">
           <h3>Join the AuraTech Community</h3>

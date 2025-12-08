@@ -1,10 +1,10 @@
-/* === Footer Styles (Aggressive Gaming Theme & Layout - Revised for Responsiveness) === */
+/* Footer styles with aggressive gaming theme and responsive layout */
 
 .footer {
-  /* Deep Navy background with accent border for a strong close */
+  /* Background is deep navy with accent border on top */
   background: var(--color-text-primary);
   border-top: 2px solid var(--color-accent);
-  /* Use clamp for scalable horizontal padding */
+  /* Padding scales horizontally using clamp */
   padding: 40px clamp(20px, 4vw, 60px);
   color: var(--color-surface);
   margin-top: 80px;
@@ -14,20 +14,20 @@
   max-width: 1400px;
   margin: 0 auto;
 
-  /* Desktop Grid Layout */
+  /* Grid layout for desktop */
   display: grid;
-  /* Brand gets 2/3rds (2fr), Links get 1/3rd (1fr) */
+  /* Brand section uses two fractions, links section uses one fraction */
   grid-template-columns: 2fr 1fr;
+  /* Brand and links on first row, copyright spans full width on second row */
   grid-template-rows: auto auto;
   grid-template-areas:
     "brand links"
-    "copy copy"; /* Copyright spans the full width at the bottom */
-
+    "copy copy";
   gap: 30px 60px;
   align-items: start;
 }
 
-/* --- Brand Section (Left Column) --- */
+/* Brand section on left side */
 .footer__brand {
   grid-area: brand;
   text-align: left;
@@ -56,11 +56,11 @@
 .footer__brand p {
   margin: 0;
   font-size: 15px;
-  color: var(--color-accent); /* Accent color for tagline */
+  color: var(--color-accent);
   font-weight: 500;
 }
 
-/* --- Links Section (Right Column) --- */
+/* Links section on right side */
 .footer__links {
   grid-area: links;
   display: flex;
@@ -78,15 +78,16 @@
 }
 
 .footer__links a:hover {
-  color: var(--color-secondary-accent); /* Secondary accent color on hover */
+  /* Change link color on hover to secondary accent */
+  color: var(--color-secondary-accent);
 }
 
-/* --- Copyright Section (Full Width Row) --- */
+/* Copyright section spanning full width */
 .footer__copy {
   grid-area: copy;
   text-align: left;
   padding-top: 25px;
-  /* Visual separation line */
+  /* Border separates copyright visually */
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   margin-top: 15px;
 }
@@ -97,7 +98,7 @@
   color: var(--color-border);
 }
 
-/* === Responsive Adjustments === */
+/* Responsive adjustments for tablets and smaller screens */
 @media (max-width: 768px) {
   .footer {
     padding: 30px 20px;
@@ -105,7 +106,7 @@
   }
 
   .footer__inner {
-    /* Stack all grid areas vertically */
+    /* Stack all sections vertically */
     grid-template-columns: 1fr;
     grid-template-areas:
       "brand"
@@ -114,17 +115,17 @@
     gap: 30px;
   }
 
-  /* Center the content for mobile view */
+  /* Center content for mobile */
   .footer__brand {
     text-align: center;
   }
 
   .footer__logo {
-    justify-content: center; /* Center logo elements */
+    justify-content: center;
   }
 
   .footer__links {
-    align-items: center; /* Center links in the column */
+    align-items: center;
   }
 
   .footer__copy {
@@ -134,14 +135,15 @@
   }
 }
 
-/* New media query for very small screens */
+/* Adjustments for very small screens */
 @media (max-width: 480px) {
   .footer {
     padding: 25px 15px;
   }
 
   .footer__logo img {
-    height: 35px; /* Slightly smaller logo */
+    /* Slightly smaller logo for very small screens */
+    height: 35px;
   }
 
   .footer__logo h3 {

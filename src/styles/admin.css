@@ -1,13 +1,13 @@
-/* src/styles/admin.css */
+/* Admin page specific styles */
 
-/* --- Reset & Base --- */
+/* Base */
 body.admin-page {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
 }
 
-/* --- General Variables & Layout --- */
+/* Layout */
 
 .admin-layout-container {
   display: flex;
@@ -27,7 +27,7 @@ body.admin-page {
   height: 100vh;
 }
 
-/* --- Admin Sidebar (Desktop & Tablet) --- */
+/* Sidebar (Desktop) */
 .admin-sidebar {
   width: 250px;
   flex-shrink: 0;
@@ -44,7 +44,7 @@ body.admin-page {
   flex-direction: column;
 }
 
-/* --- Sidebar Header --- */
+/* Sidebar Header */
 .admin-sidebar h3 {
   color: var(--color-accent);
   text-align: center;
@@ -55,7 +55,7 @@ body.admin-page {
   font-weight: 700;
 }
 
-/* --- Sidebar Navigation Links --- */
+/* Navigation Links */
 .admin-sidebar ul {
   list-style: none;
   padding: 0;
@@ -84,7 +84,7 @@ body.admin-page {
   padding-left: 28px;
 }
 
-/* --- Active Link Styling --- */
+/* Active Link Styling */
 .admin-sidebar li a.active {
   background: linear-gradient(
     90deg,
@@ -96,7 +96,7 @@ body.admin-page {
   font-weight: 600;
 }
 
-/* --- Admin Sidebar Footer (User Info & Logout) --- */
+/* Sidebar Footer (User Info & Logout) */
 .admin-sidebar-footer {
   margin-top: auto;
   padding: 20px 25px;
@@ -142,7 +142,7 @@ body.admin-page {
   transform: translateY(-1px);
 }
 
-/* --- Admin Dashboard Cards (Full Width Grid) --- */
+/* Dashboard Cards Grid */
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -155,7 +155,7 @@ body.admin-page {
   border-radius: var(--radius);
   padding: 25px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  border-left: 5px solid var(--color-accent);
+  border-left: 5px solid var(--color-accent); /* Accent border on the left */
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -177,9 +177,9 @@ body.admin-page {
   margin: 0;
 }
 
-/* --- Mobile Toggle Button (Hidden on Desktop) --- */
+/* Mobile Toggle Button */
 .sidebar-toggle-button {
-  display: none;
+  display: none; /* Hidden on Desktop */
   position: fixed;
   top: 90px;
   left: 10px;
@@ -200,7 +200,7 @@ body.admin-page {
   transform: scale(1.05);
 }
 
-/* --- Dashboard Header Styling --- */
+/* Dashboard Header */
 .dashboard-header {
   margin-bottom: 30px;
 }
@@ -215,10 +215,6 @@ body.admin-page {
   color: var(--color-border);
   font-size: 1rem;
 }
-
-/* ============================================== */
-/* MEDIA QUERIES FOR RESPONSIVENESS               */
-/* ============================================== */
 
 @media (max-width: 1024px) {
   .admin-sidebar {
@@ -241,7 +237,7 @@ body.admin-page {
     width: 100%;
   }
 
-  /* --- Sidebar Mobile Behavior --- */
+  /* Sidebar Mobile Behavior (Off-canvas) */
   .admin-sidebar {
     width: 280px;
     max-width: 80vw;
@@ -255,7 +251,6 @@ body.admin-page {
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
   }
 
-  /* Class added by JavaScript to show the sidebar */
   .admin-sidebar.is-open {
     transform: translateX(0);
   }
@@ -299,7 +294,7 @@ body.admin-page {
   }
 }
 
-/* --- Overlay for Mobile Sidebar --- */
+/* Mobile Sidebar Overlay */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -311,6 +306,7 @@ body.admin-page {
   z-index: 998;
   opacity: 0;
   transition: opacity 0.3s ease;
+  display: none;
 }
 
 .sidebar-overlay.active {
@@ -323,8 +319,6 @@ body.admin-page {
     display: none !important;
   }
 }
-
-/* --- Admin Page Styles --- */
 
 /* Page Header */
 .admin-page-header {
@@ -347,7 +341,7 @@ body.admin-page {
   font-size: 1rem;
 }
 
-/* Add Product Button */
+/* Add Product Button (Primary CTA) */
 .btn-add-product {
   display: flex;
   align-items: center;
@@ -378,7 +372,7 @@ body.admin-page {
   display: block;
 }
 
-/* Controls Section */
+/* Controls Section (Filter/Search) */
 .admin-controls {
   display: flex;
   gap: 20px;
@@ -428,7 +422,7 @@ body.admin-page {
   box-shadow: 0 0 0 3px rgba(0, 151, 167, 0.1);
 }
 
-/* Table Styles */
+/* Data Table Styles */
 .admin-table-container {
   background: var(--color-surface);
   border-radius: 12px;
@@ -601,7 +595,6 @@ body.admin-page {
   outline: none;
 }
 
-/* Stock Buttons - Hidden by default, shown on row hover */
 .stock-btn {
   width: 28px;
   height: 28px;
@@ -808,7 +801,7 @@ body.admin-page {
   accent-color: var(--color-accent);
 }
 
-/* Responsive */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .admin-controls {
     flex-direction: column;

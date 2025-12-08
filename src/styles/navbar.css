@@ -1,13 +1,11 @@
-/* --- Navbar Base Styles (Navy/Teal Palette) --- */
-
+/* Navbar Base Styles */
 .navbar {
-  /* Navbar base style: Navy Background, White/Light Text */
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 30px;
-  background: var(--color-text-primary); /* Deep Navy background */
-  border-bottom: 2px solid var(--color-accent); /* Primary Accent border */
+  background: var(--color-text-primary);
+  border-bottom: 2px solid var(--color-accent);
 }
 
 .navbar__container {
@@ -18,7 +16,7 @@
   gap: 40px;
 }
 
-/* --- Brand/Logo Section --- */
+/* Brand/Logo Section */
 .navbar__brand {
   display: flex;
   align-items: center;
@@ -42,14 +40,14 @@
 }
 
 .navbar__brand a:hover {
-  color: var(--color-secondary-accent); /* Teal hover */
+  color: var(--color-secondary-accent);
 }
 
-/* --- Search Bar & Input (Full Width) --- */
+/* Search Bar & Input */
 .navbar__search {
   display: flex;
   gap: 8px;
-  flex: 1; /* Takes up all available space */
+  flex: 1;
   max-width: 1150px;
 }
 
@@ -71,7 +69,6 @@
 }
 
 .search-btn {
-  /* Button uses Primary Accent color (Teal/Cyan) */
   padding: 10px 20px;
   background: var(--color-accent);
   color: var(--color-surface);
@@ -86,7 +83,7 @@
   background: var(--color-hover-dark);
 }
 
-/* --- Navigation Links --- */
+/* Navigation Links */
 .navbar__links {
   display: flex;
   gap: 28px;
@@ -104,7 +101,6 @@
   padding: 8px 0;
 }
 
-/* Underline effect using ::after element */
 .nav-link::after {
   content: "";
   position: absolute;
@@ -121,15 +117,12 @@
   color: var(--color-secondary-accent);
 }
 
-/* Full width underline on hover/active */
 .nav-link:hover::after,
 .nav-link.active::after {
   width: 100%;
 }
 
-/* --- User Dropdown & Auth Controls --- */
-
-/* User Greeting & Toggle Button */
+/* User Dropdown */
 .user-dropdown-toggle {
   background: none;
   border: none;
@@ -139,7 +132,7 @@
   font-size: 1rem;
   padding: 8px 12px;
   transition: background 0.2s;
-  line-height: 1.5; /* Vertical alignment fix */
+  line-height: 1.5;
 }
 
 .user-dropdown-toggle:hover {
@@ -147,7 +140,6 @@
   border-radius: 6px;
 }
 
-/* User Dropdown Menu Positioning and Styling */
 .user-dropdown-menu {
   list-style: none;
   position: absolute;
@@ -173,7 +165,6 @@
 
 .user-dropdown-menu a,
 .user-dropdown-menu button {
-  /* Text color inside white dropdown */
   color: var(--color-text-primary);
   text-decoration: none;
   width: 100%;
@@ -184,17 +175,16 @@
   cursor: pointer;
 }
 
-/* Specific styling for the Logout button */
 .logout-btn {
   color: #cc0000;
-  display: block; /* Ensure button takes full space */
+  display: block;
 }
 
 .logout-btn:hover {
   background-color: #fdecea;
 }
 
-/* --- Live Search Dropdown Styling --- */
+/* Live Search Dropdown */
 .navbar__search-wrapper {
   position: relative;
   width: 100%;
@@ -246,7 +236,6 @@
   line-height: 1.2;
 }
 
-/* Scrollbar styles for the search dropdown */
 .search-results-dropdown::-webkit-scrollbar {
   width: 6px;
 }
@@ -260,9 +249,8 @@
   background-color: var(--color-accent);
 }
 
-/* --- Mobile Menu Toggle (Hidden by Default) --- */
+/* Mobile Menu Toggle */
 .navbar__mobile-toggle {
-  /* Styles for the hamburger icon/button */
   display: none;
   font-size: 1.7rem;
   color: var(--color-surface);
@@ -274,7 +262,7 @@
   z-index: 1001;
 }
 
-/* --- Responsive adjustments --- */
+/* Responsive adjustments */
 @media (max-width: 1024px) {
   .navbar__container {
     gap: 20px;
@@ -294,29 +282,24 @@
   .navbar {
     padding: 0.75rem 20px;
   }
+
   .navbar__container {
-    /* Keep brand and toggle on one line for mobile header */
     flex-wrap: nowrap;
     gap: 15px;
   }
 
-  /* Show the toggle button for mobile menu */
   .navbar__mobile-toggle {
     display: block;
     order: 2;
   }
 
-  /* Hide the search bar on this mobile size */
   .navbar__search-wrapper {
     display: none;
   }
 
-  /* --- COLLAPSED NAVIGATION LINKS (MOBILE MENU) --- */
+  /* Mobile Menu */
   .navbar__links {
-    /* Initial state: Hidden on mobile */
     display: none;
-
-    /* Full viewport overlay when open */
     position: fixed;
     top: 55px;
     left: 0;
@@ -330,7 +313,6 @@
     z-index: 1000;
   }
 
-  /* State when JavaScript adds the .is-open class */
   .navbar__links.is-open {
     display: flex;
   }
@@ -343,12 +325,10 @@
     color: var(--color-surface);
   }
 
-  /* Remove desktop underline effect from mobile nav links */
   .nav-link::after {
     display: none;
   }
 
-  /* Reset User Dropdown for the mobile menu */
   .user-dropdown-toggle {
     background: none;
     padding: 15px 0;
@@ -358,7 +338,6 @@
     font-weight: 700;
   }
 
-  /* Dropdown Menu inside the mobile menu */
   .user-dropdown-menu {
     position: static;
     box-shadow: none;

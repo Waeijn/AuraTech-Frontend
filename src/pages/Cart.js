@@ -15,7 +15,7 @@ export default function Cart() {
   const [modalProduct, setModalProduct] = useState(null);
   const [quantityToModify, setQuantityToModify] = useState(1);
 
-  // API Call: Fetch Cart
+  // Fetch cart items from API or local storage
   const fetchCart = async () => {
     try {
       setLoading(true);
@@ -95,7 +95,7 @@ export default function Cart() {
     } catch (e) { alert("Remove failed"); }
   };
 
-  // CALCULATION LOGIC
+  // Calculate subtotal, tax, shipping, and total for selected items
   const { checkedItems, checkedSubtotal, taxAmount, shippingFee, total, totalCheckedItemsCount } = useMemo(() => {
     const checked = cartItems.filter((item) => item.isChecked);
     const totalCount = checked.reduce((sum, item) => sum + item.quantity, 0);
@@ -115,6 +115,7 @@ export default function Cart() {
     };
   }, [cartItems]);
 
+  // Component for individual cart item
   const CartItem = ({ item }) => (
       <div className="cart-item">
         <input type="checkbox" checked={item.isChecked} onChange={() => handleToggleCheckout(item.id)} className="item-checkbox" />
@@ -135,6 +136,7 @@ export default function Cart() {
       </div>
   );
 
+  // Loading state UI
   if (loading && cartItems.length === 0) {
     return (
       <div className="cart-page" style={{ minHeight: "60vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -143,6 +145,7 @@ export default function Cart() {
     );
   }
 
+  // Empty cart state UI
   if (cartItems.length === 0) {
     return (
       <section className="cart-page">
@@ -180,9 +183,12 @@ export default function Cart() {
     );
   }
 
+  // Main cart UI
   return (
     <section className="cart-page">
       <h1>Your Cart ({totalCheckedItemsCount} items selected)</h1>
+
+      {/* Modal for removing/editing item */}
       {isModalOpen && modalProduct && (
         <div className="modal-overlay open">
           <div className="quantity-modal remove-modal">
@@ -199,6 +205,8 @@ export default function Cart() {
         <div className="cart-items">
             {cartItems.map((item) => <CartItem key={item.id} item={item} />)}
         </div>
+
+        {/* Order summary panel */}
         <div className="cart-summary">
           <h2>Order Summary</h2>
           <div className="summary-row"><p>Items Subtotal:</p><p>₱{checkedSubtotal.toLocaleString()}</p></div>

@@ -1,5 +1,3 @@
-// src/pages/ProductDetails.js
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/product.css";
@@ -7,6 +5,10 @@ import { useAuth } from "../components/Navbar";
 import { productService } from "../services/productService";
 import { cartService } from "../services/cartService";
 
+/**
+ * Displays comprehensive details for a single product, including stock,
+ * images, specifications, and handles the authenticated Add to Cart process.
+ */
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,12 +19,12 @@ const ProductDetails = () => {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Modal States
+  // Modal states for quantity selection and authentication prompt
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
-  // 1. Fetch Product Data
+  // Fetches product details from the API on mount and whenever the ID changes.
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id || id === "undefined") {
@@ -44,6 +46,7 @@ const ProductDetails = () => {
           const primaryImg = response.data.images?.find(
             (img) => img.is_primary
           );
+          // Set primary or first image as the selected image
           setSelectedImage(
             primaryImg?.url ||
               response.data.images?.[0]?.url ||
@@ -61,10 +64,14 @@ const ProductDetails = () => {
     };
 
     fetchProduct();
+    // Scroll to the top for a clean page transition experience
     window.scrollTo(0, 0);
   }, [id]);
 
-  // 2. Add to Cart Logic
+  /**
+   * Handles the final step of adding the product to the cart via API.
+   * Prompts for login if the user is not authenticated.
+   */
   const handleFinalAddToCart = async () => {
     if (!product || quantity < 1) return;
 
@@ -79,7 +86,7 @@ const ProductDetails = () => {
       if (response && response.success) {
         alert(`Added ${quantity} x ${product.name} to cart!`);
         setIsModalOpen(false);
-        setQuantity(1); // Reset quantity
+        setQuantity(1); // Reset quantity after successful add
       } else {
         alert(response?.message || "Failed to add to cart");
       }
@@ -89,7 +96,7 @@ const ProductDetails = () => {
     }
   };
 
-  // UI Handlers
+  // Opens the quantity selection modal, checking authentication status first.
   const handleShowModal = () => {
     if (!currentUser) {
       setIsAuthPromptOpen(true);
@@ -99,16 +106,18 @@ const ProductDetails = () => {
     }
   };
 
+  // Closes the auth prompt modal and navigates to the login page.
   const handleLoginRedirect = () => {
     setIsAuthPromptOpen(false);
     navigate("/login");
   };
 
+  // Sets the main display image to the URL of the clicked thumbnail.
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
   };
 
-  // Loading State
+  // Display loading state
   if (loading) {
     return (
       <div className="details-container">
@@ -119,7 +128,7 @@ const ProductDetails = () => {
     );
   }
 
-  // Error State
+  // Display error state (e.g., product not found)
   if (error || !product) {
     return (
       <div className="details-container">
@@ -137,7 +146,7 @@ const ProductDetails = () => {
 
   return (
     <div className="details-container">
-      {/* Login Prompt Modal */}
+      {/* Login Prompt Modal (Shown if 'Add to Cart' is clicked while unauthenticated) */}
       <div className={`modal-overlay ${isAuthPromptOpen ? "open" : ""}`}>
         <div className="quantity-modal confirmation-modal">
           <h2>Login Required</h2>
@@ -156,7 +165,7 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Quantity Modal */}
+      {/* Quantity Selection Modal (Handles adding item to cart) */}
       <div className={`modal-overlay ${isModalOpen ? "open" : ""}`}>
         <div className="quantity-modal">
           <h2>Select Quantity</h2>
@@ -176,6 +185,7 @@ const ProductDetails = () => {
               value={quantity}
               onChange={(e) => {
                 const val = parseInt(e.target.value) || 1;
+                // Enforce min (1) and max (stock) boundaries on user input
                 setQuantity(Math.min(Math.max(1, val), product.stock));
               }}
               className="quantity-input-field"
@@ -205,7 +215,7 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Main Details */}
+      {/* Main Product Details Display */}
       <div className="details-card">
         {/* Image Section with Gallery */}
         <div className="details-image-wrapper">
@@ -266,12 +276,11 @@ const ProductDetails = () => {
                 marginBottom: "10px",
               }}
             >
-              {/* LOGIC FIX: Handle safely if category is object or name */}
               Category: {product.category.name || product.category || "General"}
             </p>
           )}
 
-          {/* Price - LOGIC FIX: Removed '/ 100' */}
+          {/* Price */}
           <p className="details-price">
             ₱
             {(product.price).toLocaleString(undefined, {
@@ -308,7 +317,7 @@ const ProductDetails = () => {
                 marginBottom: "15px",
               }}
             >
-              ⭐ Featured Product
+               Featured Product
             </span>
           )}
 
@@ -382,7 +391,7 @@ const ProductDetails = () => {
             </button>
           </div>
 
-          {/* Specifications */}
+          {/* Specifications Table */}
           {product.specifications &&
             Object.keys(product.specifications).length > 0 && (
               <div

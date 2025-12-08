@@ -1,4 +1,4 @@
-/* --- Imports and Base --- */
+/* Product page styles including listing, details, and modal */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 
 *,
@@ -15,7 +15,7 @@ body {
   overflow-x: hidden;
 }
 
-/* --- Product Container --- */
+/* Product List Container */
 .product-container {
   padding: 100px 20px 80px 20px;
   min-height: 100vh;
@@ -25,7 +25,7 @@ body {
   max-width: 100%;
 }
 
-/* --- Header --- */
+/* Header & Search Results */
 .product-header {
   margin-bottom: 40px;
   width: 100%;
@@ -69,7 +69,7 @@ body {
   margin: 25px auto 40px auto;
 }
 
-/* --- Category Filters --- */
+/* Category Filters */
 .category-filter {
   display: flex;
   flex-wrap: wrap;
@@ -108,7 +108,7 @@ body {
   outline-offset: 2px;
 }
 
-/* --- Product Grid --- */
+/* Product Grid */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -120,7 +120,7 @@ body {
   width: 100%;
 }
 
-/* --- Product Card --- */
+/* Product Card */
 .product-card {
   display: flex;
   flex-direction: column;
@@ -255,7 +255,7 @@ body {
   cursor: not-allowed;
 }
 
-/* --- Details Page --- */
+/* Details Page Layout */
 .details-container {
   padding: 80px 20px 60px 20px;
   max-width: 1200px;
@@ -330,7 +330,7 @@ body {
   min-width: 150px;
 }
 
-/* --- Specifications --- */
+/* Specifications Section */
 .specifications-section {
   margin-top: 40px;
   padding-top: 30px;
@@ -381,7 +381,7 @@ body {
   color: var(--color-secondary-accent);
 }
 
-/* --- Modal --- */
+/* Quantity Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -511,7 +511,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* --- Responsive --- */
+/* Responsive Adjustments */
 
 /* Tablets */
 @media (max-width: 1024px) {

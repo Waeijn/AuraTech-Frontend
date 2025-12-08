@@ -38,7 +38,6 @@ export const apiFetch = async (endpoint, options = {}) => {
         localStorage.removeItem('user');
         window.location.href = '/login';
       }
-      // -----------------------
 
       throw new Error(data.message || 'Request failed');
     }

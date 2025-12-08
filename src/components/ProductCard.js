@@ -2,17 +2,15 @@ import { useNavigate } from "react-router-dom";
 import "../styles/product.css";
 
 /**
- * ProductCard Component
- * Displays product info. Stock is now managed by the backend, 
- * so local inventory checks have been removed.
+ * - Displays product info and stock from backend
+ * - Triggers global quantity modal for adding to cart
  */
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
 
+  // Open quantity modal (initialized globally in ProductList.js)
   const handleAddToCart = (e) => {
     e.stopPropagation();
-
-    // The modal function is defined globally in ProductList.js
     if (window.showQuantityModal) {
       window.showQuantityModal(product);
     } else {
@@ -20,11 +18,12 @@ export default function ProductCard({ product }) {
     }
   };
 
+  // Redirect user to product details page
   const handleViewDetails = () => {
     navigate(`/product/${product.id}`);
   };
 
-  // API Integration: Stock comes directly from the product object
+  // Backend-provided stock value
   const currentStock = product.stock || 0;
 
   return (
@@ -38,9 +37,10 @@ export default function ProductCard({ product }) {
       </div>
 
       <h3>{product.name}</h3>
-      {/* Display raw price as requested (preserves 34.99 or 3499 formatting from DB) */}
+      {/* Price uses backend raw value and formats with commas */}
       <p className="product-price">₱{product.price.toLocaleString()}</p>
 
+      {/* Live stock indicator from backend */}
       <p
         className={`product-stock ${
           currentStock > 0 ? "in-stock" : "out-of-stock"
