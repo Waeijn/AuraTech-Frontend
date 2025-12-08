@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
-import { productService } from "../services/productService"; 
+import { productService } from "../services/productService";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -19,7 +19,9 @@ export default function HomePage() {
           // Filter for products where 'featured' is true (or 1)
           const featured = result.data.filter((p) => p.featured == true);
           // If no featured products exist yet, just take the first 3 as a fallback
-          setFeaturedProducts(featured.length > 0 ? featured : result.data.slice(0, 3));
+          setFeaturedProducts(
+            featured.length > 0 ? featured : result.data.slice(0, 3)
+          );
         }
       } catch (error) {
         console.error("Error fetching featured products:", error);
@@ -33,7 +35,7 @@ export default function HomePage() {
 
   // Navigate to product details page
   const handleProductClick = (productId) => {
-    navigate(`/product/${productId}`); 
+    navigate(`/product/${productId}`);
   };
 
   // Navigate to full shop page
@@ -61,19 +63,31 @@ export default function HomePage() {
         <div className="highlight-grid">
           <div className="highlight-card">
             <h3> Superior Performance</h3>
-            <p>Experience lightning-fast response times and smooth gameplay with hardware built for champions.</p>
+            <p>
+              Experience lightning-fast response times and smooth gameplay with
+              hardware built for champions.
+            </p>
           </div>
           <div className="highlight-card">
             <h3> Trusted Quality</h3>
-            <p>Built with premium materials and tested for reliability, every AuraTech product stands the test of time.</p>
+            <p>
+              Built with premium materials and tested for reliability, every
+              AuraTech product stands the test of time.
+            </p>
           </div>
           <div className="highlight-card">
             <h3>Next-Level Design</h3>
-            <p>Ergonomic and aesthetic designs that enhance comfort and boost your gaming experience.</p>
+            <p>
+              Ergonomic and aesthetic designs that enhance comfort and boost
+              your gaming experience.
+            </p>
           </div>
           <div className="highlight-card">
             <h3> Fast Delivery</h3>
-            <p>Get your favorite products delivered quickly and securely, right to your doorstep.</p>
+            <p>
+              Get your favorite products delivered quickly and securely, right
+              to your doorstep.
+            </p>
           </div>
         </div>
       </section>
@@ -82,7 +96,12 @@ export default function HomePage() {
       <section className="featured">
         <h2>Featured Products</h2>
         {loading ? (
-          <p>Loading highlights...</p>
+          <div className="page-loader-wrapper" style={{ minHeight: "300px" }}>
+            <div className="page-spinner"></div>
+            <span className="page-loader-text">
+              Loading featured products...
+            </span>
+          </div>
         ) : (
           <div className="featured-grid">
             {featuredProducts.length > 0 ? (
@@ -94,9 +113,9 @@ export default function HomePage() {
                   style={{ cursor: "pointer" }}
                 >
                   <div className="featured-image-wrapper">
-                    <img 
-                      src={product.image || "/img/products/placeholder.png"} 
-                      alt={product.name} 
+                    <img
+                      src={product.image || "/img/products/placeholder.png"}
+                      alt={product.name}
                     />
                   </div>
                   <h3>{product.name}</h3>

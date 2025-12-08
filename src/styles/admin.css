@@ -25,6 +25,8 @@ body.admin-page {
   overflow-y: auto;
   overflow-x: hidden;
   height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 /* Sidebar (Desktop) */
@@ -177,11 +179,39 @@ body.admin-page {
   margin: 0;
 }
 
+/* NEW: Skeleton Styles for Dashboard Cards */
+.admin-card.skeleton-card {
+  pointer-events: none;
+  background-color: #f7f7f7;
+  border-left: 5px solid rgba(0, 151, 167, 0.2);
+  box-shadow: none;
+}
+
+.admin-card.skeleton-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* NEW: Skeleton Styles for Table Rows (relies on .skeleton-text from global.css) */
+.admin-table .skeleton-row {
+  pointer-events: none;
+  background-color: var(--color-surface);
+}
+
+.admin-table .skeleton-row:hover {
+  background-color: var(--color-surface); /* Prevent hover effect */
+}
+
+.admin-table .skeleton-row td .skeleton-text {
+  margin: 0;
+  height: 1rem;
+}
+
 /* Mobile Toggle Button */
 .sidebar-toggle-button {
-  display: none; /* Hidden on Desktop */
+  display: none;
   position: fixed;
-  top: 90px;
+  top: 60px;
   left: 10px;
   z-index: 1000;
   background: var(--color-accent);
@@ -235,6 +265,7 @@ body.admin-page {
   .admin-main-content {
     padding: 20px 15px;
     width: 100%;
+    padding-top: 100px;
   }
 
   /* Sidebar Mobile Behavior (Off-canvas) */
@@ -247,7 +278,7 @@ body.admin-page {
     top: 0;
     left: 0;
     bottom: 0;
-    z-index: 999;
+    z-index: 999; /* Lower than toggle button */
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
   }
 
@@ -256,6 +287,7 @@ body.admin-page {
   }
 
   .sidebar-toggle-button {
+    top: 30px;
     display: block;
   }
 
@@ -276,13 +308,13 @@ body.admin-page {
   }
 
   .sidebar-toggle-button {
-    top: 80px;
+    top: 30px;
     padding: 8px 12px;
     font-size: 1rem;
   }
 
   .admin-main-content {
-    padding: 15px 10px;
+    padding: 80px 10px 15px 10px;
   }
 
   .dashboard-header h1 {
@@ -306,7 +338,6 @@ body.admin-page {
   z-index: 998;
   opacity: 0;
   transition: opacity 0.3s ease;
-  display: none;
 }
 
 .sidebar-overlay.active {

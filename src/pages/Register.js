@@ -29,7 +29,12 @@ export default function Register() {
     setMessage("");
 
     // Validate required fields
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setMessageType("error");
       setMessage("All fields are required");
       return;
@@ -51,31 +56,33 @@ export default function Register() {
 
     try {
       setLoading(true);
-      
+
       // API call for registration, sending password_confirmation for Laravel backend
       await authService.register({
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        password_confirmation: formData.confirmPassword 
+        password_confirmation: formData.confirmPassword,
       });
 
       setMessageType("success");
       setMessage("Registration successful! Redirecting...");
-      
+
       setFormData({ name: "", email: "", password: "", confirmPassword: "" });
 
       setTimeout(() => {
         window.location.href = "/login";
       }, 1500);
-
     } catch (error) {
       setMessageType("error");
       console.error("Registration Error:", error);
-      
+
       let errorMsg = error.message || "Registration failed.";
-      if (errorMsg.includes("Unexpected token") || errorMsg.includes("<!DOCTYPE")) {
-          errorMsg = "Connection Error: Check API_BASE_URL config.";
+      if (
+        errorMsg.includes("Unexpected token") ||
+        errorMsg.includes("<!DOCTYPE")
+      ) {
+        errorMsg = "Connection Error: Check API_BASE_URL config.";
       }
       setMessage(errorMsg);
       setLoading(false);
@@ -87,23 +94,21 @@ export default function Register() {
       <div className="auth-wrapper">
         <div className="auth-brand-panel">
           <div className="brand-content">
-            <img src="/img/logo/LOGO.png" alt="AuraTech Logo" className="brand-logo" />
+            <img
+              src="/img/logo/LOGO.png"
+              alt="AuraTech Logo"
+              className="brand-logo"
+            />
             <h2>AuraTech</h2>
             <p className="brand-tagline">Power. Precision. Performance.</p>
           </div>
         </div>
-        
-        <div 
-          className="auth-form-panel" 
-          style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            justifyContent: "center", 
-            overflowY: "auto", 
-            maxHeight: "100vh" 
-          }}
-        >
-          <div className="auth-container" style={{ margin: "auto", padding: "20px 0" }}>
+
+        <div className="auth-form-panel">
+          <div
+            className="auth-container"
+            style={{ margin: "auto", padding: "20px 0" }}
+          >
             <h1>Register</h1>
 
             {message && (
@@ -183,7 +188,14 @@ export default function Register() {
               </div>
 
               <button type="submit" className="form-button" disabled={loading}>
-                {loading ? "Registering..." : "Register"}
+                {loading ? (
+                  <div className="form-button-content-wrapper">
+                    <div className="spinner"></div>
+                    Registering...
+                  </div>
+                ) : (
+                  "Register"
+                )}
               </button>
             </form>
 

@@ -94,6 +94,11 @@
   border-radius: 2px;
 }
 
+.featured .page-loader-wrapper {
+  grid-column: 1 / -1;
+  min-height: 350px;
+}
+
 /* Responsive grid layout for highlight cards */
 .highlight-grid {
   display: grid;
@@ -205,6 +210,12 @@
   text-align: center;
 }
 
+.cta-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .cta-content h3 {
   color: var(--color-surface);
   font-size: 3rem;
@@ -221,10 +232,7 @@
 /* CTA button styling */
 .cta-content .btn-main {
   background-color: var(--color-surface);
-  color: var(
-   /* Needs to be redefined or use existing variable for text */
-    --color-text-secondary
-  ); /* Needs to be redefined or use existing variable for text */
+  color: var(--color-surface);
   border: 2px solid var(--color-accent);
   box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
 }

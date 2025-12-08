@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "./Navbar";
+import "../styles/admin.css";
 
 const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,6 +66,7 @@ const AdminSidebar = () => {
         onClick={toggleSidebar}
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
       >
+        {/* Renders hamburger or close icon */}
         {isOpen ? "✕" : "☰"}
       </button>
 

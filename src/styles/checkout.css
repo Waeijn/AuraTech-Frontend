@@ -377,13 +377,13 @@
 
 .radio-label:hover {
   background: #f0f0f0;
-  border-color: rgba(0,0,0,0.1);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .radio-label input[type="radio"] {
-  width: auto;      /* Stop it from being 100% width */
-  margin: 0;        /* Remove default margins */
-  height: 18px;     /* Set fixed size */
+  width: auto; /* Stop it from being 100% width */
+  margin: 0; /* Remove default margins */
+  height: 18px; /* Set fixed size */
   width: 18px;
   accent-color: var(--color-accent); /* Make it match your purple/teal theme */
   cursor: pointer;
@@ -418,7 +418,7 @@
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
   margin-bottom: 40px;
-  border: 1px solid rgba(0,0,0,0.03);
+  border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .receipt-box h3 {

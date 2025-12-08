@@ -158,6 +158,27 @@
   background-color: var(--color-hover-secondary);
 }
 
+/* SKELETON LOADING STYLES */
+.purchase-history-table.skeleton-table {
+  pointer-events: none;
+}
+
+.purchase-history-table.skeleton-table tr:hover {
+  background-color: var(--color-surface);
+}
+
+.order-item-skeleton td {
+  padding: 10px 12px;
+}
+
+.order-item-skeleton .skeleton-text {
+  margin: 0;
+  height: 1.1em;
+  background: linear-gradient(90deg, #e0e0e0 0%, #f0f0f0 50%, #e0e0e0 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
 /* Responsive design (Mobile Table View) */
 @media (max-width: 900px) {
   .purchase-history-container {
@@ -188,6 +209,23 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   }
 
+  .order-item-skeleton tr {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .order-item-skeleton td {
+    width: 100%;
+    padding: 10px 12px;
+    padding-left: 12px;
+    text-align: left;
+  }
+
+  .order-item-skeleton td::before {
+    display: none;
+  }
+
   .purchase-history-table td {
     text-align: right;
     padding-left: 50%;
@@ -208,35 +246,19 @@
   }
 
   /* Hardcoded content for the 'data-label' attribute based on column index */
-  /* Hardcoded content for the 'data-label' attribu
-   te based on column in
- dex */
   .purchase-history-table td:nth-child(1)::before {
-   
- 
     content: "Order ID";
-   
- 
   }
-   
- 
   .purchase-history-table td:nth-child(2)::before {
-   
- 
     content: "Date";
-   
- 
   }
   .purchase-history-table td:nth-child(3)::before {
-    content: "Items";
-  }
-  .purchase-history-table td:nth-child(4)::before {
     content: "Total";
   }
-  .purchase-history-table td:nth-child(5)::before {
+  .purchase-history-table td:nth-child(4)::before {
     content: "Status";
   }
-  .purchase-history-table td:nth-child(6)::before {
+  .purchase-history-table td:nth-child(5)::before {
     content: "Actions";
   }
 

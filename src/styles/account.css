@@ -76,6 +76,18 @@
   height: auto;
 }
 
+/* NEW: Skeleton specific styles */
+.skeleton-card {
+  pointer-events: none;
+  background-color: #f7f7f7;
+  box-shadow: none;
+}
+
+.skeleton-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .account-card h2,
 .shipping-card h2 {
   font-size: 1.5rem;
@@ -91,7 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin-bottom: 30px;
+  margin-bottom: auto;
 }
 
 .info-block p,
@@ -114,7 +126,7 @@
   font-style: italic;
 }
 
-/* Button base styling */
+/* Button base styling (FIXED HEIGHT/ALIGNMENT) */
 .btn-main,
 .btn-secondary,
 .btn-cancel {
@@ -125,9 +137,15 @@
   transition: all 0.3s ease;
   padding: 10px 20px;
   font-size: 0.95rem;
+
+  /* ENFORCING CONSISTENT HEIGHT */
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Primary buttons styling */
+/* Primary buttons styling (View Purchase History, Edit Shipping Info) */
 .btn-main {
   background: linear-gradient(
     90deg,
@@ -142,18 +160,18 @@
   transform: translateY(-2px);
 }
 
-/* Logout button distinct style */
+/* Logout button distinct style (STANDARDIZED) */
 .logout-btn {
-  background: linear-gradient(90deg, #7b68ee);
+  background: var(--color-secondary-accent);
   color: #fff;
-  border: none;
-  padding: 10px 20px;
   border: none;
 }
 
+/* Standardized hover for logout button */
 .logout-btn:hover {
-  filter: brightness(1.1);
+  background-color: var(--color-hover-secondary);
   transform: translateY(-2px);
+  filter: none;
 }
 
 /* Secondary buttons style */
@@ -178,7 +196,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 30px;
+  margin-bottom: auto;
   align-items: flex-start;
 }
 
