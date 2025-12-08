@@ -50,7 +50,7 @@
 
 /* --- Table Styles --- */
 .purchase-history-table {
-  width: 100%;
+  width: 100% !important;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 25px;
@@ -249,7 +249,16 @@
 /* DOC: New media query for small mobile devices */
 @media (max-width: 500px) {
   .purchase-history-container {
-    padding: 30px 15px;
+  /* FORCE STRETCH: Use 95vw to fill 95% of the screen width */
+  width: 95vw !important; 
+  max-width: 100% !important; 
+  
+  /* FORCE HEIGHT: Fill 85% of the screen height */
+  min-height: 85vh; 
+  
+  margin: 40px auto;
+  background-color: var(--color-bg-primary); 
+  padding: 0 40px; 
   }
 
   .purchase-history-container h1 {
@@ -273,4 +282,70 @@
   .purchase-history-table td::before {
     width: 40%;
   }
+}
+/* --- Simple Text-Based Empty State --- */
+.empty-state-text {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between text and button */
+  align-items: flex-start; /* Aligns left (change to 'center' if you prefer) */
+}
+
+.empty-state-text p {
+  font-size: 1.1rem;
+  color: var(--color-border); /* Subtle grey color */
+  margin: 0;
+}
+
+.start-shopping-btn {
+  text-decoration: none;
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* --- Empty State Styling --- */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh; /* centers it vertically */
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  color: #ccc; /* Light grey for the icon */
+}
+
+.empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.empty-state-subtext {
+  color: #777;
+  margin-bottom: 30px;
+}
+
+.btn-start-shopping {
+  background-color: var(--color-accent); /* Cyan */
+  color: var(--color-surface);
+  padding: 12px 30px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-start-shopping:hover {
+  opacity: 0.9;
 }

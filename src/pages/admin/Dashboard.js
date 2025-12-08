@@ -1,7 +1,8 @@
-// src/pages/admin/Dashboard.js
-
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
+import { orderService } from "../../services/orderService";
+import { productService } from "../../services/productService";
+import { api } from "../../utils/api";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -15,78 +16,60 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
-    // TODO: Replace with Laravel API call
-    // fetchDashboardStats();
-    loadLocalStats();
+    loadDashboardStats();
   }, []);
 
-  // Temporary function using localStorage - Replace with API call
-  const loadLocalStats = () => {
+  const loadDashboardStats = async () => {
     try {
-      // Get orders from localStorage
-      const orders = JSON.parse(localStorage.getItem("orders")) || [];
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      const inventory =
-        JSON.parse(localStorage.getItem("temporary_inventory")) || {};
+      // 1. Fetch real data from APIs
+      const orderRes = await orderService.getAll();
+      const orders = orderRes.data || [];
 
-      // Calculate stats
-      const totalSales = orders.reduce(
-        (sum, order) => sum + (order.total || 0),
-        0
-      );
-      const newOrders = orders.filter((o) => o.status === "pending").length;
-      const pendingUsers = users.filter((u) => u.role !== "admin").length;
-      const criticalStock = Object.values(inventory).filter(
-        (stock) => stock <= 5
+      const productRes = await productService.getAll();
+      const products = Array.isArray(productRes.data) ? productRes.data : (productRes.data?.data || []);
+
+      // Fetch users count if possible, otherwise rely on local fallback or simple API
+      let usersCount = 0;
+      try {
+        const userRes = await api.get('/users');
+        usersCount = userRes.data?.length || 0;
+      } catch (e) {
+        console.warn("User stats fetch failed");
+      }
+
+      // 2. Calculate Stats from real data
+      const totalSales = orderService
+        .filter(order => (order.status || "").toLowerCase() !== 'cancelled')
+        .reduce(
+          (sum, order) => sum + (order.total_amount || order.total || 0),
+          0
+        );
+
+      const newOrders = orders.filter((o) => (o.status || "").toLowerCase() === "pending").length;
+      
+      const criticalStock = products.filter(
+        (p) => (p.stock || 0) <= 5
       ).length;
 
       setStats({
         totalSales,
         newOrders,
-        pendingUsers,
+        pendingUsers: usersCount,
         criticalStock,
         loading: false,
       });
 
-      // Get recent activity
-      const recentOrders = orders
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
+      // 3. Get recent activity
+      const recentOrders = [...orders]
+        .sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date))
         .slice(0, 5);
       setRecentActivity(recentOrders);
+
     } catch (error) {
       console.error("Error loading stats:", error);
       setStats((prev) => ({ ...prev, loading: false }));
     }
   };
-
-  // TODO: Implement Laravel API integration
-  /*
-  const fetchDashboardStats = async () => {
-    try {
-      const response = await fetch('/api/admin/dashboard/stats', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Accept': 'application/json',
-        },
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch stats');
-      
-      const data = await response.json();
-      setStats({
-        totalSales: data.total_sales,
-        newOrders: data.new_orders,
-        pendingUsers: data.pending_users,
-        criticalStock: data.critical_stock,
-        loading: false,
-      });
-      setRecentActivity(data.recent_activity || []);
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      setStats(prev => ({ ...prev, loading: false }));
-    }
-  };
-  */
 
   if (stats.loading) {
     return (
@@ -109,7 +92,7 @@ export default function Dashboard() {
       <div className="admin-grid">
         <div className="admin-card">
           <h3>Total Sales</h3>
-          <p>₱{stats.totalSales.toLocaleString()}</p>
+          <p>₱{stats.totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
         </div>
         <div className="admin-card">
           <h3>New Orders</h3>
@@ -129,9 +112,7 @@ export default function Dashboard() {
 
       {/* Recent Activity Section */}
       <div style={{ marginTop: "40px" }}>
-        <h2
-          style={{ marginBottom: "20px", color: "var(--color-text-primary)" }}
-        >
+        <h2 style={{ marginBottom: "20px", color: "var(--color-text-primary)" }}>
           Recent Activity
         </h2>
         <div className="admin-table-container">
@@ -151,31 +132,39 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentActivity.map((order) => (
-                  <tr key={order.id}>
-                    <td>#{order.id}</td>
-                    <td>{order.userName}</td>
-                    <td className="price-cell">
-                      ₱{order.total.toLocaleString()}
-                    </td>
-                    <td>
-                      <span
-                        className="status-badge"
-                        style={{
-                          backgroundColor:
-                            order.status === "completed"
-                              ? "#10b981"
-                              : order.status === "pending"
-                              ? "#f59e0b"
-                              : "#3b82f6",
-                        }}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td>{new Date(order.date).toLocaleDateString()}</td>
-                  </tr>
-                ))}
+                {recentActivity.map((order) => {
+                   const userName = order.user?.name || order.userName || "Guest";
+                   const total = order.total_amount || order.total || 0;
+                   const status = order.status || "pending";
+                   
+                   return (
+                      <tr key={order.id}>
+                        <td>#{order.id}</td>
+                        <td>{userName}</td>
+                        <td className="price-cell">
+                          ₱{total.toLocaleString()}
+                        </td>
+                        <td>
+                          <span
+                            className="status-badge"
+                            style={{
+                              backgroundColor:
+                                status === "completed" || status === "delivered"
+                                  ? "#10b981"
+                                  : status === "pending"
+                                  ? "#f59e0b"
+                                  : status === "cancelled"
+                                  ? "#ef4444"
+                                  : "#3b82f6",
+                            }}
+                          >
+                            {status}
+                          </span>
+                        </td>
+                        <td>{new Date(order.created_at || order.date).toLocaleDateString()}</td>
+                      </tr>
+                   );
+                })}
               </tbody>
             </table>
           )}

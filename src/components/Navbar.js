@@ -9,114 +9,56 @@ import React, {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/navbar.css";
 
-// Mock data source for product search functionality
-import productData from "../data/products.json";
+// API Services
+import { authService } from "../services/authService";
+import { productService } from "../services/productService";
+import { getUser, logout as performLogout } from "../utils/auth";
 
 // --- Authentication Context Setup ---
 const AuthContext = createContext();
 
 /**
  * AuthProvider Component
- * Manages user state (login/logout/register) and persistence
- * via local storage for the entire application.
+ * Manages user state via API integration.
  */
 export function AuthProvider({ children }) {
-  // State for all registered users, initialized from local storage
-  const [users, setUsers] = useState(() => {
-    const stored = localStorage.getItem("users");
-    return stored ? JSON.parse(stored) : [];
-  });
-  // State for the currently logged-in user
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true); // <-- NEW LOADING STATE
+  const [loading, setLoading] = useState(true);
 
-  // --- 1. Define the Default Admin Account ---
-  const DEFAULT_ADMIN = {
-    name: "System Admin",
-    email: "admin@auratech.com", // This is the email we check against for the 'admin' role
-    password: "adminpassword", // Use a simple, temporary password for development
-  };
-
-  /**
-   * Registers a new user and saves the updated list to local storage.
-   * @param {object} userData - User data { name, email, password }.
-   * @returns {object} Status object indicating success or failure.
-   */
-  const register = ({ name, email, password }) => {
-    const existingUser = users.find((u) => u.email === email);
-    if (existingUser) {
-      return { success: false, message: "Email already registered" };
-    }
-
-    const newUser = { name, email, password };
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-    return { success: true, message: "Registration successful!" };
-  };
-
-  /**
-   * Attempts to log in a user by checking credentials against stored users.
-   * If successful, sets currentUser and stores it in local storage.
-   * @param {object} credentials - User credentials { email, password }.
-   * @returns {object} Status object indicating success or failure.
-   */
-  const login = ({ email, password }) => {
-    const stored = JSON.parse(localStorage.getItem("users")) || [];
-    const user = stored.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (user) {
-      // --- UPDATED ADMIN ROLE CHECK ---
-      const isAdmin = user.email === DEFAULT_ADMIN.email; // <--- Check against the constant
-      const userWithRole = {
-        ...user,
-        role: isAdmin ? "admin" : "user",
-      };
-      // -------------------------------
-
-      setCurrentUser(userWithRole);
-      localStorage.setItem("currentUser", JSON.stringify(userWithRole));
-      return { success: true, message: "Login successful!" };
-    } else {
-      return { success: false, message: "Invalid email or password" };
-    }
-  };
-
-  /**
-   * Clears the current user state and removes user data from local storage.
-   */
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem("currentUser");
-  };
-
+  // Initialize from utils/auth logic on mount
   useEffect(() => {
-    // 1. Load user data from storage
-    const storedUser = localStorage.getItem("currentUser");
+    const storedUser = getUser();
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      const isAdmin = user.email === DEFAULT_ADMIN.email;
-      setCurrentUser({ ...user, role: isAdmin ? "admin" : "user" });
+      setCurrentUser(storedUser);
     }
-
-    // 2. Seed the Default Admin Account (keeping your seeding logic)
-    const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
-    const adminExists = storedUsers.some(
-      (u) => u.email === DEFAULT_ADMIN.email
-    );
-
-    if (!adminExists) {
-      const updatedUsers = [...storedUsers, DEFAULT_ADMIN];
-      setUsers(updatedUsers);
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
-    }
-
-    // 3. Mark loading as complete after ALL checks are done
-    setLoading(false); // <-- SET LOADING TO FALSE
+    setLoading(false);
   }, []);
+
+  const register = async (userData) => {
+    try {
+      await authService.register(userData);
+      return { success: true, message: "Registration successful!" };
+    } catch (error) {
+      return { success: false, message: error.message || "Registration failed" };
+    }
+  };
+
+  const login = async (credentials) => {
+    try {
+      const response = await authService.login(credentials);
+      const user = response.data.user;
+      setCurrentUser(user);
+      return { success: true, message: "Login successful!" };
+    } catch (error) {
+      return { success: false, message: error.message || "Invalid credentials" };
+    }
+  };
+
+  const logout = () => {
+    authService.logout(); // API call
+    performLogout();      // Clear local storage
+    setCurrentUser(null);
+  };
 
   return (
     <AuthContext.Provider
@@ -125,8 +67,8 @@ export function AuthProvider({ children }) {
         register,
         login,
         logout,
-        isAdmin: currentUser?.role === "admin",
-        loading, // <-- EXPOSE LOADING STATE
+        isAdmin: currentUser?.role === "admin" || currentUser?.is_admin === 1,
+        loading,
       }}
     >
       {children}
@@ -134,59 +76,40 @@ export function AuthProvider({ children }) {
   );
 }
 
-/** Custom hook to consume the AuthContext. */
 export const useAuth = () => useContext(AuthContext);
 
 // --- Navbar Component ---
 
-/**
- * Navbar Component
- * Renders the primary application header, including navigation links,
- * user authentication status, search functionality, and a cart login prompt.
- */
 export default function Navbar() {
-  // Context and Router hooks
   const { currentUser, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // State for search and UI elements
   const [searchTerm, setSearchTerm] = useState("");
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]); // Loaded from API
   const [results, setResults] = useState([]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  // DOC: New state for mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Ref for handling clicks outside the search dropdown
   const searchWrapperRef = useRef(null);
 
-  // --- Modal Handlers ---
+  // --- Handlers ---
 
-  /** Closes the authentication prompt modal. */
   const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
 
-  /** Closes the modal and navigates to the login page. */
   const handleLoginRedirect = () => {
     handleCloseAuthPrompt();
     navigate("/login");
   };
 
-  // DOC: Handler for toggling the mobile menu state
   const handleMenuToggle = () => {
     setIsMenuOpen((prev) => !prev);
-    setShowDropdown(false); // Close user dropdown when opening/closing main menu
+    setShowDropdown(false);
   };
 
-  /**
-   * Intercepts the click on the Cart link.
-   * If not logged in, prevents navigation and opens the auth prompt.
-   * @param {object} e - The click event.
-   */
   const handleCartClick = (e) => {
-    // DOC: Also close mobile menu when navigating
     if (isMenuOpen) setIsMenuOpen(false);
     if (!currentUser) {
       e.preventDefault();
@@ -194,41 +117,27 @@ export default function Navbar() {
     }
   };
 
-  /** Logs the user out and navigates to the home page. */
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  /**
-   * Handles the search form submission.
-   * Navigates the user to the /products page with a search query parameter.
-   * @param {object} e - The form submission event.
-   */
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim() !== "") {
       navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
       setSearchTerm("");
-      // DOC: Close mobile menu after search
       setIsMenuOpen(false);
     }
   };
 
-  /**
-   * Handles clicking on a product result in the dropdown.
-   * Navigates to the product's detail page and clears the search state.
-   * @param {object} product - The selected product object.
-   */
   const handleSelectProduct = (product) => {
     navigate(`/product/${product.id}`);
     setSearchTerm("");
     setResults([]);
-    // DOC: Close mobile menu after selection
     setIsMenuOpen(false);
   };
 
-  // DOC: Close menu and dropdown on link click to ensure navigation works correctly
   const handleLinkClick = () => {
     setIsMenuOpen(false);
     setShowDropdown(false);
@@ -236,12 +145,28 @@ export default function Navbar() {
 
   // --- Effects ---
 
-  // Loads product data from the JSON file on initial render
+  // API Integration: Load products for search index
   useEffect(() => {
-    setProducts(productData);
+    const fetchSearchData = async () => {
+      try {
+        const response = await productService.getAll();
+        const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+        
+        // Normalize for search
+        const normalized = data.map(p => ({
+          id: p.id,
+          name: p.name,
+          image: p.images?.[0]?.url || p.image || "/img/products/placeholder.png"
+        }));
+        setProducts(normalized);
+      } catch (error) {
+        console.error("Search index error:", error);
+      }
+    };
+    fetchSearchData();
   }, []);
 
-  // Debounces the search term state to limit search executions
+  // Debounce Search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -249,7 +174,7 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Performs live filtering of products based on the debounced search term
+  // Live Filtering
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setResults([]);
@@ -257,118 +182,71 @@ export default function Navbar() {
     }
     const q = searchTerm.toLowerCase();
     const filtered = products.filter((p) => p.name.toLowerCase().includes(q));
-    // Limit results for the dropdown display
     setResults(filtered.slice(0, 10));
   }, [searchTerm, products]);
 
-  // Updates the URL query parameter if the user is on the /products page
+  // URL Sync
   useEffect(() => {
     if (location.pathname === "/products") {
       if (debouncedSearchTerm.trim() !== "") {
-        navigate(
-          `/products?search=${encodeURIComponent(debouncedSearchTerm)}`,
-          {
-            replace: true,
-          }
-        );
-      } else {
-        // Clears the search query if the input is empty
-        navigate("/products", { replace: true });
+        navigate(`/products?search=${encodeURIComponent(debouncedSearchTerm)}`, { replace: true });
       }
     }
   }, [location.pathname, debouncedSearchTerm, navigate]);
 
-  // DOC: Effect to prevent body scroll when the mobile menu is open
+  // Scroll Lock
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
+    return () => { document.body.style.overflow = "unset"; };
   }, [isMenuOpen]);
 
-  // Global click listener to close the search results and user dropdowns
+  // Click Outside
   useEffect(() => {
     function handleClickOutside(e) {
-      // Close search results if click is outside the search bar
-      if (
-        searchWrapperRef.current &&
-        !searchWrapperRef.current.contains(e.target)
-      ) {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
         setResults([]);
       }
-      // Close user dropdown if click is outside the dropdown container
       if (!e.target.closest(".user-dropdown")) {
         setShowDropdown(false);
       }
-
-      // DOC: Closing mobile menu when clicking outside of the entire navigation area is complex
-      // due to the overlay, so we rely on link clicks and toggle button.
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- Conditional Rendering ---
-
-  // Hides the Navbar on login/register pages
   if (location.pathname === "/login" || location.pathname === "/register") {
     return null;
   }
 
   return (
     <>
-      {/* Authentication Required Modal (Displayed when cart is clicked by a guest) */}
+      {/* Auth Modal */}
       {isAuthPromptOpen && (
         <div className={`modal-overlay open`}>
           <div className="quantity-modal confirmation-modal">
             <h2>Login Required</h2>
-            <p>
-              You must be logged in to view your cart. Do you want to login now
-              or stay on this page?
-            </p>
-
+            <p>You must be logged in to view your cart.</p>
             <div className="modal-actions">
-              <button className="btn-main" onClick={handleLoginRedirect}>
-                Login
-              </button>
-              <button className="btn-cancel" onClick={handleCloseAuthPrompt}>
-                Stay on Page
-              </button>
+              <button className="btn-main" onClick={handleLoginRedirect}>Login</button>
+              <button className="btn-cancel" onClick={handleCloseAuthPrompt}>Stay on Page</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Header/Navbar Structure */}
+      {/* Navbar Structure - Preserved Exactly */}
       <header className="navbar">
         <div className="navbar__container">
-          {/* Brand/Logo Section */}
           <div className="navbar__brand">
-            <img
-              src="/img/logo/LOGO.png"
-              alt="Logo"
-              className="navbar__logo-img"
-            />
-            <Link
-              to="/"
-              className="navbar__brand-text"
-              onClick={handleLinkClick}
-            >
-              AuraTech
-            </Link>
+            <img src="/img/logo/LOGO.png" alt="Logo" className="navbar__logo-img" />
+            <Link to="/" className="navbar__brand-text" onClick={handleLinkClick}>AuraTech</Link>
           </div>
 
-          {/* Search Bar with Live Results Dropdown */}
-          {/* DOC: Search bar is hidden by CSS on mobile, shown on desktop */}
-          <div
-            className="navbar__search-wrapper"
-            ref={searchWrapperRef}
-            position="relative"
-          >
+          <div className="navbar__search-wrapper" ref={searchWrapperRef} position="relative">
             <form className="navbar__search" onSubmit={handleSearch}>
               <input
                 type="text"
@@ -376,30 +254,15 @@ export default function Navbar() {
                 className="search-input"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                aria-label="Search products"
               />
-              <button type="submit" className="search-btn">
-                Search
-              </button>
+              <button type="submit" className="search-btn">Search</button>
             </form>
 
             {results.length > 0 && (
-              <ul
-                className="search-results-dropdown"
-                // Prevent closing the dropdown when clicking inside it
-                onMouseDown={(e) => e.preventDefault()}
-              >
+              <ul className="search-results-dropdown" onMouseDown={(e) => e.preventDefault()}>
                 {results.map((product) => (
-                  <li
-                    key={product.id}
-                    className="search-item"
-                    onClick={() => handleSelectProduct(product)}
-                  >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="search-thumb"
-                    />
+                  <li key={product.id} className="search-item" onClick={() => handleSelectProduct(product)}>
+                    <img src={product.image} alt={product.name} className="search-thumb" />
                     <span className="search-name">{product.name}</span>
                   </li>
                 ))}
@@ -407,81 +270,33 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Navigation and Auth Links (Mobile Menu Controlled) */}
           <nav className={`navbar__links ${isMenuOpen ? "is-open" : ""}`}>
-            <Link to="/" className="nav-link" onClick={handleLinkClick}>
-              Home
-            </Link>
-            <Link to="/products" className="nav-link" onClick={handleLinkClick}>
-              Products
-            </Link>
-            <Link to="/cart" className="nav-link" onClick={handleCartClick}>
-              Cart
-            </Link>
+            <Link to="/" className="nav-link" onClick={handleLinkClick}>Home</Link>
+            <Link to="/products" className="nav-link" onClick={handleLinkClick}>Products</Link>
+            <Link to="/cart" className="nav-link" onClick={handleCartClick}>Cart</Link>
 
             {!currentUser ? (
-              // Links for unauthenticated users
               <>
-                <Link
-                  to="/login"
-                  className="nav-link"
-                  onClick={handleLinkClick}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="nav-link"
-                  onClick={handleLinkClick}
-                >
-                  Register
-                </Link>
+                <Link to="/login" className="nav-link" onClick={handleLinkClick}>Login</Link>
+                <Link to="/register" className="nav-link" onClick={handleLinkClick}>Register</Link>
               </>
             ) : (
-              // Dropdown menu for authenticated users
               <div className="user-dropdown">
-                <button
-                  className="user-dropdown-toggle"
-                  onClick={() => setShowDropdown((prev) => !prev)}
-                >
-                  Hello, {currentUser.name}{" "}
-                  <span style={{ fontSize: "0.8rem" }}>▼</span>
+                <button className="user-dropdown-toggle" onClick={() => setShowDropdown((prev) => !prev)}>
+                  Hello, {currentUser.name} <span style={{ fontSize: "0.8rem" }}>▼</span>
                 </button>
-
                 {showDropdown && (
                   <ul className="user-dropdown-menu">
-                    <li>
-                      <Link to="/account" onClick={handleLinkClick}>
-                        My Account
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/purchase-history" onClick={handleLinkClick}>
-                        My Purchase
-                      </Link>
-                    </li>
-                    <li>
-                      <button
-                        className="logout-btn"
-                        onClick={() => {
-                          handleLogout();
-                          handleLinkClick();
-                        }}
-                      >
-                        Logout
-                      </button>
-                    </li>
+                    <li><Link to="/account" onClick={handleLinkClick}>My Account</Link></li>
+                    <li><Link to="/purchase-history" onClick={handleLinkClick}>My Purchase</Link></li>
+                    <li><button className="logout-btn" onClick={() => { handleLogout(); handleLinkClick(); }}>Logout</button></li>
                   </ul>
                 )}
               </div>
             )}
 
-            {/* DOC: Mobile search functionality moved inside the menu for better responsiveness */}
             {isMenuOpen && (
-              <div
-                className="navbar__search-wrapper mobile-search-wrapper"
-                position="relative"
-              >
+              <div className="navbar__search-wrapper mobile-search-wrapper" position="relative">
                 <form className="navbar__search" onSubmit={handleSearch}>
                   <input
                     type="text"
@@ -489,22 +304,14 @@ export default function Navbar() {
                     className="search-input"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    aria-label="Search products"
                   />
-                  <button type="submit" className="search-btn">
-                    Search
-                  </button>
+                  <button type="submit" className="search-btn">Search</button>
                 </form>
               </div>
             )}
           </nav>
 
-          {/* DOC: Mobile Menu Toggle button */}
-          <button
-            className="navbar__mobile-toggle"
-            onClick={handleMenuToggle}
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          >
+          <button className="navbar__mobile-toggle" onClick={handleMenuToggle}>
             {isMenuOpen ? "✕" : "☰"}
           </button>
         </div>

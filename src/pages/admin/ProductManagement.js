@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
-import productsData from "../../data/products.json";
-
-const INVENTORY_KEY = "temporary_inventory";
+import { productService } from "../../services/productService";
+import { categoryService } from "../../services/categoryService";
 
 export default function ProductManagement() {
   const [products, setProducts] = useState([]);
-  const [inventory, setInventory] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name");
@@ -17,35 +17,56 @@ export default function ProductManagement() {
   const [viewingProduct, setViewingProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
+    slug: "",
     description: "",
     price: "",
     stock: "",
-    category: "",
-    image: "",
+    category_id: "",
     featured: false,
+    specifications: {},
+    images: [],
   });
 
-  // Load products and inventory
+  // Spec/Image inputs
+  const [specKey, setSpecKey] = useState("");
+  const [specValue, setSpecValue] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+
+  // Fetch products and categories
   useEffect(() => {
-    setProducts(productsData);
-    const storedInventory =
-      JSON.parse(localStorage.getItem(INVENTORY_KEY)) || {};
-
-    const initialInventory = { ...storedInventory };
-    productsData.forEach((product) => {
-      if (!(product.id in initialInventory)) {
-        initialInventory[product.id] = product.stock || 0;
-      }
-    });
-
-    setInventory(initialInventory);
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(initialInventory));
+    fetchProducts();
+    fetchCategories();
   }, []);
 
-  // Get unique categories
-  const categories = ["all", ...new Set(productsData.map((p) => p.category))];
+  const fetchProducts = async () => {
+    try {
+      // Fetch 100 items to cover most lists
+      const result = await productService.getAll({ per_page: 100 });
+      if (result.success) setProducts(result.data);
+    } catch (err) {
+      console.error("Fetch products error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const result = await categoryService.getAll();
+      if (result.success) setCategories(result.data);
+    } catch (err) {
+      console.error("Fetch categories error:", err);
+    }
+  };
+
+  // Helper: Find Category Name by ID
+  const getCategoryName = (catId) => {
+    const cat = categories.find((c) => c.id === parseInt(catId));
+    return cat ? cat.name : "N/A";
+  };
 
   // Filter and sort products
   const filteredProducts = products
@@ -53,8 +74,12 @@ export default function ProductManagement() {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
+      
+      // FIX 1: Robust Category Filtering (Handle String vs Number IDs)
       const matchesCategory =
-        categoryFilter === "all" || product.category === categoryFilter;
+        categoryFilter === "all" ||
+        product.category_id == categoryFilter; // Loose equality checks "1" == 1
+
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
@@ -66,63 +91,69 @@ export default function ProductManagement() {
         case "price-high":
           return b.price - a.price;
         case "stock-low":
-          return (inventory[a.id] || 0) - (inventory[b.id] || 0);
+          return a.stock - b.stock;
         case "stock-high":
-          return (inventory[b.id] || 0) - (inventory[a.id] || 0);
+          return b.stock - a.stock;
         default:
           return 0;
       }
     });
 
-  // Update stock
-  const handleStockUpdate = (productId, newStock) => {
-    const stockValue = parseInt(newStock) || 0;
-    const updatedInventory = {
-      ...inventory,
-      [productId]: stockValue,
-    };
-    setInventory(updatedInventory);
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(updatedInventory));
-  };
-
   // Get stock status
-  const getStockStatus = (productId) => {
-    const stock = inventory[productId] || 0;
+  const getStockStatus = (stock) => {
     if (stock === 0) return { text: "Out of Stock", color: "#ef4444" };
     if (stock <= 5) return { text: "Low Stock", color: "#f59e0b" };
     if (stock <= 10) return { text: "Medium Stock", color: "#3b82f6" };
     return { text: "In Stock", color: "#10b981" };
   };
 
-  // Open add product modal
+  // Open add modal
   const openAddModal = () => {
     setFormData({
       name: "",
+      slug: "",
       description: "",
       price: "",
       stock: "",
-      category: categories[1] || "",
-      image: "",
+      category_id: "",
       featured: false,
+      specifications: {},
+      images: [],
     });
     setIsAddModalOpen(true);
   };
 
-  // Open edit product modal
+  // Open edit modal
   const openEditModal = (product) => {
+    // FIX 2: Handle JSON Specifications safely
+    let parsedSpecs = {};
+    if (typeof product.specifications === 'string') {
+        try {
+            parsedSpecs = JSON.parse(product.specifications);
+        } catch (e) {
+            console.error("Error parsing specs", e);
+            parsedSpecs = {};
+        }
+    } else {
+        parsedSpecs = product.specifications || {};
+    }
+
     setFormData({
       name: product.name,
-      description: product.description,
-      price: product.price,
-      stock: inventory[product.id] || product.stock,
-      category: product.category,
-      image: product.image,
+      slug: product.slug,
+      description: product.description || "",
+      // FIX 3: Raw Price (Do not divide by 100)
+      price: product.price, 
+      stock: product.stock,
+      category_id: product.category_id,
       featured: product.featured || false,
+      specifications: parsedSpecs,
+      images: product.images || [],
     });
     setEditingProduct(product);
   };
 
-  // Handle form input change
+  // Handle form input
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -131,106 +162,161 @@ export default function ProductManagement() {
     }));
   };
 
-  // Add new product
-  const handleAddProduct = () => {
-    if (!formData.name || !formData.price || !formData.category) {
-      alert("Please fill in all required fields");
-      return;
+  // Add specification
+  const addSpecification = () => {
+    if (specKey.trim() && specValue.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        specifications: {
+          ...prev.specifications,
+          [specKey]: specValue,
+        },
+      }));
+      setSpecKey("");
+      setSpecValue("");
     }
-
-    const newProduct = {
-      id: Math.max(...products.map((p) => p.id), 0) + 1,
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock) || 0,
-      category: formData.category,
-      image: formData.image || "/img/products/default.png",
-      featured: formData.featured,
-    };
-
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-
-    // Update inventory
-    const updatedInventory = {
-      ...inventory,
-      [newProduct.id]: newProduct.stock,
-    };
-    setInventory(updatedInventory);
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(updatedInventory));
-
-    alert("Product added successfully!");
-    setIsAddModalOpen(false);
-
-    // TODO: Replace with API call
-    // await productsAPI.create(newProduct);
   };
 
-  // Update existing product
-  const handleUpdateProduct = () => {
-    if (!formData.name || !formData.price || !formData.category) {
+  // Remove specification
+  const removeSpec = (key) => {
+    const newSpecs = { ...formData.specifications };
+    delete newSpecs[key];
+    setFormData((prev) => ({ ...prev, specifications: newSpecs }));
+  };
+
+  // Add image
+  const addImage = () => {
+    if (imageUrl.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        images: [
+          ...prev.images,
+          {
+            url: imageUrl,
+            is_primary: prev.images.length === 0,
+          },
+        ],
+      }));
+      setImageUrl("");
+    }
+  };
+
+  // Remove image
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Set primary image
+  const setPrimaryImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.map((img, i) => ({
+        ...img,
+        is_primary: i === index,
+      })),
+    }));
+  };
+
+  // Add product
+  const handleAddProduct = async () => {
+    if (!formData.name || !formData.price || !formData.category_id) {
       alert("Please fill in all required fields");
       return;
     }
 
-    const updatedProducts = products.map((p) =>
-      p.id === editingProduct.id
-        ? {
-            ...p,
-            name: formData.name,
-            description: formData.description,
-            price: parseFloat(formData.price),
-            category: formData.category,
-            image: formData.image,
-            featured: formData.featured,
-          }
-        : p
-    );
-    setProducts(updatedProducts);
+    try {
+      // FIX 4: Send Raw Price (Do not multiply by 100)
+      const priceValue = parseFloat(formData.price);
 
-    // Update inventory
-    handleStockUpdate(editingProduct.id, formData.stock);
+      const productData = {
+        name: formData.name,
+        slug: formData.slug || undefined,
+        description: formData.description,
+        price: priceValue,
+        stock: parseInt(formData.stock) || 0,
+        category_id: parseInt(formData.category_id),
+        featured: formData.featured,
+        specifications:
+          Object.keys(formData.specifications).length > 0
+            ? formData.specifications
+            : undefined,
+        images: formData.images.length > 0 ? formData.images : undefined,
+      };
 
-    alert("Product updated successfully!");
-    setEditingProduct(null);
+      const response = await productService.create(productData);
 
-    // TODO: Replace with API call
-    // await productsAPI.update(editingProduct.id, formData);
+      if (response.success) {
+        alert("Product added successfully!");
+        setIsAddModalOpen(false);
+        fetchProducts();
+      }
+    } catch (err) {
+      alert("Error adding product: " + (err.message || "Unknown error"));
+    }
+  };
+
+  // Update product
+  const handleUpdateProduct = async () => {
+    if (!formData.name || !formData.price || !formData.category_id) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      // FIX 5: Send Raw Price (Do not multiply by 100)
+      const priceValue = parseFloat(formData.price);
+
+      const productData = {
+        name: formData.name,
+        slug: formData.slug,
+        description: formData.description,
+        price: priceValue,
+        stock: parseInt(formData.stock),
+        category_id: parseInt(formData.category_id),
+        featured: formData.featured,
+        specifications: formData.specifications,
+        images: formData.images,
+      };
+
+      const response = await productService.update(
+        editingProduct.id,
+        productData
+      );
+
+      if (response.success) {
+        alert("Product updated successfully!");
+        setEditingProduct(null);
+        fetchProducts();
+      }
+    } catch (err) {
+      alert("Error updating product: " + (err.message || "Unknown error"));
+    }
   };
 
   // Delete product
-  const handleDeleteProduct = (product) => {
+  const handleDeleteProduct = async (product) => {
     if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
-      const updatedProducts = products.filter((p) => p.id !== product.id);
-      setProducts(updatedProducts);
-
-      // Remove from inventory
-      const updatedInventory = { ...inventory };
-      delete updatedInventory[product.id];
-      setInventory(updatedInventory);
-      localStorage.setItem(INVENTORY_KEY, JSON.stringify(updatedInventory));
-
-      alert("Product deleted successfully!");
-
-      // TODO: Replace with API call
-      // await productsAPI.delete(product.id);
+      try {
+        await productService.delete(product.id);
+        alert("Product deleted successfully!");
+        fetchProducts();
+      } catch (err) {
+        alert("Error deleting product: " + (err.message || "Unknown error"));
+      }
     }
   };
 
   // Calculate stats
   const stats = {
     total: products.length,
-    inStock: products.filter((p) => (inventory[p.id] || 0) > 10).length,
-    lowStock: products.filter((p) => {
-      const stock = inventory[p.id] || 0;
-      return stock > 0 && stock <= 10;
-    }).length,
-    outOfStock: products.filter((p) => (inventory[p.id] || 0) === 0).length,
-    totalValue: products.reduce(
-      (sum, p) => sum + p.price * (inventory[p.id] || 0),
-      0
-    ),
+    inStock: products.filter((p) => p.stock > 10).length,
+    lowStock: products.filter((p) => p.stock > 0 && p.stock <= 10).length,
+    outOfStock: products.filter((p) => p.stock === 0).length,
+    // FIX 6: Stats Calculation (No / 100)
+    totalValue: products.reduce((sum, p) => sum + (p.price) * p.stock, 0),
   };
 
   return (
@@ -265,9 +351,10 @@ export default function ProductManagement() {
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="admin-select"
           >
+            <option value="all">All Categories</option>
             {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat === "all" ? "All Categories" : cat}
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
               </option>
             ))}
           </select>
@@ -302,142 +389,108 @@ export default function ProductManagement() {
 
       {/* Products Table */}
       <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Status</th>
-              <th>Value</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((product) => {
-              const currentStock = inventory[product.id] ?? product.stock;
-              const status = getStockStatus(product.id);
-              const itemValue = product.price * currentStock;
+        {loading ? (
+          <p>Loading products...</p>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Value</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product) => {
+                const status = getStockStatus(product.stock);
+                // FIX 7: Value Calculation (No / 100)
+                const itemValue = (product.price) * product.stock;
+                const primaryImage =
+                  product.images?.find((img) => img.is_primary) ||
+                  product.images?.[0];
 
-              return (
-                <tr key={product.id}>
-                  <td>#{product.id}</td>
-                  <td>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="product-thumbnail"
-                    />
-                  </td>
-                  <td className="product-name-cell">{product.name}</td>
-                  <td>
-                    <span className="category-tag">{product.category}</span>
-                  </td>
-                  <td className="price-cell">
-                    ₱{product.price.toLocaleString()}
-                  </td>
-                  <td>
-                    <div className="stock-control-wrapper">
-                      <button
-                        onClick={() =>
-                          handleStockUpdate(product.id, currentStock - 1)
-                        }
-                        className="stock-btn stock-btn-minus"
-                        disabled={currentStock <= 0}
-                      >
-                        −
-                      </button>
-                      <input
-                        type="number"
-                        value={currentStock}
-                        onChange={(e) =>
-                          handleStockUpdate(product.id, e.target.value)
-                        }
-                        className="stock-input"
-                        min="0"
+                return (
+                  <tr key={product.id}>
+                    <td>#{product.id}</td>
+                    <td>
+                      <img
+                        src={primaryImage?.url || "/img/products/default.png"}
+                        alt={product.name}
+                        className="product-thumbnail"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "cover",
+                        }}
                       />
-                      <button
-                        onClick={() =>
-                          handleStockUpdate(product.id, currentStock + 1)
-                        }
-                        className="stock-btn stock-btn-plus"
+                    </td>
+                    <td className="product-name-cell">{product.name}</td>
+                    <td>
+                      <span className="category-tag">
+                        {/* FIX 8: Use helper function for category name */}
+                        {getCategoryName(product.category_id)}
+                      </span>
+                    </td>
+                    <td className="price-cell">
+                      ₱
+                      {/* FIX 9: Price Formatting (No / 100) */}
+                      {(product.price).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="stock-cell">{product.stock}</td>
+                    <td>
+                      <span
+                        className="status-badge"
+                        style={{ backgroundColor: status.color }}
                       >
-                        +
-                      </button>
-                    </div>
-                  </td>
-                  <td>
-                    <span
-                      className="status-badge"
-                      style={{ backgroundColor: status.color }}
-                    >
-                      {status.text}
-                    </span>
-                  </td>
-                  <td className="price-cell">₱{itemValue.toLocaleString()}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="btn-action btn-view"
-                        title="View Details"
-                        onClick={() => setViewingProduct(product)}
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                        {status.text}
+                      </span>
+                    </td>
+                    <td className="price-cell">
+                      ₱
+                      {itemValue.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button
+                          className="btn-action btn-view"
+                          title="View Details"
+                          onClick={() => setViewingProduct(product)}
                         >
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                      </button>
-                      <button
-                        className="btn-action btn-edit"
-                        title="Edit Product"
-                        onClick={() => openEditModal(product)}
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                        </button>
+                        <button
+                          className="btn-action btn-edit"
+                          title="Edit Product"
+                          onClick={() => openEditModal(product)}
                         >
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                      <button
-                        className="btn-delete"
-                        title="Delete Product"
-                        onClick={() => handleDeleteProduct(product)}
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                        </button>
+                        <button
+                          className="btn-delete"
+                          title="Delete Product"
+                          onClick={() => handleDeleteProduct(product)}
                         >
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Summary Stats */}
@@ -461,7 +514,10 @@ export default function ProductManagement() {
         <div className="admin-card">
           <h3>Total Inventory Value</h3>
           <p style={{ color: "#7b1fa2" }}>
-            ₱{stats.totalValue.toLocaleString()}
+            ₱
+            {stats.totalValue.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            })}
           </p>
         </div>
       </div>
@@ -475,49 +531,80 @@ export default function ProductManagement() {
           <div
             className="admin-modal product-details-modal"
             onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "600px" }}
           >
             <h2>{viewingProduct.name}</h2>
             <div className="modal-product-info">
-              <img src={viewingProduct.image} alt={viewingProduct.name} />
+              {viewingProduct.images && viewingProduct.images.length > 0 ? (
+                <img
+                  src={
+                    viewingProduct.images.find((img) => img.is_primary)?.url ||
+                    viewingProduct.images[0]?.url
+                  }
+                  alt={viewingProduct.name}
+                  style={{ maxWidth: "100%", marginBottom: "15px" }}
+                />
+              ) : (
+                <p>No image available</p>
+              )}
               <div className="product-info-text">
-                <p>
-                  <strong>ID:</strong> #{viewingProduct.id}
-                </p>
-                <p>
-                  <strong>Category:</strong> {viewingProduct.category}
-                </p>
+                <p><strong>ID:</strong> #{viewingProduct.id}</p>
+                <p><strong>Category:</strong> {getCategoryName(viewingProduct.category_id)}</p>
                 <p>
                   <strong>Price:</strong> ₱
-                  {viewingProduct.price.toLocaleString()}
+                  {/* FIX 10: Modal Price Display */}
+                  {(viewingProduct.price).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                  })}
                 </p>
-                <p>
-                  <strong>Stock:</strong> {inventory[viewingProduct.id] || 0}{" "}
-                  units
-                </p>
-                <p>
-                  <strong>Description:</strong> {viewingProduct.description}
-                </p>
-                {viewingProduct.specifications && (
+                <p><strong>Stock:</strong> {viewingProduct.stock} units</p>
+                <p><strong>Featured:</strong> {viewingProduct.featured ? "Yes" : "No"}</p>
+                <p><strong>Description:</strong> {viewingProduct.description || "No description"}</p>
+
+                {/* Handle Spec Display Safely */}
+                {(() => {
+                    let specs = viewingProduct.specifications;
+                    if (typeof specs === 'string') {
+                        try { specs = JSON.parse(specs); } catch { specs = {}; }
+                    }
+                    if (specs && Object.keys(specs).length > 0) {
+                        return (
+                            <div style={{ marginTop: "15px" }}>
+                                <strong>Specifications:</strong>
+                                <ul style={{ marginTop: "8px", fontSize: "0.9rem" }}>
+                                    {Object.entries(specs).map(([key, value]) => (
+                                        <li key={key}><strong>{key}:</strong> {value}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        );
+                    }
+                    return null;
+                })()}
+
+                {viewingProduct.images && viewingProduct.images.length > 1 && (
                   <div style={{ marginTop: "15px" }}>
-                    <strong>Specifications:</strong>
-                    <ul style={{ marginTop: "8px", fontSize: "0.9rem" }}>
-                      {Object.entries(viewingProduct.specifications).map(
-                        ([key, value]) => (
-                          <li key={key}>
-                            <strong>{key}:</strong> {value}
-                          </li>
-                        )
-                      )}
-                    </ul>
+                    <strong>Additional Images:</strong>
+                    <div style={{ display: "flex", gap: "10px", marginTop: "10px", flexWrap: "wrap" }}>
+                      {viewingProduct.images.map((img, index) => (
+                        <img
+                          key={index}
+                          src={img.url}
+                          alt={`${viewingProduct.name} ${index + 1}`}
+                          style={{
+                            width: "80px",
+                            height: "80px",
+                            objectFit: "cover",
+                            border: img.is_primary ? "2px solid green" : "none",
+                          }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
-            <button
-              className="btn-main"
-              onClick={() => setViewingProduct(null)}
-              style={{ marginTop: "20px", width: "100%" }}
-            >
+            <button className="btn-main" onClick={() => setViewingProduct(null)} style={{ marginTop: "20px", width: "100%" }}>
               Close
             </button>
           </div>
@@ -536,6 +623,7 @@ export default function ProductManagement() {
           <div
             className="admin-modal product-form-modal"
             onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "700px", maxHeight: "90vh", overflowY: "auto" }}
           >
             <h2>{isAddModalOpen ? "Add New Product" : "Edit Product"}</h2>
 
@@ -554,22 +642,32 @@ export default function ProductManagement() {
               </div>
 
               <div className="form-group">
+                <label>Slug</label>
+                <input
+                  type="text"
+                  name="slug"
+                  value={formData.slug}
+                  onChange={handleInputChange}
+                  placeholder="auto-generated if empty"
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
                 <label>Category *</label>
                 <select
-                  name="category"
-                  value={formData.category}
+                  name="category_id"
+                  value={formData.category_id}
                   onChange={handleInputChange}
                   className="form-input"
                   required
                 >
                   <option value="">Select category</option>
-                  {categories
-                    .filter((c) => c !== "all")
-                    .map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -603,18 +701,6 @@ export default function ProductManagement() {
               </div>
 
               <div className="form-group form-group-full">
-                <label>Image URL</label>
-                <input
-                  type="text"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleInputChange}
-                  placeholder="/img/products/product.png"
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group form-group-full">
                 <label>Description</label>
                 <textarea
                   name="description"
@@ -622,7 +708,7 @@ export default function ProductManagement() {
                   onChange={handleInputChange}
                   placeholder="Enter product description"
                   className="form-textarea"
-                  rows="4"
+                  rows="3"
                 />
               </div>
 
@@ -639,22 +725,81 @@ export default function ProductManagement() {
               </div>
             </div>
 
+            {/* Specifications Section */}
+            <div style={{ marginTop: "20px", padding: "15px", background: "#f9f9f9", borderRadius: "8px" }}>
+              <h3 style={{ marginBottom: "10px" }}>Specifications</h3>
+              <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                <input
+                  type="text"
+                  placeholder="Spec Name (e.g., Processor)"
+                  value={specKey}
+                  onChange={(e) => setSpecKey(e.target.value)}
+                  className="form-input"
+                  style={{ flex: 1 }}
+                />
+                <input
+                  type="text"
+                  placeholder="Spec Value (e.g., Intel i9)"
+                  value={specValue}
+                  onChange={(e) => setSpecValue(e.target.value)}
+                  className="form-input"
+                  style={{ flex: 1 }}
+                />
+                <button type="button" onClick={addSpecification} className="btn-add">Add</button>
+              </div>
+
+              {Object.keys(formData.specifications).length > 0 && (
+                <ul style={{ listStyle: "none", padding: 0, marginTop: "10px" }}>
+                  {Object.entries(formData.specifications).map(([key, value]) => (
+                    <li key={key} style={{ padding: "8px", background: "white", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: "4px" }}>
+                      <span><strong>{key}:</strong> {value}</span>
+                      <button type="button" onClick={() => removeSpec(key)} className="btn-delete-small" style={{ padding: "4px 8px", fontSize: "12px" }}>Remove</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Images Section */}
+            <div style={{ marginTop: "20px", padding: "15px", background: "#f9f9f9", borderRadius: "8px" }}>
+              <h3 style={{ marginBottom: "10px" }}>Product Images</h3>
+              <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                <input
+                  type="text"
+                  placeholder="Image URL"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="form-input"
+                  style={{ flex: 1 }}
+                />
+                <button type="button" onClick={addImage} className="btn-add">Add Image</button>
+              </div>
+
+              {formData.images.length > 0 && (
+                <ul style={{ listStyle: "none", padding: 0, marginTop: "10px" }}>
+                  {formData.images.map((img, index) => (
+                    <li key={index} style={{ padding: "8px", background: "white", marginBottom: "5px", display: "flex", gap: "10px", alignItems: "center", borderRadius: "4px" }}>
+                      <img
+                        src={img.url}
+                        alt={`Product ${index + 1}`}
+                        style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
+                        onError={(e) => (e.target.src = "/img/products/default.png")}
+                      />
+                      <span style={{ flex: 1, fontSize: "12px", overflow: "hidden", textOverflow: "ellipsis" }}>{img.url}</span>
+                      {img.is_primary && <span style={{ color: "green", fontSize: "12px" }}>⭐ Primary</span>}
+                      <button type="button" onClick={() => setPrimaryImage(index)} className="btn-small" disabled={img.is_primary} style={{ padding: "4px 8px", fontSize: "12px" }}>Set Primary</button>
+                      <button type="button" onClick={() => removeImage(index)} className="btn-delete-small" style={{ padding: "4px 8px", fontSize: "12px" }}>Remove</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             <div className="modal-actions" style={{ marginTop: "25px" }}>
-              <button
-                className="btn-main"
-                onClick={
-                  isAddModalOpen ? handleAddProduct : handleUpdateProduct
-                }
-              >
+              <button className="btn-main" onClick={isAddModalOpen ? handleAddProduct : handleUpdateProduct}>
                 {isAddModalOpen ? "Add Product" : "Update Product"}
               </button>
-              <button
-                className="btn-cancel"
-                onClick={() => {
-                  setIsAddModalOpen(false);
-                  setEditingProduct(null);
-                }}
-              >
+              <button className="btn-cancel" onClick={() => { setIsAddModalOpen(false); setEditingProduct(null); }}>
                 Cancel
               </button>
             </div>

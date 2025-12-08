@@ -14,44 +14,36 @@
   text-align: left;
 }
 
-/* Two-column layout for desktop: Items (2fr) and Summary (1fr) */
+/* Two-column layout for desktop, but flexible if empty */
 .cart-container {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+  display: flex;       /* Changed from grid to flex for better control */
+  flex-wrap: wrap;     /* Allows wrapping on mobile */
   gap: 40px;
   margin-top: 20px;
   align-items: start;
+  justify-content: center; /* Crucial: Centers the empty box */
 }
 
+/* Force the items list to expand if it's the only thing on screen */
 .cart-items {
+  flex: 1;             /* Grow to fill space */
+  min-width: 0;        /* Prevent overflow issues */
   width: 100%;
-  margin-bottom: 0;
 }
 
-.cart-items h2,
-.cart-summary h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  border-bottom: 3px solid var(--color-secondary-accent);
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-}
-
-/* --- Cart Summary Panel --- */
+/* Keep the summary on the right with a fixed width when present */
 .cart-summary {
   width: 100%;
-  max-width: 450px;
-  /* Dark background for visual hierarchy */
+  max-width: 400px;    /* Fixed width for summary */
+  flex-shrink: 0;      /* Don't let it shrink */
+  /* ... keep your other summary styles ... */
   background: var(--color-text-primary);
   color: var(--color-surface);
   padding: 30px;
   border-radius: var(--radius);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  /* Keeps the summary panel fixed while scrolling items */
   position: sticky;
   top: 20px;
-  /* DOC: Ensure padding and border are included in the element's width */
   box-sizing: border-box;
 }
 
@@ -132,35 +124,46 @@
 .checkout-qty-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px; /* Slightly more space between buttons */
   margin-right: 20px;
   flex-shrink: 0;
 }
 
 .qty-change-btn {
-  background: var(--color-bg-primary);
+  background: #ffffff;
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  width: 35px;
-  height: 35px;
-  border-radius: var(--radius);
+  border: 1px solid #ddd;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1;
+  font-weight: 400;
+  cursor: pointer;
+  
+  /* Flexbox to center the symbol */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* --- THE FIX --- */
+  padding: 0;     /* Removed 'padding-bottom: 2px' so it sits in the true center */
+  line-height: 1; /* Ensures the font height doesn't push the symbol down */
   transition: all 0.2s;
 }
 
 .qty-change-btn:hover:not(:disabled) {
-  background: var(--color-hover-light);
+  background: var(--color-bg-primary);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .qty-value {
   font-weight: 700;
-  padding: 5px 10px;
-  color: var(--color-surface);
-  background-color: var(--color-text-primary);
-  border-radius: 4px;
-  min-width: 30px;
+  font-size: 1rem;
+  color: var(--color-text-primary); /* Dark text */
+  background-color: transparent;    /* REMOVED the black background */
+  min-width: 24px;
+  text-align: center;
 }
 
 .edit-item-btn {
@@ -256,13 +259,49 @@
   text-align: center;
 }
 
+/* --- Empty Cart State (Perfectly Centered) --- */
 .cart-placeholder {
-  background: var(--color-surface);
-  padding: 30px;
-  border-radius: var(--radius);
-  border: 2px dashed var(--color-border);
+  width: 100%;
+  max-width: 500px;
+  margin: 60px auto; /* More vertical breathing room */
+  background: #fff;
+  border-radius: 20px;
+  /* Soft, elegant shadow */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  gap: 20px;
   text-align: center;
-  color: var(--color-text-primary);
+}
+
+/* Icon Styling (Optional if you use the emoji) */
+.cart-placeholder::before {
+  content: "🛒"; 
+  font-size: 5rem;
+  margin-bottom: 10px;
+  opacity: 0.9;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+.cart-placeholder p {
+  font-size: 1.3rem;
+  color: #555;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Fix the button inside */
+.shop-now-link {
+  margin-top: 10px;
+  min-width: 180px;
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50px; /* Rounded pill shape */
 }
 
 /* --- MODAL STYLES (Manage Item Modal) --- */

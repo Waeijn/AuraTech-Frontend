@@ -1,212 +1,132 @@
+// src/pages/ProductDetails.js
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import productsData from "../data/products.json";
 import "../styles/product.css";
 import { useAuth } from "../components/Navbar";
+import { productService } from "../services/productService";
+import { cartService } from "../services/cartService";
 
-const INVENTORY_KEY = "temporary_inventory";
-
-// --- Utility Functions for Inventory and Cart Checks ---
-
-/**
- * Initializes and retrieves product stock/inventory from local storage.
- * @returns {object} The current inventory object {productId: stockCount}.
- */
-const getInventory = () => {
-  let inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY));
-  if (!inventory) {
-    const initialStock = {};
-    productsData.forEach((p) => {
-      // Use product stock or a high default if undefined
-      initialStock[p.id] = p.stock || 99999;
-    });
-    inventory = initialStock;
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-  }
-  return inventory;
-};
-
-/**
- * Calculates the maximum quantity of a product a user can add to the cart
- * by considering both total stock and current cart quantity.
- * @param {string} productId - The ID of the product.
- * @returns {number} The maximum quantity allowed to add.
- */
-const getMaxAllowedToAdd = (productId) => {
-  const inventory = getInventory();
-  const currentStock = inventory[productId] || 0;
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const existingItem = cart.find((item) => item.id === productId);
-  const currentCartQty = existingItem ? existingItem.quantity : 0;
-  // Stock minus what's already in the cart
-  return currentStock - currentCartQty;
-};
-
-/**
- * Core logic to update the cart in local storage with the selected quantity.
- * Includes necessary stock and boundary checks.
- * @param {object} product - The product object being added.
- * @param {number} quantity - The quantity to add.
- */
-const handleAddToCartLogic = (product, quantity) => {
-  const inventory = getInventory();
-  const currentStock = inventory[product.id] || 0;
-
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const existingItem = cart.find((item) => item.id === product.id);
-
-  const currentCartQuantity = existingItem ? existingItem.quantity : 0;
-  // Check against total stock capacity
-  if (currentCartQuantity + quantity > currentStock) {
-    alert(
-      `Cannot add ${quantity}: Cart already contains ${currentCartQuantity}. Only ${currentStock} total are available.`
-    );
-    return;
-  }
-
-  // Update cart
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    cart.push({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      quantity: quantity,
-      isChecked: true, // Default to checked upon adding
-    });
-  }
-  localStorage.setItem("cart", JSON.stringify(cart));
-  alert(`Added ${quantity} x ${product.name} to cart!`);
-};
-
-// --- ProductDetails Component ---
-
-/**
- * ProductDetails Component
- * Displays comprehensive details for a single product, including stock,
- * specifications, and an Add to Cart button that triggers a quantity modal.
- * @param {object} propProduct - Optional product object passed via props (for embedded use).
- * @param {function} onBack - Optional function to handle back action.
- */
-const ProductDetails = ({ product: propProduct, onBack }) => {
+const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  // Find product by ID from data or use propProduct
-  const product =
-    propProduct || productsData.find((p) => String(p.id) === String(id));
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  // Get current stock status
-  const inventory = getInventory();
-  const currentStock = product ? inventory[product.id] || 0 : 0;
-
-  // State for quantity modal and its input
+  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalProduct, setModalProduct] = useState(null);
+  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
-  // State for the authentication required prompt modal
-  const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
-
-  // --- Effects ---
-
-  // Scrolls the window to the top on component render/mount
+  // 1. Fetch Product Data
   useEffect(() => {
-    window.scrollTo(0, 0);
-  });
+    const fetchProduct = async () => {
+      if (!id || id === "undefined") {
+        console.error("Invalid product ID:", id);
+        setError("Invalid product ID");
+        setLoading(false);
+        return;
+      }
 
-  // Exposes a global function to trigger the quantity modal for use by other components (e.g., ProductCard)
-  useEffect(() => {
-    if (product && !propProduct) {
-      window.showQuantityModal = (p = product) => {
-        setModalProduct(p);
-        if (!currentUser) {
-          setIsAuthPromptOpen(true); // Show auth prompt if not logged in
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await productService.getById(id);
+
+        if (response && response.success && response.data) {
+          setProduct(response.data);
+
+          const primaryImg = response.data.images?.find(
+            (img) => img.is_primary
+          );
+          setSelectedImage(
+            primaryImg?.url ||
+              response.data.images?.[0]?.url ||
+              "/img/products/placeholder.png"
+          );
         } else {
-          setQuantity(1); // Reset quantity and open the main modal
-          setIsModalOpen(true);
+          setError("Product not found");
         }
-      };
-    }
-    // Cleanup function to remove the global function when the component unmounts
-    return () => {
-      delete window.showQuantityModal;
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError(err.message || "Could not load product details");
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [product, propProduct, currentUser]);
 
-  // --- Modal Handlers ---
+    fetchProduct();
+    window.scrollTo(0, 0);
+  }, [id]);
 
-  const handleCloseModal = () => setIsModalOpen(false);
-  const handleCloseAuthPrompt = () => setIsAuthPromptOpen(false);
+  // 2. Add to Cart Logic
+  const handleFinalAddToCart = async () => {
+    if (!product || quantity < 1) return;
 
-  /** Closes auth prompt and redirects to login page. */
+    if (!currentUser) {
+      setIsAuthPromptOpen(true);
+      return;
+    }
+
+    try {
+      const response = await cartService.add(product.id, quantity);
+
+      if (response && response.success) {
+        alert(`Added ${quantity} x ${product.name} to cart!`);
+        setIsModalOpen(false);
+        setQuantity(1); // Reset quantity
+      } else {
+        alert(response?.message || "Failed to add to cart");
+      }
+    } catch (err) {
+      console.error("Cart Error:", err);
+      alert(err.message || "Error adding item to cart.");
+    }
+  };
+
+  // UI Handlers
+  const handleShowModal = () => {
+    if (!currentUser) {
+      setIsAuthPromptOpen(true);
+    } else {
+      setQuantity(1);
+      setIsModalOpen(true);
+    }
+  };
+
   const handleLoginRedirect = () => {
-    handleCloseAuthPrompt();
+    setIsAuthPromptOpen(false);
     navigate("/login");
   };
 
-  /**
-   * Updates the quantity in the modal via +/- buttons.
-   * Enforces min (1) and max (stock minus current cart quantity) boundaries.
-   */
-  const handleQuantityChange = (delta) => {
-    if (!modalProduct) return;
-    const maxAllowed = getMaxAllowedToAdd(modalProduct.id);
-
-    setQuantity((prev) => {
-      const newQty = prev + delta;
-      return Math.min(Math.max(1, newQty), maxAllowed);
-    });
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
   };
 
-  /**
-   * Updates quantity in the modal via manual input.
-   * Enforces min (1) and max (stock minus current cart quantity) boundaries.
-   */
-  const handleManualQuantityChange = (e) => {
-    const value = parseInt(e.target.value);
-    if (!modalProduct) return;
-
-    const maxAllowed = getMaxAllowedToAdd(modalProduct.id);
-
-    let newQty = isNaN(value) || value < 1 ? 1 : value;
-
-    newQty = Math.min(newQty, maxAllowed);
-
-    setQuantity(newQty);
-  };
-
-  /** Final action to call the core cart logic and close the modal. */
-  const handleFinalAddToCart = () => {
-    if (!modalProduct || quantity < 1) return;
-
-    handleAddToCartLogic(modalProduct, quantity);
-    handleCloseModal();
-  };
-
-  /** Primary handler for the 'Add to Cart' button on the main details page. */
-  const handleShowModal = () => {
-    setModalProduct(product);
-    if (!currentUser) {
-      setIsAuthPromptOpen(true); // Show login requirement
-    } else {
-      setQuantity(1);
-      setIsModalOpen(true); // Open quantity selection modal
-    }
-  };
-
-  const maxQtyAllowed = modalProduct ? getMaxAllowedToAdd(modalProduct.id) : 0;
-
-  // --- Error State ---
-
-  if (!product) {
+  // Loading State
+  if (loading) {
     return (
       <div className="details-container">
         <div className="details-card">
-          <p>Product not found.</p>
+          <p>Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (error || !product) {
+    return (
+      <div className="details-container">
+        <div className="details-card">
+          <p style={{ color: "#ef4444", marginBottom: "20px" }}>
+            {error || "Product not found."}
+          </p>
           <button className="btn-main" onClick={() => navigate("/products")}>
             Back to Products
           </button>
@@ -215,63 +135,36 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
     );
   }
 
-  // --- JSX Helpers ---
-
-  /** Renders the technical specifications list if available. */
-  const renderSpecifications = (specs) => {
-    if (!specs || Object.keys(specs).length === 0) return null;
-
-    const keys = Object.keys(specs);
-
-    return (
-      <div className="specifications-section">
-        <h3>Technical Specifications</h3>
-        <ul className="spec-list">
-          {keys.map((key) => (
-            <li key={key} className="spec-item">
-              <span className="spec-key">{key}:</span>
-              <span className="spec-value">{specs[key]}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-  // --- Main Render ---
-
   return (
     <div className="details-container">
-      {/* 1. Login Required Modal (Displayed if user is a guest) */}
+      {/* Login Prompt Modal */}
       <div className={`modal-overlay ${isAuthPromptOpen ? "open" : ""}`}>
         <div className="quantity-modal confirmation-modal">
           <h2>Login Required</h2>
-          <p>
-            You must be logged in to add items to your cart. Do you want to
-            login now or stay on this page?
-          </p>
-
+          <p>You must be logged in to add items to your cart.</p>
           <div className="modal-actions">
             <button className="btn-main" onClick={handleLoginRedirect}>
               Login
             </button>
-            <button className="btn-cancel" onClick={handleCloseAuthPrompt}>
+            <button
+              className="btn-cancel"
+              onClick={() => setIsAuthPromptOpen(false)}
+            >
               Stay on Page
             </button>
           </div>
         </div>
       </div>
 
-      {/* 2. Quantity Selection Modal (Displayed if user is logged in) */}
+      {/* Quantity Modal */}
       <div className={`modal-overlay ${isModalOpen ? "open" : ""}`}>
         <div className="quantity-modal">
           <h2>Select Quantity</h2>
-          <p>{modalProduct?.name}</p>
-
+          <p>{product.name}</p>
           <div className="quantity-controls">
             <button
               className="quantity-btn"
-              onClick={() => handleQuantityChange(-1)}
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
               disabled={quantity <= 1}
             >
               -
@@ -279,78 +172,267 @@ const ProductDetails = ({ product: propProduct, onBack }) => {
             <input
               type="number"
               min="1"
-              max={maxQtyAllowed}
+              max={product.stock}
               value={quantity}
-              onChange={handleManualQuantityChange}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 1;
+                setQuantity(Math.min(Math.max(1, val), product.stock));
+              }}
               className="quantity-input-field"
-              disabled={maxQtyAllowed === 0}
             />
             <button
               className="quantity-btn"
-              onClick={() => handleQuantityChange(1)}
-              disabled={quantity >= maxQtyAllowed || maxQtyAllowed === 0}
+              onClick={() => setQuantity(Math.min(quantity + 1, product.stock))}
+              disabled={quantity >= product.stock}
             >
               +
             </button>
           </div>
-
-          <p className="modal-stock-info">
-            Max available to add: {maxQtyAllowed}
+          <p style={{ fontSize: "14px", color: "#666", marginTop: "10px" }}>
+            Max available: {product.stock}
           </p>
-
           <div className="modal-actions">
-            <button
-              className="btn-main"
-              onClick={handleFinalAddToCart}
-              disabled={quantity > maxQtyAllowed || maxQtyAllowed === 0}
-            >
-              Add {quantity} to Cart
+            <button className="btn-main" onClick={handleFinalAddToCart}>
+              Add to Cart
             </button>
-            <button className="btn-cancel" onClick={handleCloseModal}>
+            <button
+              className="btn-cancel"
+              onClick={() => setIsModalOpen(false)}
+            >
               Cancel
             </button>
           </div>
         </div>
       </div>
 
-      {/* 3. Main Product Details View */}
+      {/* Main Details */}
       <div className="details-card">
+        {/* Image Section with Gallery */}
         <div className="details-image-wrapper">
-          <img src={product.image} alt={product.name} />
+          <img
+            src={selectedImage}
+            alt={product.name}
+            className="main-product-image"
+            onError={(e) => {
+              e.target.src = "/img/products/placeholder.png";
+            }}
+          />
+
+          {/* Image Thumbnails */}
+          {product.images && product.images.length > 1 && (
+            <div className="image-thumbnails">
+              {product.images.map((img, index) => (
+                <img
+                  key={index}
+                  src={img.url}
+                  alt={`${product.name} ${index + 1}`}
+                  className={`thumbnail ${
+                    selectedImage === img.url ? "active" : ""
+                  }`}
+                  onClick={() => handleImageClick(img.url)}
+                  onError={(e) => {
+                    e.target.src = "/img/products/placeholder.png";
+                  }}
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    objectFit: "cover",
+                    cursor: "pointer",
+                    border:
+                      selectedImage === img.url
+                        ? "2px solid #00bcd4"
+                        : "1px solid #ddd",
+                    borderRadius: "8px",
+                    marginRight: "10px",
+                    marginTop: "10px",
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* Product Info */}
         <div className="details-info">
           <h2>{product.name}</h2>
-          <p className="details-price">₱{product.price.toLocaleString()}</p>
-          <p className="details-desc">{product.description}</p>
-          {/* Stock status display */}
-          <p
-            className={`product-stock ${
-              currentStock > 0 ? "in-stock" : "out-of-stock"
-            }`}
-          >
-            {currentStock > 0 ? `In Stock: ${currentStock}` : "Out of Stock"}
+
+          {/* Category */}
+          {product.category && (
+            <p
+              className="product-category"
+              style={{
+                color: "#666",
+                fontSize: "14px",
+                marginBottom: "10px",
+              }}
+            >
+              {/* LOGIC FIX: Handle safely if category is object or name */}
+              Category: {product.category.name || product.category || "General"}
+            </p>
+          )}
+
+          {/* Price - LOGIC FIX: Removed '/ 100' */}
+          <p className="details-price">
+            ₱
+            {(product.price).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </p>
 
+          {/* Description */}
+          <p className="details-desc">
+            {product.description || "No description available."}
+          </p>
+
+          {/* Stock Status */}
+          <p
+            className={`product-stock ${
+              product.stock > 0 ? "in-stock" : "out-of-stock"
+            }`}
+          >
+            {product.stock > 0 ? `In Stock: ${product.stock}` : "Out of Stock"}
+          </p>
+
+          {/* Featured Badge */}
+          {product.featured && (
+            <span
+              style={{
+                display: "inline-block",
+                background: "#ffc107",
+                color: "#000",
+                padding: "4px 12px",
+                borderRadius: "4px",
+                fontSize: "12px",
+                fontWeight: "bold",
+                marginBottom: "15px",
+              }}
+            >
+              ⭐ Featured Product
+            </span>
+          )}
+
+          {/* Action Buttons */}
           <div className="details-buttons">
             <button
               className="btn-main"
-              // Use onBack prop if available, otherwise navigate to products list
-              onClick={onBack || (() => navigate("/products"))}
+              onClick={() => navigate("/products")}
+              style={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "white",
+                border: "none",
+                padding: "12px 24px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "16px",
+                fontWeight: "600",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "translateY(-2px)";
+                e.target.style.boxShadow =
+                  "0 4px 12px rgba(102, 126, 234, 0.4)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "translateY(0)";
+                e.target.style.boxShadow = "none";
+              }}
             >
               Back to Products
             </button>
+
             <button
               className="btn-secondary"
               onClick={handleShowModal}
-              disabled={currentStock === 0}
+              disabled={product.stock === 0}
+              style={{
+                background:
+                  product.stock === 0
+                    ? "#cccccc"
+                    : "linear-gradient(135deg, #00bcd4 0%, #00acc1 100%)",
+                color: "white",
+                border: "none",
+                padding: "12px 24px",
+                borderRadius: "8px",
+                cursor: product.stock === 0 ? "not-allowed" : "pointer",
+                fontSize: "16px",
+                fontWeight: "600",
+                transition: "all 0.3s ease",
+                opacity: product.stock === 0 ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (product.stock > 0) {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow =
+                    "0 4px 12px rgba(0, 188, 212, 0.4)";
+                  e.target.style.background =
+                    "linear-gradient(135deg, #00acc1 0%, #0097a7 100%)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (product.stock > 0) {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
+                  e.target.style.background =
+                    "linear-gradient(135deg, #00bcd4 0%, #00acc1 100%)";
+                }
+              }}
             >
-              Add to Cart
+              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
             </button>
           </div>
 
-          {/* Technical Specifications Section */}
-          {renderSpecifications(product.specifications)}
+          {/* Specifications */}
+          {product.specifications &&
+            Object.keys(product.specifications).length > 0 && (
+              <div
+                className="specifications-section"
+                style={{ marginTop: "30px" }}
+              >
+                <h3 style={{ marginBottom: "15px", fontSize: "20px" }}>
+                  Technical Specifications
+                </h3>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "14px",
+                  }}
+                >
+                  <tbody>
+                    {Object.entries(product.specifications).map(
+                      ([key, value]) => (
+                        <tr
+                          key={key}
+                          style={{
+                            borderBottom: "1px solid #eee",
+                          }}
+                        >
+                          <td
+                            style={{
+                              padding: "12px 8px",
+                              fontWeight: "600",
+                              width: "40%",
+                              color: "#333",
+                            }}
+                          >
+                            {key}
+                          </td>
+                          <td
+                            style={{
+                              padding: "12px 8px",
+                              color: "#666",
+                            }}
+                          >
+                            {value}
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
         </div>
       </div>
     </div>

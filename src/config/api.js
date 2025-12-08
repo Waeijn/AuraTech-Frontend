@@ -1,3 +1,6 @@
+// src/config/api.js
+
+// This MUST match the port you saw in 'docker ps' (8082)
 export const API_BASE_URL = 'http://localhost:8082/api';
 
 export const API_ENDPOINTS = {

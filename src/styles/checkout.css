@@ -361,3 +361,133 @@
     font-size: 0.85rem;
   }
 }
+
+/* === Payment Method Section === */
+.checkout-form h2 {
+  margin-top: 10px; /* Spacing for the "Payment Method" header */
+}
+
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center; /* Aligns dot and text vertically */
+  gap: 12px;           /* Space between dot and text */
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: 10px 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+/* Hover effect for better UX */
+.radio-label:hover {
+  background: #f0f0f0;
+  border-color: rgba(0,0,0,0.1);
+}
+
+/* Specific fix for Radio Buttons to override the global input style */
+.radio-label input[type="radio"] {
+  width: auto;      /* Stop it from being 100% width */
+  margin: 0;        /* Remove default margins */
+  height: 18px;     /* Set fixed size */
+  width: 18px;
+  accent-color: var(--color-accent); /* Make it match your purple/teal theme */
+  cursor: pointer;
+}
+
+/* === Improved Receipt / Thank You Page === */
+
+/* 1. Center everything nicely on the screen */
+.thank-you-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh; /* Occupy most of the screen height */
+  text-align: center;
+  
+  /* Optional: Remove the grid pattern for this page only for a cleaner look */
+  background-image: none; 
+  background-color: #f8f9fa; /* Soft grey background */
+}
+
+.thank-you-page h1 {
+  font-size: 3rem;
+  margin-bottom: 30px;
+  /* Keep the underline effect but center it */
+}
+
+.thank-you-page h1::after {
+  margin: 15px auto 0; /* Ensure underline is centered */
+}
+
+/* 2. Make the Receipt Card bigger and more focused */
+.receipt-box {
+  background: #ffffff;
+  width: 100%;
+  max-width: 600px; /* Wider card looks better */
+  padding: 50px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08); /* Softer, deeper shadow */
+  margin-bottom: 40px;
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* 3. Typography adjustments inside the receipt */
+.receipt-box h3 {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+  color: #333;
+  font-weight: 700;
+  border-bottom: 2px dashed #eee;
+  padding-bottom: 15px;
+}
+
+.receipt-message-header {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.receipt-total {
+  font-size: 1rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 20px;
+}
+
+.receipt-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-secondary-accent); /* Purple */
+  margin: 5px 0 20px 0;
+}
+
+/* Fix the Receipt Button Size */
+.thank-you-page .btn-main {
+  width: auto !important;
+  min-width: 180px;    /* Reduced from 250px */
+  height: auto !important;
+  padding: 12px 24px;  /* Reduced padding */
+  border-radius: 50px;
+  font-size: 1rem;     /* Standard font size */
+  font-weight: 600;
+  margin-top: 20px;
+  box-shadow: 0 6px 15px rgba(108, 92, 231, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.thank-you-page .btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.35);
+}
