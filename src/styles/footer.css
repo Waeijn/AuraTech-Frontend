@@ -13,12 +13,8 @@
 .footer__inner {
   max-width: 1400px;
   margin: 0 auto;
-
-  /* Grid layout for desktop */
   display: grid;
-  /* Brand section uses two fractions, links section uses one fraction */
   grid-template-columns: 2fr 1fr;
-  /* Brand and links on first row, copyright spans full width on second row */
   grid-template-rows: auto auto;
   grid-template-areas:
     "brand links"
@@ -78,7 +74,6 @@
 }
 
 .footer__links a:hover {
-  /* Change link color on hover to secondary accent */
   color: var(--color-secondary-accent);
 }
 
@@ -87,7 +82,6 @@
   grid-area: copy;
   text-align: left;
   padding-top: 25px;
-  /* Border separates copyright visually */
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   margin-top: 15px;
 }
@@ -106,7 +100,6 @@
   }
 
   .footer__inner {
-    /* Stack all sections vertically */
     grid-template-columns: 1fr;
     grid-template-areas:
       "brand"
@@ -142,7 +135,6 @@
   }
 
   .footer__logo img {
-    /* Slightly smaller logo for very small screens */
     height: 35px;
   }
 

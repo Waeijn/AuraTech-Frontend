@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { authService } from "../services/authService"; 
+import { authService } from "../services/authService";
 import { isAdmin } from "../utils/auth"; // Use Mades's Helper
 import "../styles/auth.css";
 
@@ -34,20 +34,19 @@ export default function Login() {
       setLoading(true);
       // API Call
       await authService.login(formData);
-      
+
       setMessageType("success");
       setMessage("Login successful! Redirecting...");
 
       const adminCheck = isAdmin();
-      
+
       setTimeout(() => {
         if (adminCheck) {
-          window.location.href = "/admin"; 
+          window.location.href = "/admin";
         } else {
-          window.location.href = "/"; 
+          window.location.href = "/";
         }
       }, 1000);
-
     } catch (error) {
       setMessageType("error");
       setMessage(error.message || "Invalid email or password");
@@ -58,11 +57,14 @@ export default function Login() {
   return (
     <section className="auth-page">
       <div className="auth-wrapper">
-
         {/* Brand panel with logo and tagline */}
         <div className="auth-brand-panel">
           <div className="brand-content">
-            <img src="/img/logo/LOGO.png" alt="AuraTech Logo" className="brand-logo" />
+            <img
+              src="/img/logo/LOGO.png"
+              alt="AuraTech Logo"
+              className="brand-logo"
+            />
             <h2>AuraTech</h2>
             <p className="brand-tagline">Power. Precision. Performance.</p>
           </div>
@@ -81,7 +83,6 @@ export default function Login() {
             )}
 
             <form onSubmit={handleSubmit} className="auth-form">
-
               {/* Email input */}
               <label className="form-label">
                 Email
@@ -120,14 +121,24 @@ export default function Login() {
                   onChange={() => setShowPassword((prev) => !prev)}
                   id="showPassLogin"
                 />
-                <label htmlFor="showPassLogin" className="password-toggle-label">
+                <label
+                  htmlFor="showPassLogin"
+                  className="password-toggle-label"
+                >
                   Show Password
                 </label>
               </div>
 
               {/* Submit button */}
               <button type="submit" className="form-button" disabled={loading}>
-                {loading ? "Logging in..." : "Login"}
+                {loading ? (
+                  <div className="form-button-content-wrapper">
+                    <div className="spinner"></div>
+                    Logging in...
+                  </div>
+                ) : (
+                  "Login"
+                )}
               </button>
             </form>
 

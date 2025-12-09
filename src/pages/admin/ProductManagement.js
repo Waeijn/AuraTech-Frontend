@@ -5,10 +5,29 @@ import AdminLayout from "../../components/AdminLayout";
 import { productService } from "../../services/productService";
 import { categoryService } from "../../services/categoryService";
 
+// Skeleton component for a single product row
+const ProductRowSkeleton = ({ columns = 9 }) => (
+  <tr className="skeleton-row">
+    {[...Array(columns)].map((_, index) => (
+      <td key={index}>
+        <div
+          className="skeleton-text"
+          style={{
+            width: `${Math.random() * (90 - 40) + 40}%`,
+            height: "1rem",
+            margin: 0,
+          }}
+        ></div>
+      </td>
+    ))}
+  </tr>
+);
+
 export default function ProductManagement() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name");
@@ -17,7 +36,7 @@ export default function ProductManagement() {
   const [viewingProduct, setViewingProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -35,15 +54,16 @@ export default function ProductManagement() {
   const [specValue, setSpecValue] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
-  // Fetch products and categories
+  // Fetch products and categories on mount
   useEffect(() => {
     fetchProducts();
     fetchCategories();
   }, []);
 
+  /** Fetches the entire product list and stops the loading state. */
   const fetchProducts = async () => {
     try {
-      // Fetch 100 items to cover most lists
+      setLoading(true);
       const result = await productService.getAll({ per_page: 100 });
       if (result.success) setProducts(result.data);
     } catch (err) {
@@ -53,6 +73,7 @@ export default function ProductManagement() {
     }
   };
 
+  /** Fetches the list of all categories. */
   const fetchCategories = async () => {
     try {
       const result = await categoryService.getAll();
@@ -62,23 +83,21 @@ export default function ProductManagement() {
     }
   };
 
-  // Helper: Find Category Name by ID
+  /** Helper function to retrieve the category name using its ID. */
   const getCategoryName = (catId) => {
     const cat = categories.find((c) => c.id === parseInt(catId));
     return cat ? cat.name : "N/A";
   };
 
-  // Filter and sort products
+  /** Filters and sorts the product list based on current filters and sorting preferences. */
   const filteredProducts = products
     .filter((product) => {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
-      
-      // FIX 1: Robust Category Filtering (Handle String vs Number IDs)
+
       const matchesCategory =
-        categoryFilter === "all" ||
-        product.category_id == categoryFilter; // Loose equality checks "1" == 1
+        categoryFilter === "all" || product.category_id == categoryFilter;
 
       return matchesSearch && matchesCategory;
     })
@@ -99,7 +118,7 @@ export default function ProductManagement() {
       }
     });
 
-  // Get stock status
+  /** Returns the appropriate stock status text and color based on stock count. */
   const getStockStatus = (stock) => {
     if (stock === 0) return { text: "Out of Stock", color: "#ef4444" };
     if (stock <= 5) return { text: "Low Stock", color: "#f59e0b" };
@@ -107,7 +126,7 @@ export default function ProductManagement() {
     return { text: "In Stock", color: "#10b981" };
   };
 
-  // Open add modal
+  /** Resets form data and opens the 'Add Product' modal. */
   const openAddModal = () => {
     setFormData({
       name: "",
@@ -123,27 +142,25 @@ export default function ProductManagement() {
     setIsAddModalOpen(true);
   };
 
-  // Open edit modal
+  /** Populates form data with the selected product's details and opens the edit modal. */
   const openEditModal = (product) => {
-    // FIX 2: Handle JSON Specifications safely
     let parsedSpecs = {};
-    if (typeof product.specifications === 'string') {
-        try {
-            parsedSpecs = JSON.parse(product.specifications);
-        } catch (e) {
-            console.error("Error parsing specs", e);
-            parsedSpecs = {};
-        }
+    if (typeof product.specifications === "string") {
+      try {
+        parsedSpecs = JSON.parse(product.specifications);
+      } catch (e) {
+        console.error("Error parsing specs", e);
+        parsedSpecs = {};
+      }
     } else {
-        parsedSpecs = product.specifications || {};
+      parsedSpecs = product.specifications || {};
     }
 
     setFormData({
       name: product.name,
       slug: product.slug,
       description: product.description || "",
-      // FIX 3: Raw Price (Do not divide by 100)
-      price: product.price, 
+      price: product.price,
       stock: product.stock,
       category_id: product.category_id,
       featured: product.featured || false,
@@ -153,7 +170,7 @@ export default function ProductManagement() {
     setEditingProduct(product);
   };
 
-  // Handle form input
+  /** Updates the local formData state based on form input changes. */
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -162,7 +179,7 @@ export default function ProductManagement() {
     }));
   };
 
-  // Add specification
+  /** Adds a new specification key-value pair to the formData state. */
   const addSpecification = () => {
     if (specKey.trim() && specValue.trim()) {
       setFormData((prev) => ({
@@ -177,14 +194,14 @@ export default function ProductManagement() {
     }
   };
 
-  // Remove specification
+  /** Removes a specification entry from the formData state by key. */
   const removeSpec = (key) => {
     const newSpecs = { ...formData.specifications };
     delete newSpecs[key];
     setFormData((prev) => ({ ...prev, specifications: newSpecs }));
   };
 
-  // Add image
+  /** Adds a new image URL to the formData state. */
   const addImage = () => {
     if (imageUrl.trim()) {
       setFormData((prev) => ({
@@ -201,7 +218,7 @@ export default function ProductManagement() {
     }
   };
 
-  // Remove image
+  /** Removes an image from the formData state by index. */
   const removeImage = (index) => {
     setFormData((prev) => ({
       ...prev,
@@ -209,7 +226,7 @@ export default function ProductManagement() {
     }));
   };
 
-  // Set primary image
+  /** Sets a specific image as the primary image by index. */
   const setPrimaryImage = (index) => {
     setFormData((prev) => ({
       ...prev,
@@ -220,7 +237,7 @@ export default function ProductManagement() {
     }));
   };
 
-  // Add product
+  /** Submits the new product data to the API and refreshes the product list. */
   const handleAddProduct = async () => {
     if (!formData.name || !formData.price || !formData.category_id) {
       alert("Please fill in all required fields");
@@ -228,7 +245,7 @@ export default function ProductManagement() {
     }
 
     try {
-      // FIX 4: Send Raw Price (Do not multiply by 100)
+      setIsSubmitting(true);
       const priceValue = parseFloat(formData.price);
 
       const productData = {
@@ -255,10 +272,12 @@ export default function ProductManagement() {
       }
     } catch (err) {
       alert("Error adding product: " + (err.message || "Unknown error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Update product
+  /** Submits the updated product data to the API and refreshes the product list. */
   const handleUpdateProduct = async () => {
     if (!formData.name || !formData.price || !formData.category_id) {
       alert("Please fill in all required fields");
@@ -266,7 +285,7 @@ export default function ProductManagement() {
     }
 
     try {
-      // FIX 5: Send Raw Price (Do not multiply by 100)
+      setIsSubmitting(true);
       const priceValue = parseFloat(formData.price);
 
       const productData = {
@@ -293,10 +312,12 @@ export default function ProductManagement() {
       }
     } catch (err) {
       alert("Error updating product: " + (err.message || "Unknown error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Delete product
+  /** Deletes the selected product after user confirmation and refreshes the product list. */
   const handleDeleteProduct = async (product) => {
     if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
       try {
@@ -309,15 +330,41 @@ export default function ProductManagement() {
     }
   };
 
-  // Calculate stats
+  /** Calculates summary statistics for the product list. */
   const stats = {
     total: products.length,
     inStock: products.filter((p) => p.stock > 10).length,
     lowStock: products.filter((p) => p.stock > 0 && p.stock <= 10).length,
     outOfStock: products.filter((p) => p.stock === 0).length,
-    // FIX 6: Stats Calculation (No / 100)
-    totalValue: products.reduce((sum, p) => sum + (p.price) * p.stock, 0),
+    totalValue: products.reduce((sum, p) => sum + p.price * p.stock, 0),
   };
+
+  // Skeleton Loader for Table View
+  const ProductTableSkeleton = () => (
+    <table className="admin-table skeleton-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Value</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ProductRowSkeleton />
+        <ProductRowSkeleton />
+        <ProductRowSkeleton />
+        <ProductRowSkeleton />
+        <ProductRowSkeleton />
+        <ProductRowSkeleton />
+      </tbody>
+    </table>
+  );
 
   return (
     <AdminLayout>
@@ -349,7 +396,8 @@ export default function ProductManagement() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="admin-select"
+            className={`admin-select ${loading ? "skeleton-text" : ""}`}
+            disabled={loading}
           >
             <option value="all">All Categories</option>
             {categories.map((cat) => (
@@ -365,7 +413,8 @@ export default function ProductManagement() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="admin-select"
+            className={`admin-select ${loading ? "skeleton-text" : ""}`}
+            disabled={loading}
           >
             <option value="name">Name (A-Z)</option>
             <option value="price-low">Price (Low to High)</option>
@@ -382,7 +431,8 @@ export default function ProductManagement() {
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="admin-search-input"
+            className={`admin-search-input ${loading ? "skeleton-text" : ""}`}
+            disabled={loading}
           />
         </div>
       </div>
@@ -390,7 +440,11 @@ export default function ProductManagement() {
       {/* Products Table */}
       <div className="admin-table-container">
         {loading ? (
-          <p>Loading products...</p>
+          <ProductTableSkeleton />
+        ) : filteredProducts.length === 0 ? (
+          <div className="empty-state">
+            <p>No products found matching your criteria.</p>
+          </div>
         ) : (
           <table className="admin-table">
             <thead>
@@ -409,8 +463,7 @@ export default function ProductManagement() {
             <tbody>
               {filteredProducts.map((product) => {
                 const status = getStockStatus(product.stock);
-                // FIX 7: Value Calculation (No / 100)
-                const itemValue = (product.price) * product.stock;
+                const itemValue = product.price * product.stock;
                 const primaryImage =
                   product.images?.find((img) => img.is_primary) ||
                   product.images?.[0];
@@ -433,14 +486,12 @@ export default function ProductManagement() {
                     <td className="product-name-cell">{product.name}</td>
                     <td>
                       <span className="category-tag">
-                        {/* FIX 8: Use helper function for category name */}
                         {getCategoryName(product.category_id)}
                       </span>
                     </td>
                     <td className="price-cell">
                       ₱
-                      {/* FIX 9: Price Formatting (No / 100) */}
-                      {(product.price).toLocaleString(undefined, {
+                      {product.price.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
@@ -467,21 +518,51 @@ export default function ProductManagement() {
                           title="View Details"
                           onClick={() => setViewingProduct(product)}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
                         </button>
                         <button
                           className="btn-action btn-edit"
                           title="Edit Product"
                           onClick={() => openEditModal(product)}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
                         </button>
                         <button
                           className="btn-delete"
                           title="Delete Product"
                           onClick={() => handleDeleteProduct(product)}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -495,31 +576,88 @@ export default function ProductManagement() {
 
       {/* Summary Stats */}
       <div className="admin-grid" style={{ marginTop: "30px" }}>
-        <div className="admin-card">
-          <h3>Total Products</h3>
-          <p>{stats.total}</p>
-        </div>
-        <div className="admin-card">
-          <h3>In Stock</h3>
-          <p style={{ color: "#10b981" }}>{stats.inStock}</p>
-        </div>
-        <div className="admin-card">
-          <h3>Low Stock</h3>
-          <p style={{ color: "#f59e0b" }}>{stats.lowStock}</p>
-        </div>
-        <div className="admin-card">
-          <h3>Out of Stock</h3>
-          <p style={{ color: "#ef4444" }}>{stats.outOfStock}</p>
-        </div>
-        <div className="admin-card">
-          <h3>Total Inventory Value</h3>
-          <p style={{ color: "#7b1fa2" }}>
-            ₱
-            {stats.totalValue.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-            })}
-          </p>
-        </div>
+        {loading ? (
+          <>
+            <div className="admin-card skeleton-card">
+              <div
+                className="skeleton-text"
+                style={{ width: "60%", height: "1.2rem", marginBottom: "10px" }}
+              ></div>
+              <div
+                className="skeleton-text"
+                style={{ width: "40%", height: "2rem" }}
+              ></div>
+            </div>
+            <div className="admin-card skeleton-card">
+              <div
+                className="skeleton-text"
+                style={{ width: "60%", height: "1.2rem", marginBottom: "10px" }}
+              ></div>
+              <div
+                className="skeleton-text"
+                style={{ width: "40%", height: "2rem" }}
+              ></div>
+            </div>
+            <div className="admin-card skeleton-card">
+              <div
+                className="skeleton-text"
+                style={{ width: "60%", height: "1.2rem", marginBottom: "10px" }}
+              ></div>
+              <div
+                className="skeleton-text"
+                style={{ width: "40%", height: "2rem" }}
+              ></div>
+            </div>
+            <div className="admin-card skeleton-card">
+              <div
+                className="skeleton-text"
+                style={{ width: "60%", height: "1.2rem", marginBottom: "10px" }}
+              ></div>
+              <div
+                className="skeleton-text"
+                style={{ width: "40%", height: "2rem" }}
+              ></div>
+            </div>
+            <div className="admin-card skeleton-card">
+              <div
+                className="skeleton-text"
+                style={{ width: "60%", height: "1.2rem", marginBottom: "10px" }}
+              ></div>
+              <div
+                className="skeleton-text"
+                style={{ width: "40%", height: "2rem" }}
+              ></div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="admin-card">
+              <h3>Total Products</h3>
+              <p>{stats.total}</p>
+            </div>
+            <div className="admin-card">
+              <h3>In Stock</h3>
+              <p style={{ color: "#10b981" }}>{stats.inStock}</p>
+            </div>
+            <div className="admin-card">
+              <h3>Low Stock</h3>
+              <p style={{ color: "#f59e0b" }}>{stats.lowStock}</p>
+            </div>
+            <div className="admin-card">
+              <h3>Out of Stock</h3>
+              <p style={{ color: "#ef4444" }}>{stats.outOfStock}</p>
+            </div>
+            <div className="admin-card">
+              <h3>Total Inventory Value</h3>
+              <p style={{ color: "#7b1fa2" }}>
+                ₱
+                {stats.totalValue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* View Product Details Modal */}
@@ -548,44 +686,70 @@ export default function ProductManagement() {
                 <p>No image available</p>
               )}
               <div className="product-info-text">
-                <p><strong>ID:</strong> #{viewingProduct.id}</p>
-                <p><strong>Category:</strong> {getCategoryName(viewingProduct.category_id)}</p>
+                <p>
+                  <strong>ID:</strong> #{viewingProduct.id}
+                </p>
+                <p>
+                  <strong>Category:</strong>{" "}
+                  {getCategoryName(viewingProduct.category_id)}
+                </p>
                 <p>
                   <strong>Price:</strong> ₱
-                  {/* FIX 10: Modal Price Display */}
-                  {(viewingProduct.price).toLocaleString(undefined, {
+                  {viewingProduct.price.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </p>
-                <p><strong>Stock:</strong> {viewingProduct.stock} units</p>
-                <p><strong>Featured:</strong> {viewingProduct.featured ? "Yes" : "No"}</p>
-                <p><strong>Description:</strong> {viewingProduct.description || "No description"}</p>
+                <p>
+                  <strong>Stock:</strong> {viewingProduct.stock} units
+                </p>
+                <p>
+                  <strong>Featured:</strong>{" "}
+                  {viewingProduct.featured ? "Yes" : "No"}
+                </p>
+                <p>
+                  <strong>Description:</strong>{" "}
+                  {viewingProduct.description || "No description"}
+                </p>
 
                 {/* Handle Spec Display Safely */}
                 {(() => {
-                    let specs = viewingProduct.specifications;
-                    if (typeof specs === 'string') {
-                        try { specs = JSON.parse(specs); } catch { specs = {}; }
+                  let specs = viewingProduct.specifications;
+                  if (typeof specs === "string") {
+                    try {
+                      specs = JSON.parse(specs);
+                    } catch {
+                      specs = {};
                     }
-                    if (specs && Object.keys(specs).length > 0) {
-                        return (
-                            <div style={{ marginTop: "15px" }}>
-                                <strong>Specifications:</strong>
-                                <ul style={{ marginTop: "8px", fontSize: "0.9rem" }}>
-                                    {Object.entries(specs).map(([key, value]) => (
-                                        <li key={key}><strong>{key}:</strong> {value}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        );
-                    }
-                    return null;
+                  }
+                  if (specs && Object.keys(specs).length > 0) {
+                    return (
+                      <div style={{ marginTop: "15px" }}>
+                        <strong>Specifications:</strong>
+                        <ul style={{ marginTop: "8px", fontSize: "0.9rem" }}>
+                          {Object.entries(specs).map(([key, value]) => (
+                            <li key={key}>
+                              <strong>{key}:</strong> {value}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }
+                  return null;
                 })()}
 
                 {viewingProduct.images && viewingProduct.images.length > 1 && (
                   <div style={{ marginTop: "15px" }}>
                     <strong>Additional Images:</strong>
-                    <div style={{ display: "flex", gap: "10px", marginTop: "10px", flexWrap: "wrap" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "10px",
+                        marginTop: "10px",
+                        flexWrap: "wrap",
+                      }}
+                    >
                       {viewingProduct.images.map((img, index) => (
                         <img
                           key={index}
@@ -604,7 +768,11 @@ export default function ProductManagement() {
                 )}
               </div>
             </div>
-            <button className="btn-main" onClick={() => setViewingProduct(null)} style={{ marginTop: "20px", width: "100%" }}>
+            <button
+              className="btn-main"
+              onClick={() => setViewingProduct(null)}
+              style={{ marginTop: "20px", width: "100%" }}
+            >
               Close
             </button>
           </div>
@@ -726,9 +894,18 @@ export default function ProductManagement() {
             </div>
 
             {/* Specifications Section */}
-            <div style={{ marginTop: "20px", padding: "15px", background: "#f9f9f9", borderRadius: "8px" }}>
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                background: "#f9f9f9",
+                borderRadius: "8px",
+              }}
+            >
               <h3 style={{ marginBottom: "10px" }}>Specifications</h3>
-              <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+              <div
+                style={{ display: "flex", gap: "10px", marginBottom: "10px" }}
+              >
                 <input
                   type="text"
                   placeholder="Spec Name (e.g., Processor)"
@@ -745,25 +922,64 @@ export default function ProductManagement() {
                   className="form-input"
                   style={{ flex: 1 }}
                 />
-                <button type="button" onClick={addSpecification} className="btn-add">Add</button>
+                <button
+                  type="button"
+                  onClick={addSpecification}
+                  className="btn-add"
+                >
+                  Add
+                </button>
               </div>
 
               {Object.keys(formData.specifications).length > 0 && (
-                <ul style={{ listStyle: "none", padding: 0, marginTop: "10px" }}>
-                  {Object.entries(formData.specifications).map(([key, value]) => (
-                    <li key={key} style={{ padding: "8px", background: "white", marginBottom: "5px", display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: "4px" }}>
-                      <span><strong>{key}:</strong> {value}</span>
-                      <button type="button" onClick={() => removeSpec(key)} className="btn-delete-small" style={{ padding: "4px 8px", fontSize: "12px" }}>Remove</button>
-                    </li>
-                  ))}
+                <ul
+                  style={{ listStyle: "none", padding: 0, marginTop: "10px" }}
+                >
+                  {Object.entries(formData.specifications).map(
+                    ([key, value]) => (
+                      <li
+                        key={key}
+                        style={{
+                          padding: "8px",
+                          background: "white",
+                          marginBottom: "5px",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        <span>
+                          <strong>{key}:</strong> {value}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeSpec(key)}
+                          className="btn-delete-small"
+                          style={{ padding: "4px 8px", fontSize: "12px" }}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    )
+                  )}
                 </ul>
               )}
             </div>
 
             {/* Images Section */}
-            <div style={{ marginTop: "20px", padding: "15px", background: "#f9f9f9", borderRadius: "8px" }}>
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                background: "#f9f9f9",
+                borderRadius: "8px",
+              }}
+            >
               <h3 style={{ marginBottom: "10px" }}>Product Images</h3>
-              <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+              <div
+                style={{ display: "flex", gap: "10px", marginBottom: "10px" }}
+              >
                 <input
                   type="text"
                   placeholder="Image URL"
@@ -772,23 +988,73 @@ export default function ProductManagement() {
                   className="form-input"
                   style={{ flex: 1 }}
                 />
-                <button type="button" onClick={addImage} className="btn-add">Add Image</button>
+                <button type="button" onClick={addImage} className="btn-add">
+                  Add Image
+                </button>
               </div>
 
               {formData.images.length > 0 && (
-                <ul style={{ listStyle: "none", padding: 0, marginTop: "10px" }}>
+                <ul
+                  style={{ listStyle: "none", padding: 0, marginTop: "10px" }}
+                >
                   {formData.images.map((img, index) => (
-                    <li key={index} style={{ padding: "8px", background: "white", marginBottom: "5px", display: "flex", gap: "10px", alignItems: "center", borderRadius: "4px" }}>
+                    <li
+                      key={index}
+                      style={{
+                        padding: "8px",
+                        background: "white",
+                        marginBottom: "5px",
+                        display: "flex",
+                        gap: "10px",
+                        alignItems: "center",
+                        borderRadius: "4px",
+                      }}
+                    >
                       <img
                         src={img.url}
                         alt={`Product ${index + 1}`}
-                        style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
-                        onError={(e) => (e.target.src = "/img/products/default.png")}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "cover",
+                          borderRadius: "4px",
+                        }}
+                        onError={(e) =>
+                          (e.target.src = "/img/products/default.png")
+                        }
                       />
-                      <span style={{ flex: 1, fontSize: "12px", overflow: "hidden", textOverflow: "ellipsis" }}>{img.url}</span>
-                      {img.is_primary && <span style={{ color: "green", fontSize: "12px" }}>⭐ Primary</span>}
-                      <button type="button" onClick={() => setPrimaryImage(index)} className="btn-small" disabled={img.is_primary} style={{ padding: "4px 8px", fontSize: "12px" }}>Set Primary</button>
-                      <button type="button" onClick={() => removeImage(index)} className="btn-delete-small" style={{ padding: "4px 8px", fontSize: "12px" }}>Remove</button>
+                      <span
+                        style={{
+                          flex: 1,
+                          fontSize: "12px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {img.url}
+                      </span>
+                      {img.is_primary && (
+                        <span style={{ color: "green", fontSize: "12px" }}>
+                          ⭐ Primary
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setPrimaryImage(index)}
+                        className="btn-small"
+                        disabled={img.is_primary}
+                        style={{ padding: "4px 8px", fontSize: "12px" }}
+                      >
+                        Set Primary
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="btn-delete-small"
+                        style={{ padding: "4px 8px", fontSize: "12px" }}
+                      >
+                        Remove
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -796,10 +1062,33 @@ export default function ProductManagement() {
             </div>
 
             <div className="modal-actions" style={{ marginTop: "25px" }}>
-              <button className="btn-main" onClick={isAddModalOpen ? handleAddProduct : handleUpdateProduct}>
-                {isAddModalOpen ? "Add Product" : "Update Product"}
+              <button
+                className="btn-main"
+                onClick={
+                  isAddModalOpen ? handleAddProduct : handleUpdateProduct
+                }
+                disabled={isSubmitting}
+              >
+                {/* IMPLEMENT BUTTON SPINNER */}
+                {isSubmitting ? (
+                  <div className="button-content-wrapper">
+                    <span className="button-spinner"></span>
+                    {isAddModalOpen ? "Adding..." : "Updating..."}
+                  </div>
+                ) : isAddModalOpen ? (
+                  "Add Product"
+                ) : (
+                  "Update Product"
+                )}
               </button>
-              <button className="btn-cancel" onClick={() => { setIsAddModalOpen(false); setEditingProduct(null); }}>
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setEditingProduct(null);
+                }}
+                disabled={isSubmitting}
+              >
                 Cancel
               </button>
             </div>

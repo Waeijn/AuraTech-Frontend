@@ -511,6 +511,47 @@ body {
   transform: translateY(-1px);
 }
 
+/* --- Page-level Loader Spinner Styles --- */
+.page-loader-wrapper {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Larger spinner style for page loading */
+.page-spinner {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+
+  width: 3rem;
+  height: 3rem;
+  border-width: 5px;
+
+  border-color: rgba(0, 151, 167, 0.25);
+  border-top-color: var(--color-accent);
+
+  border-radius: 50%;
+  margin-bottom: 15px;
+}
+
+.page-loader-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.details-card.loading-state {
+  min-height: 400px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
 /* Responsive Adjustments */
 
 /* Tablets */

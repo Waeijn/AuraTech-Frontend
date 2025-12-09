@@ -15,7 +15,7 @@ const ProductList = () => {
   // Main product list state
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
@@ -38,19 +38,22 @@ const ProductList = () => {
         setLoading(true);
 
         const response = await productService.getAll({ per_page: 100 });
-        const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
-        
-        const mappedProducts = data.map(p => ({
+        const data = Array.isArray(response.data)
+          ? response.data
+          : response.data?.data || [];
+
+        const mappedProducts = data.map((p) => ({
           ...p,
           id: p.id,
           name: p.name,
           price: parseFloat(p.price),
           category: p.category?.name || p.category || "Uncategorized",
-          image: p.images?.[0]?.url || p.image || "/img/products/placeholder.png",
+          image:
+            p.images?.[0]?.url || p.image || "/img/products/placeholder.png",
           description: p.description,
-          stock: p.stock
+          stock: p.stock,
         }));
-        
+
         setProducts(mappedProducts);
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -140,21 +143,34 @@ const ProductList = () => {
   const searchTerm = queryParams.get("search")?.toLowerCase() || "";
 
   const handleClearSearch = () => {
-    navigate(location.pathname); 
+    navigate(location.pathname);
   };
 
   // List of categories
   const categories = [
-    "All", "Gaming Laptops", "Smartphones", "Smartwatches", "Audio",
-    "Mouse & Keyboards", "Monitors", "Cameras", "Gaming Chairs",
-    "Game Consoles", "Microphones", "Stands & Mounts", "PC Components", "Accessories",
+    "All",
+    "Gaming Laptops",
+    "Smartphones",
+    "Smartwatches",
+    "Audio",
+    "Mouse & Keyboards",
+    "Monitors",
+    "Cameras",
+    "Gaming Chairs",
+    "Game Consoles",
+    "Microphones",
+    "Stands & Mounts",
+    "PC Components",
+    "Accessories",
   ];
 
   // Filter products by category and search term
   const filteredProducts = products.filter((p) => {
-    const matchesCategory = selectedCategory === "All" || 
-        (p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
-        
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (p.category &&
+        p.category.toLowerCase() === selectedCategory.toLowerCase());
+
     const matchesSearch =
       p.name.toLowerCase().includes(searchTerm) ||
       (p.category && p.category.toLowerCase().includes(searchTerm)) ||
@@ -173,8 +189,12 @@ const ProductList = () => {
           <h2>Login Required</h2>
           <p>You must be logged in to add items to your cart.</p>
           <div className="modal-actions">
-            <button className="btn-main" onClick={handleLoginRedirect}>Login</button>
-            <button className="btn-cancel" onClick={handleCloseAuthPrompt}>Stay on Page</button>
+            <button className="btn-main" onClick={handleLoginRedirect}>
+              Login
+            </button>
+            <button className="btn-cancel" onClick={handleCloseAuthPrompt}>
+              Stay on Page
+            </button>
           </div>
         </div>
       </div>
@@ -186,18 +206,54 @@ const ProductList = () => {
           <p>{modalProduct?.name}</p>
 
           <div className="quantity-controls">
-            <button className="quantity-btn" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1 || addingToCart}>-</button>
-            <input type="number" min="1" max={maxQtyAllowed} value={quantity} onChange={handleManualQuantityChange} className="quantity-input-field" disabled={maxQtyAllowed === 0 || addingToCart} />
-            <button className="quantity-btn" onClick={() => handleQuantityChange(1)} disabled={quantity >= maxQtyAllowed || maxQtyAllowed === 0 || addingToCart}>+</button>
+            <button
+              className="quantity-btn"
+              onClick={() => handleQuantityChange(-1)}
+              disabled={quantity <= 1 || addingToCart}
+            >
+              -
+            </button>
+            <input
+              type="number"
+              min="1"
+              max={maxQtyAllowed}
+              value={quantity}
+              onChange={handleManualQuantityChange}
+              className="quantity-input-field"
+              disabled={maxQtyAllowed === 0 || addingToCart}
+            />
+            <button
+              className="quantity-btn"
+              onClick={() => handleQuantityChange(1)}
+              disabled={
+                quantity >= maxQtyAllowed || maxQtyAllowed === 0 || addingToCart
+              }
+            >
+              +
+            </button>
           </div>
 
-          <p className="modal-stock-info">Max available to add: {maxQtyAllowed}</p>
+          <p className="modal-stock-info">
+            Max available to add: {maxQtyAllowed}
+          </p>
 
           <div className="modal-actions">
-            <button className="btn-main" onClick={handleFinalAddToCart} disabled={quantity > maxQtyAllowed || maxQtyAllowed === 0 || addingToCart}>
+            <button
+              className="btn-main"
+              onClick={handleFinalAddToCart}
+              disabled={
+                quantity > maxQtyAllowed || maxQtyAllowed === 0 || addingToCart
+              }
+            >
               {addingToCart ? "Adding..." : `Add ${quantity} to Cart`}
             </button>
-            <button className="btn-cancel" onClick={handleCloseModal} disabled={addingToCart}>Cancel</button>
+            <button
+              className="btn-cancel"
+              onClick={handleCloseModal}
+              disabled={addingToCart}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </div>
@@ -210,17 +266,27 @@ const ProductList = () => {
           <>
             <div className="product-header">
               <h1 className="product-title">Our Products</h1>
-              <p className="product-subtitle">Explore AuraTech's next-gen gaming gear — engineered for power,
-                precision, and performance.</p>
+              <p className="product-subtitle">
+                Explore AuraTech's next-gen gaming gear — engineered for power,
+                precision, and performance.
+              </p>
               <div className="divider"></div>
-              
+
               {/* Show search term if present */}
               {searchTerm && (
-                <div style={{ marginTop: "10px", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px" }}>
+                <div
+                  style={{
+                    marginTop: "10px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
                   <p className="search-results-msg" style={{ margin: 0 }}>
                     Showing results for: <strong>{searchTerm}</strong>
                   </p>
-                  <button 
+                  <button
                     onClick={handleClearSearch}
                     style={{
                       background: "none",
@@ -230,7 +296,7 @@ const ProductList = () => {
                       padding: "4px 12px",
                       cursor: "pointer",
                       fontSize: "0.85rem",
-                      fontWeight: "bold"
+                      fontWeight: "bold",
                     }}
                   >
                     Clear ✕
@@ -242,7 +308,13 @@ const ProductList = () => {
             {/* Category Filter Buttons */}
             <div className="category-filter">
               {categories.map((cat) => (
-                <button key={cat} className={`category-btn ${selectedCategory === cat ? "active" : ""}`} onClick={() => setSelectedCategory(cat)}>
+                <button
+                  key={cat}
+                  className={`category-btn ${
+                    selectedCategory === cat ? "active" : ""
+                  }`}
+                  onClick={() => setSelectedCategory(cat)}
+                >
                   {cat}
                 </button>
               ))}
@@ -251,16 +323,33 @@ const ProductList = () => {
             {/* Product Grid */}
             <div className="product-grid">
               {loading ? (
-                 <p style={{ gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>Loading products...</p>
+                <div className="page-loader-wrapper">
+                  <div className="page-spinner"></div>
+                  <span className="page-loader-text">Loading products...</span>
+                </div>
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} onViewDetails={() => setSelectedProduct(product)} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetails={() => setSelectedProduct(product)}
+                  />
                 ))
               ) : (
-                <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: "20px" }}>
+                <div
+                  style={{
+                    gridColumn: "1 / -1",
+                    textAlign: "center",
+                    marginTop: "20px",
+                  }}
+                >
                   <p>No products found for "{searchTerm}".</p>
                   {searchTerm && (
-                    <button onClick={handleClearSearch} className="btn-main" style={{ marginTop: "15px" }}>
+                    <button
+                      onClick={handleClearSearch}
+                      className="btn-main"
+                      style={{ marginTop: "15px" }}
+                    >
                       Clear Search & Show All
                     </button>
                   )}

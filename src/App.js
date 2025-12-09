@@ -1,6 +1,6 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom"; // Added Outlet
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Navbar, { AuthProvider, useAuth } from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute"; 
+import ProtectedRoute from "./components/ProtectedRoute";
 import Footer from "./components/Footer";
 
 // Pages
@@ -37,21 +37,50 @@ function AppContent() {
   const { loading } = useAuth();
 
   if (loading) {
-    return <div style={{padding: "50px", textAlign: "center"}}>Loading...</div>;
+    return (
+      <div style={{ padding: "50px", textAlign: "center" }}>Loading...</div>
+    );
   }
 
   return (
     <Routes>
       {/* --- ADMIN ROUTES (No Navbar/Footer) --- */}
       {/* These are defined FIRST so they take priority */}
-      <Route path="/admin" element={<ProtectedRoute adminOnly={true}><Dashboard /></ProtectedRoute>} />
-      <Route path="/admin/orders" element={<ProtectedRoute adminOnly={true}><OrderReview /></ProtectedRoute>} />
-      <Route path="/admin/products" element={<ProtectedRoute adminOnly={true}><ProductManagement /></ProtectedRoute>} />
-      <Route path="/admin/users" element={<ProtectedRoute adminOnly={true}><UserManagement /></ProtectedRoute>} />
-      
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/orders"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <OrderReview />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/products"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <ProductManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <UserManagement />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Redirect /admin/* to /admin dashboard to prevent 404s inside admin area */}
       <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
-
 
       {/* --- USER ROUTES (Wrapped in UserLayout) --- */}
       <Route element={<UserLayout />}>
@@ -63,11 +92,39 @@ function AppContent() {
         <Route path="/register" element={<Register />} />
 
         {/* Protected User Routes */}
-        <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-        <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-        <Route path="/purchase-history" element={<ProtectedRoute><PurchaseHistory /></ProtectedRoute>} />
-        <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-        
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/purchase-history"
+          element={
+            <ProtectedRoute>
+              <PurchaseHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Catch-all: Redirect unknown User URLs to Home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
@@ -78,7 +135,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <div className="app-root"><AppContent /></div>
+      <div className="app-root">
+        <AppContent />
+      </div>
     </AuthProvider>
   );
 }

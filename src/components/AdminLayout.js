@@ -1,6 +1,5 @@
 import React from "react";
 import AdminSidebar from "./AdminSidebar";
-// Import the admin-specific styles
 import "../styles/admin.css";
 
 // A wrapper for all admin pages to enforce the dashboard layout

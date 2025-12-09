@@ -23,6 +23,7 @@ const ProductDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // Fetches product details from the API on mount and whenever the ID changes.
   useEffect(() => {
@@ -46,7 +47,6 @@ const ProductDetails = () => {
           const primaryImg = response.data.images?.find(
             (img) => img.is_primary
           );
-          // Set primary or first image as the selected image
           setSelectedImage(
             primaryImg?.url ||
               response.data.images?.[0]?.url ||
@@ -64,7 +64,6 @@ const ProductDetails = () => {
     };
 
     fetchProduct();
-    // Scroll to the top for a clean page transition experience
     window.scrollTo(0, 0);
   }, [id]);
 
@@ -81,22 +80,25 @@ const ProductDetails = () => {
     }
 
     try {
+      setIsAddingToCart(true);
+
       const response = await cartService.add(product.id, quantity);
 
       if (response && response.success) {
         alert(`Added ${quantity} x ${product.name} to cart!`);
         setIsModalOpen(false);
-        setQuantity(1); // Reset quantity after successful add
+        setQuantity(1);
       } else {
         alert(response?.message || "Failed to add to cart");
       }
     } catch (err) {
       console.error("Cart Error:", err);
       alert(err.message || "Error adding item to cart.");
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
-  // Opens the quantity selection modal, checking authentication status first.
   const handleShowModal = () => {
     if (!currentUser) {
       setIsAuthPromptOpen(true);
@@ -106,29 +108,75 @@ const ProductDetails = () => {
     }
   };
 
-  // Closes the auth prompt modal and navigates to the login page.
   const handleLoginRedirect = () => {
     setIsAuthPromptOpen(false);
     navigate("/login");
   };
 
-  // Sets the main display image to the URL of the clicked thumbnail.
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
   };
 
-  // Display loading state
+  // Enhanced loading state with skeleton
   if (loading) {
     return (
       <div className="details-container">
         <div className="details-card">
-          <p>Loading product details...</p>
+          {/* Image skeleton */}
+          <div className="details-image-wrapper">
+            <div
+              className="skeleton-image"
+              style={{ height: "400px", margin: 0 }}
+            ></div>
+          </div>
+
+          {/* Info skeleton */}
+          <div className="details-info">
+            <div
+              className="skeleton-text"
+              style={{ height: "2.2rem", width: "80%", marginBottom: "15px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ height: "0.875rem", width: "40%", marginBottom: "10px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ height: "1.8rem", width: "25%", marginBottom: "20px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ height: "1rem", width: "100%", marginBottom: "10px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ height: "1rem", width: "95%", marginBottom: "10px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ height: "1rem", width: "85%", marginBottom: "20px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ height: "1.2rem", width: "30%", marginBottom: "30px" }}
+            ></div>
+            <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
+              <div
+                className="skeleton-text"
+                style={{ height: "48px", width: "180px", borderRadius: "8px" }}
+              ></div>
+              <div
+                className="skeleton-text"
+                style={{ height: "48px", width: "180px", borderRadius: "8px" }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Display error state (e.g., product not found)
+  // Display error state
   if (error || !product) {
     return (
       <div className="details-container">
@@ -146,7 +194,7 @@ const ProductDetails = () => {
 
   return (
     <div className="details-container">
-      {/* Login Prompt Modal (Shown if 'Add to Cart' is clicked while unauthenticated) */}
+      {/* Login Prompt Modal */}
       <div className={`modal-overlay ${isAuthPromptOpen ? "open" : ""}`}>
         <div className="quantity-modal confirmation-modal">
           <h2>Login Required</h2>
@@ -165,7 +213,7 @@ const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Quantity Selection Modal (Handles adding item to cart) */}
+      {/* Quantity Selection Modal */}
       <div className={`modal-overlay ${isModalOpen ? "open" : ""}`}>
         <div className="quantity-modal">
           <h2>Select Quantity</h2>
@@ -174,7 +222,7 @@ const ProductDetails = () => {
             <button
               className="quantity-btn"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
+              disabled={quantity <= 1 || isAddingToCart}
             >
               -
             </button>
@@ -185,29 +233,39 @@ const ProductDetails = () => {
               value={quantity}
               onChange={(e) => {
                 const val = parseInt(e.target.value) || 1;
-                // Enforce min (1) and max (stock) boundaries on user input
                 setQuantity(Math.min(Math.max(1, val), product.stock));
               }}
               className="quantity-input-field"
+              disabled={isAddingToCart}
             />
             <button
               className="quantity-btn"
               onClick={() => setQuantity(Math.min(quantity + 1, product.stock))}
-              disabled={quantity >= product.stock}
+              disabled={quantity >= product.stock || isAddingToCart}
             >
               +
             </button>
           </div>
-          <p style={{ fontSize: "14px", color: "#666", marginTop: "10px" }}>
-            Max available: {product.stock}
-          </p>
+          <p className="modal-stock-info">Max available: {product.stock}</p>
           <div className="modal-actions">
-            <button className="btn-main" onClick={handleFinalAddToCart}>
-              Add to Cart
+            <button
+              className="btn-main"
+              onClick={handleFinalAddToCart}
+              disabled={isAddingToCart}
+            >
+              {isAddingToCart ? (
+                <div className="button-content-wrapper">
+                  <span className="button-spinner"></span>
+                  Adding...
+                </div>
+              ) : (
+                `Add ${quantity} to Cart`
+              )}
             </button>
             <button
               className="btn-cancel"
               onClick={() => setIsModalOpen(false)}
+              disabled={isAddingToCart}
             >
               Cancel
             </button>
@@ -283,7 +341,7 @@ const ProductDetails = () => {
           {/* Price */}
           <p className="details-price">
             ₱
-            {(product.price).toLocaleString(undefined, {
+            {product.price.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -317,7 +375,7 @@ const ProductDetails = () => {
                 marginBottom: "15px",
               }}
             >
-               Featured Product
+              Featured Product
             </span>
           )}
 

@@ -1,33 +1,30 @@
-// src/config/api.js
-
-// This MUST match the port you saw in 'docker ps' (8082)
-export const API_BASE_URL = 'http://localhost:8082/api';
+export const API_BASE_URL = "http://localhost:8082/api";
 
 export const API_ENDPOINTS = {
   // Auth
-  REGISTER: '/register',
-  LOGIN: '/login',
-  LOGOUT: '/logout',
-  ME: '/me',
-  
+  REGISTER: "/register",
+  LOGIN: "/login",
+  LOGOUT: "/logout",
+  ME: "/me",
+
   // Products
-  PRODUCTS: '/products',
+  PRODUCTS: "/products",
   PRODUCT_DETAIL: (id) => `/products/${id}`,
-  
+
   // Categories
-  CATEGORIES: '/categories',
+  CATEGORIES: "/categories",
   CATEGORY_DETAIL: (id) => `/categories/${id}`,
-  
+
   // Cart
-  CART: '/cart',
-  CART_ADD: '/cart/add',
+  CART: "/cart",
+  CART_ADD: "/cart/add",
   CART_UPDATE: (id) => `/cart/items/${id}`,
   CART_REMOVE: (id) => `/cart/items/${id}`,
-  CART_CLEAR: '/cart/clear',
-  
+  CART_CLEAR: "/cart/clear",
+
   // Orders
-  ORDERS: '/orders',
+  ORDERS: "/orders",
   ORDER_DETAIL: (id) => `/orders/${id}`,
-  CHECKOUT: '/orders/checkout',
+  CHECKOUT: "/orders/checkout",
   CANCEL_ORDER: (id) => `/orders/${id}/cancel`,
 };

@@ -88,6 +88,17 @@
   padding: 3rem;
 }
 
+/* For Chrome, Safari and Opera */
+.auth-form-panel::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE and Edge */
+.auth-form-panel {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 /* Container for the form content, controlling max width for readability */
 .auth-container {
   width: 100%;

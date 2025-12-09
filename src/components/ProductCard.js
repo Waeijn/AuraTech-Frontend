@@ -29,10 +29,16 @@ export default function ProductCard({ product }) {
   return (
     <div className="product-card">
       <div className="product-image-wrapper">
-        <img 
-          src={product.image || product.images?.[0]?.url || "/img/products/placeholder.png"} 
+        <img
+          src={
+            product.image ||
+            product.images?.[0]?.url ||
+            "/img/products/placeholder.png"
+          }
           alt={product.name}
-          onError={(e) => { e.target.src = "/img/products/placeholder.png" }}
+          onError={(e) => {
+            e.target.src = "/img/products/placeholder.png";
+          }}
         />
       </div>
 
