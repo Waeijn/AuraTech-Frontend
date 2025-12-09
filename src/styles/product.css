@@ -513,11 +513,11 @@ body {
 
 /* --- Page-level Loader Spinner Styles --- */
 .page-loader-wrapper {
-  grid-column: 1 / -1; /* Ensures it spans the entire product grid width */
+  grid-column: 1 / -1;
   text-align: center;
   padding: 5rem 2rem;
   display: flex;
-  flex-direction: column; /* Stack spinner and text vertically */
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;

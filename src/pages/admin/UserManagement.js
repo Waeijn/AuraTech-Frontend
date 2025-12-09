@@ -95,14 +95,14 @@ export default function UserManagement() {
 
     if (window.confirm(`Are you sure you want to delete user: ${userEmail}?`)) {
       try {
-        setIsDeletingId(userId); // Start spinner
+        setIsDeletingId(userId);
         await api.delete(`/users/${userId}`);
         const updatedUsers = users.filter((user) => user.email !== userEmail);
         setUsers(updatedUsers);
       } catch (error) {
         alert("Failed to delete user.");
       } finally {
-        setIsDeletingId(null); // Stop spinner
+        setIsDeletingId(null);
       }
     }
   };
@@ -126,10 +126,9 @@ export default function UserManagement() {
     };
 
     try {
-      setIsUpdatingId(userId); // Start spinner
+      setIsUpdatingId(userId);
       await api.put(`/users/${userId}`, payload);
 
-      // Update UI
       const updatedUsers = users.map((user) =>
         user.email === userEmail ? { ...user, role: newRole } : user
       );
@@ -138,7 +137,7 @@ export default function UserManagement() {
       console.error("Role Update Error:", error);
       alert("Failed. Check console.");
     } finally {
-      setIsUpdatingId(null); // Stop spinner
+      setIsUpdatingId(null);
     }
   };
 

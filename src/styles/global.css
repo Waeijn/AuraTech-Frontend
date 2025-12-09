@@ -141,10 +141,6 @@ textarea:focus {
   background: #ffffff;
 }
 
-/* ========================================
-   ENHANCED LOADING STATES
-   ======================================== */
-
 /* Button Spinner */
 .spinner,
 .button-spinner {

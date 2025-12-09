@@ -24,12 +24,10 @@ const OrderReviewRowSkeleton = ({ columns = 7 }) => (
 // Skeleton component for the summary stats cards
 const OrderReviewCardSkeleton = () => (
   <div className="admin-card skeleton-card">
-    {/* Title Skeleton */}
     <div
       className="skeleton-text"
       style={{ width: "60%", height: "1.2rem", marginBottom: "10px" }}
     ></div>
-    {/* Value Skeleton */}
     <div
       className="skeleton-text"
       style={{ width: "40%", height: "2rem" }}
@@ -85,10 +83,25 @@ export default function OrderReview() {
     return matchesFilter && matchesSearch;
   });
 
+  /**
+   * UPDATED: Checks if order status can be changed
+   * Completed and cancelled orders are locked
+   */
+  const isStatusLocked = (status) => {
+    const s = (status || "").toLowerCase();
+    return s === "completed" || s === "cancelled";
+  };
+
   /** Updates order status in the backend and instantly updates UI. */
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusChange = async (orderId, newStatus, currentStatus) => {
+    //  Prevent changing completed/cancelled orders
+    if (isStatusLocked(currentStatus)) {
+      alert("Cannot change status of completed or cancelled orders.");
+      return;
+    }
+
     try {
-      setIsUpdatingId(orderId); // Start spinner on the select element
+      setIsUpdatingId(orderId);
 
       await api.put(`/orders/${orderId}`, { status: newStatus });
 
@@ -98,26 +111,39 @@ export default function OrderReview() {
       );
       setOrders(updatedOrders);
     } catch (error) {
+      console.error("Status update error:", error);
       alert("Failed to update status.");
     } finally {
-      setIsUpdatingId(null); // Stop spinner
+      setIsUpdatingId(null);
     }
   };
 
-  /** Deletes an order permanently after confirmation. */
-  const handleDeleteOrder = async (orderId) => {
+  /**
+   *  UPDATED: Prevents deletion of completed orders
+   */
+  const handleDeleteOrder = async (orderId, status) => {
+    //  Prevent deleting completed orders
+    if ((status || "").toLowerCase() === "completed") {
+      alert(
+        "Cannot delete completed orders. Please cancel the order first if needed."
+      );
+      return;
+    }
+
     if (window.confirm("Are you sure you want to delete this order?")) {
       try {
-        setIsDeletingId(orderId); // Start spinner on the delete button
+        setIsDeletingId(orderId);
         await api.delete(`/orders/${orderId}`);
 
         // Remove order from UI
         const updatedOrders = orders.filter((order) => order.id !== orderId);
         setOrders(updatedOrders);
+        alert("Order deleted successfully.");
       } catch (error) {
+        console.error("Delete error:", error);
         alert("Failed to delete order.");
       } finally {
-        setIsDeletingId(null); // Stop spinner
+        setIsDeletingId(null);
       }
     }
   };
@@ -144,7 +170,6 @@ export default function OrderReview() {
   if (loading) {
     return (
       <AdminLayout>
-        {/* Skeleton Page Header */}
         <div className="admin-page-header">
           <div
             className="skeleton-text"
@@ -156,7 +181,6 @@ export default function OrderReview() {
           ></div>
         </div>
 
-        {/* Skeleton Filter/Search Controls (Inputs) */}
         <div className="admin-controls">
           <div className="filter-group">
             <label className="skeleton-text" style={{ width: "100px" }}>
@@ -176,7 +200,6 @@ export default function OrderReview() {
           </div>
         </div>
 
-        {/* Skeleton Table */}
         <div className="admin-table-container">
           <table className="admin-table skeleton-table">
             <thead>
@@ -198,7 +221,6 @@ export default function OrderReview() {
           </table>
         </div>
 
-        {/* Skeleton Statistics Cards */}
         <div
           className="admin-grid"
           style={{
@@ -219,13 +241,11 @@ export default function OrderReview() {
 
   return (
     <AdminLayout>
-      {/* Page Header */}
       <div className="admin-page-header">
         <h1>Order Review</h1>
         <p>Manage and track all customer orders</p>
       </div>
 
-      {/* Filter + Search Controls */}
       <div className="admin-controls">
         <div className="filter-group">
           <label>Filter by Status:</label>
@@ -253,7 +273,6 @@ export default function OrderReview() {
         </div>
       </div>
 
-      {/* Orders Table */}
       <div className="admin-table-container">
         {filteredOrders.length === 0 ? (
           <div className="empty-state">
@@ -277,17 +296,24 @@ export default function OrderReview() {
               {filteredOrders.map((order) => {
                 const userName = order.user?.name || order.userName || "Guest";
                 const userEmail = order.user?.email || order.userEmail || "N/A";
-                const total = order.total_amount || order.total || 0;
+                const total = order.total || 0;
                 const itemsCount = order.items ? order.items.length : 0;
                 const isUpdating = isUpdatingId === order.id;
                 const isDeleting = isDeletingId === order.id;
+                const locked = isStatusLocked(order.status); // ✅ Check if locked
 
                 return (
                   <tr key={order.id}>
-                    <td>#{order.id}</td>
+                    <td>#{order.order_number || order.id}</td>
                     <td>{userName}</td>
                     <td>{userEmail}</td>
-                    <td className="price-cell">₱{total.toLocaleString()}</td>
+                    <td className="price-cell">
+                      ₱
+                      {(total / 100).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
                     <td>{itemsCount} item(s)</td>
 
                     {/* Status Badge */}
@@ -299,6 +325,12 @@ export default function OrderReview() {
                         }}
                       >
                         {order.status}
+                        {locked && (
+                          <span
+                            style={{ marginLeft: "5px" }}
+                            title="Status locked"
+                          ></span>
+                        )}
                       </span>
                     </td>
 
@@ -312,28 +344,64 @@ export default function OrderReview() {
                           gap: "5px",
                         }}
                       >
-                        {/* Update order status */}
-                        <select
-                          value={order.status}
-                          onChange={(e) =>
-                            handleStatusChange(order.id, e.target.value)
-                          }
-                          className="status-select"
-                          disabled={isUpdating || isDeleting}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
+                        {locked ? (
+                          <span
+                            style={{
+                              fontSize: "0.85rem",
+                              color: "#888",
+                              fontStyle: "italic",
+                              padding: "6px 12px",
+                            }}
+                          >
+                            Status Locked
+                          </span>
+                        ) : (
+                          <select
+                            value={order.status}
+                            onChange={(e) =>
+                              handleStatusChange(
+                                order.id,
+                                e.target.value,
+                                order.status
+                              )
+                            }
+                            className="status-select"
+                            disabled={isUpdating || isDeleting}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        )}
 
                         {/* Delete order */}
                         <button
-                          onClick={() => handleDeleteOrder(order.id)}
+                          onClick={() =>
+                            handleDeleteOrder(order.id, order.status)
+                          }
                           className="btn-delete"
-                          title="Delete Order"
-                          disabled={isDeleting || isUpdating}
-                          style={{ minWidth: "40px" }} // Ensure button doesn't collapse when loading
+                          title={
+                            (order.status || "").toLowerCase() === "completed"
+                              ? "Cannot delete completed orders"
+                              : "Delete Order"
+                          }
+                          disabled={
+                            isDeleting ||
+                            isUpdating ||
+                            (order.status || "").toLowerCase() === "completed"
+                          }
+                          style={{
+                            minWidth: "40px",
+                            opacity:
+                              (order.status || "").toLowerCase() === "completed"
+                                ? 0.5
+                                : 1,
+                            cursor:
+                              (order.status || "").toLowerCase() === "completed"
+                                ? "not-allowed"
+                                : "pointer",
+                          }}
                         >
                           {isDeleting ? (
                             <span className="button-spinner"></span>

@@ -22,7 +22,6 @@ const getShippingInfo = (email) => {
 
 /**
  * Saves the shipping information for a given user email to local storage.
- * UPDATED: Saves all five fields.
  */
 const saveShippingInfo = (email, data) => {
   const key = SHIPPING_KEY_PREFIX + email;
@@ -59,7 +58,7 @@ export default function Account() {
         city: info.city || "",
         state: info.state || "",
         zip: info.zip || "",
-        phone: info.phone || "", // NEW: Load phone data
+        phone: info.phone || "",
       });
     }
 
@@ -98,7 +97,7 @@ export default function Account() {
   };
 
   const handleSave = () => {
-    const { address, city, state, zip, phone } = formData; // NEW: Destructure phone
+    const { address, city, state, zip, phone } = formData;
 
     // UPDATED VALIDATION
     if (!address.trim() || !city.trim() || !state.trim()) {
@@ -113,7 +112,7 @@ export default function Account() {
         city: city.trim(),
         state: state.trim(),
         zip: zip.trim(),
-        phone: phone.trim(), // NEW: Save phone data
+        phone: phone.trim(),
       });
       // Update local state
       setFormData({
@@ -121,14 +120,13 @@ export default function Account() {
         city: city.trim(),
         state: state.trim(),
         zip: zip.trim(),
-        phone: phone.trim(), // NEW: Update phone state
+        phone: phone.trim(),
       });
     }
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    // Reset form data to the stored information
     const info = getShippingInfo(currentUser.email);
     setFormData(info);
     setIsEditing(false);
@@ -178,7 +176,7 @@ export default function Account() {
     </section>
   );
 
-  // Skeleton component for the Shipping Card (Updated to account for 5 fields)
+  // Skeleton component for the Shipping Card
   const ShippingCardSkeleton = () => (
     <section className="shipping-card skeleton-card">
       <h2>
@@ -363,7 +361,6 @@ export default function Account() {
             </div>
           ) : (
             <div className="shipping-static">
-              {/* UPDATED STATIC DISPLAY */}
               <p>
                 <strong>Mobile:</strong>{" "}
                 {formData.phone || <span className="not-set">Not set</span>}

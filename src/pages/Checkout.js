@@ -12,7 +12,6 @@ const SHIPPING_KEY_PREFIX = "shippingInfo_";
 const getShippingInfo = (email) => {
   const key = SHIPPING_KEY_PREFIX + email;
   const stored = localStorage.getItem(key);
-  // Ensure all 5 fields are included in the retrieval structure
   return stored
     ? JSON.parse(stored)
     : { address: "", city: "", state: "", zip: "", phone: "" };
@@ -60,7 +59,6 @@ export default function Checkout() {
     if (currentUser) {
       const shippingInfo = getShippingInfo(currentUser.email);
 
-      // CRITICAL CHECK: Ensure all 4 required fields (Address, City, State, Phone) are set in storage
       const requiredFields = [
         shippingInfo.address,
         shippingInfo.city,
@@ -127,7 +125,7 @@ export default function Checkout() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // NEW: Handler to save TEMPORARY shipping address (does NOT save to permanent storage)
+  // Handler to save TEMPORARY shipping address (does NOT save to permanent storage)
   const handleToggleShippingEdit = () => {
     if (isShippingEditing) {
       // If they click 'Save Address'

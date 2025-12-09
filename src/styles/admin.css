@@ -157,7 +157,7 @@ body.admin-page {
   border-radius: var(--radius);
   padding: 25px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  border-left: 5px solid var(--color-accent); /* Accent border on the left */
+  border-left: 5px solid var(--color-accent);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -199,7 +199,7 @@ body.admin-page {
 }
 
 .admin-table .skeleton-row:hover {
-  background-color: var(--color-surface); /* Prevent hover effect */
+  background-color: var(--color-surface);
 }
 
 .admin-table .skeleton-row td .skeleton-text {
@@ -278,7 +278,7 @@ body.admin-page {
     top: 0;
     left: 0;
     bottom: 0;
-    z-index: 999; /* Lower than toggle button */
+    z-index: 999;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
   }
 

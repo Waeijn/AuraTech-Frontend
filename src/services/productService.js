@@ -1,8 +1,7 @@
-import { api } from '../utils/api';
-import { API_ENDPOINTS } from '../config/api';
+import { api } from "../utils/api";
+import { API_ENDPOINTS } from "../config/api";
 
 export const productService = {
-
   // Retrieve all products with optional query parameters (e.g., pagination, filters)
   getAll: (params) => {
     const query = new URLSearchParams(params).toString();
@@ -21,4 +20,3 @@ export const productService = {
   // Delete a product by its ID
   delete: (id) => api.delete(API_ENDPOINTS.PRODUCT_DETAIL(id)),
 };
-

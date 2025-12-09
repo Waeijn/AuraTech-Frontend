@@ -17,7 +17,6 @@ import { getUser, logout as performLogout } from "../utils/auth";
 const AuthContext = createContext();
 
 // Global authentication manager using API + local storage.
-
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +35,10 @@ export function AuthProvider({ children }) {
       await authService.register(userData);
       return { success: true, message: "Registration successful!" };
     } catch (error) {
-      return { success: false, message: error.message || "Registration failed" };
+      return {
+        success: false,
+        message: error.message || "Registration failed",
+      };
     }
   };
 
@@ -47,14 +49,17 @@ export function AuthProvider({ children }) {
       setCurrentUser(user);
       return { success: true, message: "Login successful!" };
     } catch (error) {
-      return { success: false, message: error.message || "Invalid credentials" };
+      return {
+        success: false,
+        message: error.message || "Invalid credentials",
+      };
     }
   };
 
   // Clears both API session and local storage
   const logout = () => {
-    authService.logout(); // API call
-    performLogout();      // Clear local storage
+    authService.logout();
+    performLogout();
     setCurrentUser(null);
   };
 
@@ -149,12 +154,15 @@ export default function Navbar() {
     const fetchSearchData = async () => {
       try {
         const response = await productService.getAll();
-        const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
-        
-        const normalized = data.map(p => ({
+        const data = Array.isArray(response.data)
+          ? response.data
+          : response.data?.data || [];
+
+        const normalized = data.map((p) => ({
           id: p.id,
           name: p.name,
-          image: p.images?.[0]?.url || p.image || "/img/products/placeholder.png"
+          image:
+            p.images?.[0]?.url || p.image || "/img/products/placeholder.png",
         }));
 
         setProducts(normalized);
@@ -189,7 +197,10 @@ export default function Navbar() {
   useEffect(() => {
     if (location.pathname === "/products") {
       if (debouncedSearchTerm.trim() !== "") {
-        navigate(`/products?search=${encodeURIComponent(debouncedSearchTerm)}`, { replace: true });
+        navigate(
+          `/products?search=${encodeURIComponent(debouncedSearchTerm)}`,
+          { replace: true }
+        );
       }
     }
   }, [location.pathname, debouncedSearchTerm, navigate]);
@@ -201,13 +212,18 @@ export default function Navbar() {
     } else {
       document.body.style.overflow = "unset";
     }
-    return () => { document.body.style.overflow = "unset"; };
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isMenuOpen]);
 
   // Close dropdowns & search when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
-      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+      if (
+        searchWrapperRef.current &&
+        !searchWrapperRef.current.contains(e.target)
+      ) {
         setResults([]);
       }
       if (!e.target.closest(".user-dropdown")) {
@@ -232,8 +248,12 @@ export default function Navbar() {
             <h2>Login Required</h2>
             <p>You must be logged in to view your cart.</p>
             <div className="modal-actions">
-              <button className="btn-main" onClick={handleLoginRedirect}>Login</button>
-              <button className="btn-cancel" onClick={handleCloseAuthPrompt}>Stay on Page</button>
+              <button className="btn-main" onClick={handleLoginRedirect}>
+                Login
+              </button>
+              <button className="btn-cancel" onClick={handleCloseAuthPrompt}>
+                Stay on Page
+              </button>
             </div>
           </div>
         </div>
@@ -244,11 +264,25 @@ export default function Navbar() {
         <div className="navbar__container">
           {/* Brand */}
           <div className="navbar__brand">
-            <img src="/img/logo/LOGO.png" alt="Logo" className="navbar__logo-img" />
-            <Link to="/" className="navbar__brand-text" onClick={handleLinkClick}>AuraTech</Link>
+            <img
+              src="/img/logo/LOGO.png"
+              alt="Logo"
+              className="navbar__logo-img"
+            />
+            <Link
+              to="/"
+              className="navbar__brand-text"
+              onClick={handleLinkClick}
+            >
+              AuraTech
+            </Link>
           </div>
 
-          <div className="navbar__search-wrapper" ref={searchWrapperRef} position="relative">
+          <div
+            className="navbar__search-wrapper"
+            ref={searchWrapperRef}
+            position="relative"
+          >
             <form className="navbar__search" onSubmit={handleSearch}>
               <input
                 type="text"
@@ -257,14 +291,27 @@ export default function Navbar() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <button type="submit" className="search-btn">Search</button>
+              <button type="submit" className="search-btn">
+                Search
+              </button>
             </form>
 
             {results.length > 0 && (
-              <ul className="search-results-dropdown" onMouseDown={(e) => e.preventDefault()}>
+              <ul
+                className="search-results-dropdown"
+                onMouseDown={(e) => e.preventDefault()}
+              >
                 {results.map((product) => (
-                  <li key={product.id} className="search-item" onClick={() => handleSelectProduct(product)}>
-                    <img src={product.image} alt={product.name} className="search-thumb" />
+                  <li
+                    key={product.id}
+                    className="search-item"
+                    onClick={() => handleSelectProduct(product)}
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="search-thumb"
+                    />
                     <span className="search-name">{product.name}</span>
                   </li>
                 ))}
@@ -273,26 +320,66 @@ export default function Navbar() {
           </div>
 
           <nav className={`navbar__links ${isMenuOpen ? "is-open" : ""}`}>
-            <Link to="/" className="nav-link" onClick={handleLinkClick}>Home</Link>
-            <Link to="/products" className="nav-link" onClick={handleLinkClick}>Products</Link>
-            <Link to="/cart" className="nav-link" onClick={handleCartClick}>Cart</Link>
+            <Link to="/" className="nav-link" onClick={handleLinkClick}>
+              Home
+            </Link>
+            <Link to="/products" className="nav-link" onClick={handleLinkClick}>
+              Products
+            </Link>
+            <Link to="/cart" className="nav-link" onClick={handleCartClick}>
+              Cart
+            </Link>
 
             {!currentUser ? (
               <>
-                <Link to="/login" className="nav-link" onClick={handleLinkClick}>Login</Link>
-                <Link to="/register" className="nav-link" onClick={handleLinkClick}>Register</Link>
+                <Link
+                  to="/login"
+                  className="nav-link"
+                  onClick={handleLinkClick}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="nav-link"
+                  onClick={handleLinkClick}
+                >
+                  Register
+                </Link>
               </>
             ) : (
               <div className="user-dropdown">
-                <button className="user-dropdown-toggle" onClick={() => setShowDropdown((prev) => !prev)}>
-                  Hello, {currentUser.name} <span style={{ fontSize: "0.8rem" }}>▼</span>
+                <button
+                  className="user-dropdown-toggle"
+                  onClick={() => setShowDropdown((prev) => !prev)}
+                >
+                  Hello, {currentUser.name}{" "}
+                  <span style={{ fontSize: "0.8rem" }}>▼</span>
                 </button>
 
                 {showDropdown && (
                   <ul className="user-dropdown-menu">
-                    <li><Link to="/account" onClick={handleLinkClick}>My Account</Link></li>
-                    <li><Link to="/purchase-history" onClick={handleLinkClick}>My Purchase</Link></li>
-                    <li><button className="logout-btn" onClick={() => { handleLogout(); handleLinkClick(); }}>Logout</button></li>
+                    <li>
+                      <Link to="/account" onClick={handleLinkClick}>
+                        My Account
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/purchase-history" onClick={handleLinkClick}>
+                        My Purchase
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        className="logout-btn"
+                        onClick={() => {
+                          handleLogout();
+                          handleLinkClick();
+                        }}
+                      >
+                        Logout
+                      </button>
+                    </li>
                   </ul>
                 )}
               </div>
@@ -300,7 +387,10 @@ export default function Navbar() {
 
             {/* Mobile Search */}
             {isMenuOpen && (
-              <div className="navbar__search-wrapper mobile-search-wrapper" position="relative">
+              <div
+                className="navbar__search-wrapper mobile-search-wrapper"
+                position="relative"
+              >
                 <form className="navbar__search" onSubmit={handleSearch}>
                   <input
                     type="text"
@@ -309,7 +399,9 @@ export default function Navbar() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <button type="submit" className="search-btn">Search</button>
+                  <button type="submit" className="search-btn">
+                    Search
+                  </button>
                 </form>
               </div>
             )}

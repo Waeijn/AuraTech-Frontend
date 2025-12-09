@@ -47,15 +47,46 @@ export default function PurchaseHistory() {
   const [allHistory, setAllHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Define status categories - IMPROVED STATUS HANDLING
+  const ACTIVE_STATUSES = [
+    "for shipping",
+    "pending",
+    "processing",
+    "confirmed",
+    "preparing",
+    "shipped",
+  ];
+  const COMPLETED_STATUSES = [
+    "delivered",
+    "cancelled",
+    "completed",
+    "refunded",
+  ];
+
   // Fetch Purchase History
   const refreshHistory = useCallback(async () => {
     if (currentUser) {
       try {
         setLoading(true);
         const response = await orderService.getAll();
-        setAllHistory(response.data || []);
+        const orders = response.data || [];
+        setAllHistory(orders);
+
+        const allStatuses = orders
+          .map((o) => o.status?.toLowerCase()?.trim())
+          .filter(Boolean);
+        const uniqueStatuses = [...new Set(allStatuses)];
+        const uncategorized = uniqueStatuses.filter(
+          (status) =>
+            !ACTIVE_STATUSES.includes(status) &&
+            !COMPLETED_STATUSES.includes(status)
+        );
+
+        if (uncategorized.length > 0) {
+          console.warn("⚠️ Uncategorized order statuses found:", uncategorized);
+        }
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching order history:", error);
       } finally {
         setLoading(false);
       }
@@ -68,7 +99,7 @@ export default function PurchaseHistory() {
 
   // Cancel Order
   const handleCancelOrder = async (orderId) => {
-    if (window.confirm("Are you sure you want to cancel?")) {
+    if (window.confirm("Are you sure you want to cancel this order?")) {
       try {
         await orderService.cancel(orderId);
         alert("Order cancelled successfully.");
@@ -81,14 +112,21 @@ export default function PurchaseHistory() {
     }
   };
 
+  // Helper to normalize status
+  const normalizeStatus = (status) => {
+    return status?.toLowerCase()?.trim() || "";
+  };
+
+  // Helper functions
   const formatPrice = (amt) =>
     Number(amt).toLocaleString("en-PH", { style: "currency", currency: "PHP" });
+
   const formatDate = (date) =>
     date
       ? new Date(date).toLocaleDateString()
       : new Date().toLocaleDateString();
 
-  // Loading State - IMPLEMENTED SKELETON LOADER
+  // Loading State - SKELETON LOADER
   if (loading) {
     return (
       <div className="purchase-history-container">
@@ -152,12 +190,22 @@ export default function PurchaseHistory() {
 
   // Split Orders by Status
   const activeOrders = allHistory.filter((o) =>
-    ["for shipping", "pending", "processing"].includes(o.status?.toLowerCase())
+    ACTIVE_STATUSES.includes(normalizeStatus(o.status))
   );
 
   const completedOrders = allHistory.filter((o) =>
-    ["delivered", "cancelled"].includes(o.status?.toLowerCase())
+    COMPLETED_STATUSES.includes(normalizeStatus(o.status))
   );
+
+  // Catch any orders with unexpected statuses
+  const uncategorizedOrders = allHistory.filter((o) => {
+    const status = normalizeStatus(o.status);
+    return (
+      status &&
+      !ACTIVE_STATUSES.includes(status) &&
+      !COMPLETED_STATUSES.includes(status)
+    );
+  });
 
   // Render
   return (
@@ -191,13 +239,15 @@ export default function PurchaseHistory() {
                 </td>
                 <td data-label="Status">
                   <span
-                    className={`status-tag status-${order.status?.toLowerCase()}`}
+                    className={`status-tag status-${normalizeStatus(
+                      order.status
+                    )}`}
                   >
                     {order.status}
                   </span>
                 </td>
                 <td data-label="Actions">
-                  {(order.status || "").toLowerCase() === "pending" ? (
+                  {normalizeStatus(order.status) === "pending" ? (
                     <button
                       className="btn-cancel-order"
                       onClick={() => handleCancelOrder(order.id)}
@@ -259,7 +309,9 @@ export default function PurchaseHistory() {
                 </td>
                 <td data-label="Status">
                   <span
-                    className={`status-tag status-${order.status?.toLowerCase()}`}
+                    className={`status-tag status-${normalizeStatus(
+                      order.status
+                    )}`}
                   >
                     {order.status}
                   </span>
@@ -270,6 +322,48 @@ export default function PurchaseHistory() {
         </table>
       ) : (
         <p className="empty-state-text">No completed history.</p>
+      )}
+
+      {/* UNCATEGORIZED ORDERS - For debugging */}
+      {uncategorizedOrders.length > 0 && (
+        <>
+          <div className="history-separator"></div>
+          <h2>Other Orders</h2>
+          <table className="purchase-history-table">
+            <thead>
+              <tr>
+                <th>ORDER ID</th>
+                <th>DATE</th>
+                <th>TOTAL</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uncategorizedOrders.map((order) => (
+                <tr key={order.id}>
+                  <td data-label="Order ID">
+                    <strong>#{order.id}</strong>
+                  </td>
+                  <td data-label="Date">
+                    {formatDate(order.created_at || order.date)}
+                  </td>
+                  <td data-label="Total">
+                    {formatPrice(order.total || order.total_amount)}
+                  </td>
+                  <td data-label="Status">
+                    <span
+                      className={`status-tag status-${normalizeStatus(
+                        order.status
+                      )}`}
+                    >
+                      {order.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
     </div>
   );

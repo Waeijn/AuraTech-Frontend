@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authService } from "../services/authService"; // Integration
+import { authService } from "../services/authService";
 import "../styles/auth.css";
 
 export default function Register() {

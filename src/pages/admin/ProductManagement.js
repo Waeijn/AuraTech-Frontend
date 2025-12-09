@@ -27,7 +27,7 @@ export default function ProductManagement() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false); // State controls button loading spinner
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name");
@@ -144,7 +144,6 @@ export default function ProductManagement() {
 
   /** Populates form data with the selected product's details and opens the edit modal. */
   const openEditModal = (product) => {
-    // Safely parses specifications data which may be stored as a string.
     let parsedSpecs = {};
     if (typeof product.specifications === "string") {
       try {
