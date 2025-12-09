@@ -1,64 +1,80 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../components/Navbar"; // Assuming the Auth context is correctly imported
+import { useAuth } from "../components/Navbar";
 import "../styles/account.css";
 
 const SHIPPING_KEY_PREFIX = "shippingInfo_";
 
-// --- Utility Functions for Local Storage ---
+// Utility Functions for Local Storage
 
 /**
  * Retrieves the stored shipping information for a given user email.
- * @param {string} email - The unique email of the current user.
- * @returns {object} Stored shipping data { address: string, city: string } or default empty object.
+ * UPDATED: Includes state, zip, and phone.
  */
 const getShippingInfo = (email) => {
   const key = SHIPPING_KEY_PREFIX + email;
   const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : { address: "", city: "" };
+  // NEW: Added phone to default structure
+  return stored
+    ? JSON.parse(stored)
+    : { address: "", city: "", state: "", zip: "", phone: "" };
 };
 
 /**
  * Saves the shipping information for a given user email to local storage.
- * @param {string} email - The unique email of the current user.
- * @param {object} data - Shipping data { address: string, city: string }.
  */
 const saveShippingInfo = (email, data) => {
   const key = SHIPPING_KEY_PREFIX + email;
   localStorage.setItem(key, JSON.stringify(data));
 };
 
-// --- Account Component ---
-
-/**
- * Account Component
- * Displays the user's personal information and allows them to view/edit
- * their saved shipping address. Requires authentication.
- */
+// Account Component
 export default function Account() {
-  // Context and State hooks
   const { currentUser, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ address: "", city: "" });
+  const [loading, setLoading] = useState(true); // Loading state added
 
-  // Ref for UX: Automatically focus the address field when editing starts
+  // UPDATED: formData includes phone field
+  const [formData, setFormData] = useState({
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    phone: "", // NEW: Phone field added
+  });
+
   const addressInputRef = useRef(null);
 
-  // Effect to load shipping info and manage input focus
+  // Load shipping info & handle input focus
   useEffect(() => {
-    // Load persisted shipping data upon component mount or user change
+    // Start loading simulation
+    setLoading(true);
+
     if (currentUser) {
       const info = getShippingInfo(currentUser.email);
-      setFormData(info);
+      // Ensure local state includes all five fields
+      setFormData({
+        address: info.address || "",
+        city: info.city || "",
+        state: info.state || "",
+        zip: info.zip || "",
+        phone: info.phone || "",
+      });
     }
 
-    // Set focus to the address field when editing mode is enabled
+    // Delay setting loading to false slightly to show the skeleton
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 300);
+
     if (isEditing && addressInputRef.current) {
       addressInputRef.current.focus();
     }
+
+    return () => clearTimeout(timer);
   }, [currentUser, isEditing]);
 
-  // Handle case where the user is not logged in
+  // Redirect if not logged in
   if (!currentUser) {
     return (
       <main className="account-page">
@@ -71,11 +87,7 @@ export default function Account() {
     );
   }
 
-  // --- Handlers ---
-
-  /**
-   * Updates the form state as the user types in the input fields.
-   */
+  // Handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -84,42 +96,172 @@ export default function Account() {
     }));
   };
 
-  /**
-   * Saves the edited shipping information to local storage and exits edit mode.
-   * Includes client-side validation for empty fields.
-   */
   const handleSave = () => {
-    const address = formData.address.trim();
-    const city = formData.city.trim();
+    const { address, city, state, zip, phone } = formData;
 
-    // Client-side Validation
-    if (!address || !city) {
-      alert("Please enter both the address and city before saving.");
+    // UPDATED VALIDATION
+    if (!address.trim() || !city.trim() || !state.trim()) {
+      alert("Address, City, and State/Province are required.");
       return;
     }
 
     if (currentUser.email) {
-      // Save the trimmed, validated data
-      saveShippingInfo(currentUser.email, { address, city });
-      // Update local state to reflect the saved, trimmed data
-      setFormData({ address, city });
+      // Save all five fields
+      saveShippingInfo(currentUser.email, {
+        address: address.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        zip: zip.trim(),
+        phone: phone.trim(),
+      });
+      // Update local state
+      setFormData({
+        address: address.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        zip: zip.trim(),
+        phone: phone.trim(),
+      });
     }
     setIsEditing(false);
   };
 
-  /**
-   * Discards any unsaved changes by resetting form data to the stored values
-   * and exits edit mode.
-   */
   const handleCancel = () => {
-    // Reset form data to the stored information
     const info = getShippingInfo(currentUser.email);
     setFormData(info);
     setIsEditing(false);
   };
 
+  // Skeleton component for the Personal Info Card
+  const AccountCardSkeleton = () => (
+    <section className="account-card skeleton-card">
+      <h2>
+        <div
+          className="skeleton-text"
+          style={{ width: "60%", height: "1.5rem" }}
+        ></div>
+      </h2>
+      <div className="info-block">
+        <p>
+          <div
+            className="skeleton-text"
+            style={{ width: "75%", height: "1rem" }}
+          ></div>
+        </p>
+        <p>
+          <div
+            className="skeleton-text"
+            style={{ width: "65%", height: "1rem", marginBottom: "30px" }}
+          ></div>
+        </p>
+      </div>
+      <div className="account-actions">
+        <div
+          className="skeleton-text"
+          style={{
+            width: "180px",
+            height: "40px",
+            borderRadius: "var(--radius)",
+          }}
+        ></div>
+        <div
+          className="skeleton-text"
+          style={{
+            width: "100px",
+            height: "40px",
+            borderRadius: "var(--radius)",
+          }}
+        ></div>
+      </div>
+    </section>
+  );
+
+  // Skeleton component for the Shipping Card
+  const ShippingCardSkeleton = () => (
+    <section className="shipping-card skeleton-card">
+      <h2>
+        <div
+          className="skeleton-text"
+          style={{ width: "60%", height: "1.5rem" }}
+        ></div>
+      </h2>
+      <div className="shipping-static">
+        <p>
+          <div
+            className="skeleton-text"
+            style={{ width: "70%", height: "1rem" }}
+          ></div>
+        </p>
+        <p>
+          <div
+            className="skeleton-text"
+            style={{ width: "50%", height: "1rem" }}
+          ></div>
+        </p>
+        <p>
+          <div
+            className="skeleton-text"
+            style={{ width: "65%", height: "1rem" }}
+          ></div>
+        </p>
+        <p>
+          <div
+            className="skeleton-text"
+            style={{ width: "45%", height: "1rem" }}
+          ></div>
+        </p>
+        <p>
+          <div
+            className="skeleton-text"
+            style={{ width: "55%", height: "1rem", marginBottom: "30px" }}
+          ></div>
+        </p>
+      </div>
+      <div className="account-actions">
+        <div
+          className="skeleton-text"
+          style={{
+            width: "100%",
+            height: "40px",
+            borderRadius: "var(--radius)",
+          }}
+        ></div>
+      </div>
+    </section>
+  );
+
+  // Loading State UI
+  if (loading) {
+    return (
+      <main className="account-page">
+        <div
+          className="skeleton-text"
+          style={{
+            width: "250px",
+            height: "2.5rem",
+            margin: "0 auto 10px auto",
+          }}
+        ></div>
+        <div
+          className="account-underline skeleton-text"
+          style={{ width: "180px", height: "5px", margin: "0 auto 30px auto" }}
+        ></div>
+        <div
+          className="skeleton-text"
+          style={{ width: "400px", height: "1rem", margin: "0 auto 50px auto" }}
+        ></div>
+
+        <div className="account-container">
+          <AccountCardSkeleton />
+          <ShippingCardSkeleton />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="account-page">
+      {/* Header */}
       <h1>My Account</h1>
       <div className="account-underline"></div>
       <p className="account-subtext">
@@ -127,7 +269,7 @@ export default function Account() {
       </p>
 
       <div className="account-container">
-        {/* Personal Information and Actions Card */}
+        {/* Personal Information Card */}
         <section className="account-card">
           <h2>Personal Information</h2>
           <div className="info-block">
@@ -139,13 +281,11 @@ export default function Account() {
             </p>
           </div>
           <div className="account-actions">
-            <Link
-              to="/purchase-history"
-              className="btn-main account-history-btn"
-            >
+            <Link to="/purchase-history" className="btn-main">
               View Purchase History
             </Link>
-            <button onClick={logout} className="btn-main logout-btn">
+            <button onClick={logout} className="logout-btn">
+              {" "}
               Log Out
             </button>
           </div>
@@ -155,12 +295,23 @@ export default function Account() {
         <section className="shipping-card">
           <h2>Shipping Information</h2>
           {isEditing ? (
-            // Edit Form View
             <div className="shipping-edit-form">
+              {/* NEW FIELD: Phone */}
+              <label>
+                Mobile Number
+                <input
+                  name="phone"
+                  type="tel" // Use tel for phone numbers
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Mobile Number"
+                />
+              </label>
+
               <label>
                 Address
                 <input
-                  ref={addressInputRef} // Ref for auto-focus
+                  ref={addressInputRef}
                   name="address"
                   type="text"
                   value={formData.address}
@@ -178,6 +329,26 @@ export default function Account() {
                   placeholder="City"
                 />
               </label>
+              <label>
+                State/Province
+                <input
+                  name="state"
+                  type="text"
+                  value={formData.state}
+                  onChange={handleChange}
+                  placeholder="State/Province"
+                />
+              </label>
+              <label>
+                ZIP Code
+                <input
+                  name="zip"
+                  type="text"
+                  value={formData.zip}
+                  onChange={handleChange}
+                  placeholder="ZIP Code"
+                />
+              </label>
 
               <div className="form-actions">
                 <button className="btn-main" onClick={handleSave}>
@@ -189,18 +360,28 @@ export default function Account() {
               </div>
             </div>
           ) : (
-            // Static Display View
             <div className="shipping-static">
               <p>
+                <strong>Mobile:</strong>{" "}
+                {formData.phone || <span className="not-set">Not set</span>}
+              </p>
+              <p>
                 <strong>Address:</strong>{" "}
-                {/* Display "Not set" if address is empty */}
                 {formData.address || <span className="not-set">Not set</span>}
               </p>
               <p>
                 <strong>City:</strong>{" "}
-                {/* Display "Not set" if city is empty */}
                 {formData.city || <span className="not-set">Not set</span>}
               </p>
+              <p>
+                <strong>State/Province:</strong>{" "}
+                {formData.state || <span className="not-set">Not set</span>}
+              </p>
+              <p>
+                <strong>ZIP Code:</strong>{" "}
+                {formData.zip || <span className="not-set">Not set</span>}
+              </p>
+
               <button
                 className="btn-main edit-shipping-btn"
                 onClick={() => setIsEditing(true)}

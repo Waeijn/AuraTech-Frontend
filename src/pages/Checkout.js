@@ -1,381 +1,373 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../components/Navbar";
 import "../styles/checkout.css";
-import productsData from "../data/products.json";
 import { useNavigate } from "react-router-dom";
+import { orderService } from "../services/orderService";
 
-const SHIPPING_RATE = 0.1; // 10% rate
-const INVENTORY_KEY = "temporary_inventory";
-const PURCHASE_HISTORY_KEY = "purchaseHistory";
+const TAX_RATE = 0.12;
+const SHIPPING_FEE = 5000;
 const SHIPPING_KEY_PREFIX = "shippingInfo_";
 
-// --- Utility Functions for Local Storage Management ---
-
-/**
- * Retrieves the stored shipping information for a given user email.
- * @param {string} email - The user's unique email.
- * @returns {object} Stored shipping data { address: string, city: string } or default empty object.
- */
+// Utility function to retrieve stored shipping info for current user
 const getShippingInfo = (email) => {
   const key = SHIPPING_KEY_PREFIX + email;
   const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : { address: "", city: "" };
+  return stored
+    ? JSON.parse(stored)
+    : { address: "", city: "", state: "", zip: "", phone: "" };
 };
 
-/**
- * Saves the shipping information for a given user email to local storage.
- * @param {string} email - The user's unique email.
- * @param {object} data - Shipping data { address: string, city: string }.
- */
+// Utility function to save shipping info for current user (Used in Account.js)
 const saveShippingInfo = (email, data) => {
   const key = SHIPPING_KEY_PREFIX + email;
   localStorage.setItem(key, JSON.stringify(data));
 };
 
-/**
- * Initializes and retrieves product stock/inventory from local storage.
- * @returns {object} The current inventory object {productId: stockCount}.
- */
-const getInventory = () => {
-  let inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY));
-  if (!inventory) {
-    const initialStock = {};
-    productsData.forEach((p) => {
-      initialStock[p.id] = p.stock || 99999;
-    });
-    inventory = initialStock;
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-  }
-  return inventory;
-};
-
-/**
- * Saves the updated inventory object back to local storage.
- * @param {object} inventory - The inventory object to save.
- */
-const saveInventory = (inventory) => {
-  localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-};
-
-/**
- * Calculates the total cost, shipping fee, and item counts for selected cart items.
- * @returns {object} Object containing calculated totals and the list of checked items.
- */
-const calculateCheckoutTotals = () => {
-  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-  // Only process items selected for checkout
-  const checkedItems = cartItems.filter((item) => item.isChecked);
-
-  const totalCount = checkedItems.reduce((sum, item) => sum + item.quantity, 0);
-  const checkedSubtotal = checkedItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-
-  const shippingFee = checkedSubtotal * SHIPPING_RATE;
-  const total = checkedSubtotal + shippingFee;
-
-  return { checkedItems, checkedSubtotal, shippingFee, total, totalCount };
-};
-
-/**
- * Reduces the stock count for purchased items in the global inventory.
- * Ensures stock does not drop below zero.
- * @param {Array} purchasedItems - List of items and quantities purchased.
- */
-const deductStockAndSave = (purchasedItems) => {
-  const currentInventory = getInventory();
-  purchasedItems.forEach((item) => {
-    const itemId = item.id;
-    const purchasedQty = item.quantity;
-    const currentStock = currentInventory[itemId] || 0;
-    currentInventory[itemId] = Math.max(0, currentStock - purchasedQty);
-  });
-  saveInventory(currentInventory);
-};
-
-/**
- * Saves the completed order to the user's purchase history in local storage.
- * Generates a simple order ID and captures order details.
- * @param {object} orderData - The calculated order totals and items.
- * @param {string} userEmail - The email associated with the order.
- * @returns {string} The generated order ID.
- */
-const savePurchaseToHistory = (orderData, userEmail) => {
-  const history = JSON.parse(localStorage.getItem(PURCHASE_HISTORY_KEY)) || [];
-
-  const newOrder = {
-    orderId: `AT-${Date.now().toString().slice(-8)}`,
-    date: new Date().toLocaleDateString("en-CA"),
-    userEmail: userEmail,
-    items: orderData.checkedItems.map((item) => ({
-      id: item.id,
-      name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-    })),
-    total: orderData.total,
-    totalItemsCount: orderData.totalCount,
-    status: "For Shipping", // Initial status
-  };
-
-  // Add new order to the beginning of the history array
-  history.unshift(newOrder);
-  localStorage.setItem(PURCHASE_HISTORY_KEY, JSON.stringify(history));
-  return newOrder.orderId;
-};
-
-// --- Checkout Component ---
-
-/**
- * Checkout Component
- * Handles shipping form submission, validation, order processing,
- * stock deduction, and displays a success receipt.
- */
 export default function Checkout() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  // UI state for address editing and form warnings
+
+  // Form state: holds all final shipping info and payment method
+  const [formData, setFormData] = useState({
+    fullname: currentUser?.name || "",
+    email: currentUser?.email || "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    payment_method: "cash_on_delivery",
+  });
+
+  // RESTORED: isShippingEditing state for on-the-fly address changes
   const [isShippingEditing, setIsShippingEditing] = useState(false);
   const [addressWarning, setAddressWarning] = useState("");
 
-  const initialFormData = {
-    fullname: currentUser?.name || "",
-    email: currentUser?.email || "",
-    address: "",
-    city: "",
-  };
+  // Order state
+  const [checkoutItems, setCheckoutItems] = useState([]); // Items selected for checkout
+  const [isSubmitting, setIsSubmitting] = useState(false); // Submission loading state
+  const [isSubmitted, setIsSubmitted] = useState(false); // Tracks if order has been successfully submitted
+  const [receiptData, setReceiptData] = useState(null); // Stores receipt info after order is placed
 
-  const [formData, setFormData] = useState(initialFormData);
-  // State to toggle between checkout form and receipt page
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [receiptData, setReceiptData] = useState({
-    total: 0,
-    totalCount: 0,
-    email: "",
-    orderId: "",
-  });
+  // NEW STATE: Tracks if the necessary shipping info is complete
+  const [isShippingComplete, setIsShippingComplete] = useState(false);
 
-  // Load initial shipping data and set form fields on mount/user change
+  // Load stored shipping info and checkout items on component mount
   useEffect(() => {
+    let currentShippingComplete = false;
+
     if (currentUser) {
       const shippingInfo = getShippingInfo(currentUser.email);
-      setFormData((prev) => ({
-        ...prev,
-        fullname: currentUser.name,
-        email: currentUser.email,
-        address: shippingInfo.address || "",
-        city: shippingInfo.city || "",
-      }));
-      // Reset editing state when user context loads
-      setIsShippingEditing(false);
+
+      const requiredFields = [
+        shippingInfo.address,
+        shippingInfo.city,
+        shippingInfo.state,
+        shippingInfo.phone,
+      ];
+      const areRequiredFieldsSet = requiredFields.every(
+        (field) => field && field.trim() !== ""
+      );
+
+      if (areRequiredFieldsSet) {
+        // If fields are set, load them into the form state and lock editing
+        setFormData((prev) => ({
+          ...prev,
+          fullname: currentUser.name,
+          email: currentUser.email,
+          address: shippingInfo.address || "",
+          city: shippingInfo.city || "",
+          state: shippingInfo.state || "",
+          zip: shippingInfo.zip || "",
+          phone: shippingInfo.phone || "",
+        }));
+        currentShippingComplete = true;
+      }
     }
+
+    setIsShippingComplete(currentShippingComplete);
+    // Initial state: If logged in and complete, editing is OFF. If incomplete, user MUST edit.
+    if (currentUser && !currentShippingComplete) {
+      // Force editing if user is logged in but missing critical data from storage
+      setIsShippingEditing(true);
+    }
+
+    const storedSelection = localStorage.getItem("checkout_selection");
+    if (storedSelection) {
+      try {
+        const items = JSON.parse(storedSelection);
+        setCheckoutItems(items);
+      } catch (e) {
+        console.error("Failed to parse checkout items");
+      }
+    }
+
+    window.scrollTo(0, 0);
   }, [currentUser]);
 
-  // Scroll to the top when the component loads
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  // Calculate totals: subtotal, tax, shipping, total
+  const calculateTotals = () => {
+    const subtotal = checkoutItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const tax = subtotal * TAX_RATE;
+    const shipping = SHIPPING_FEE;
+    const total = subtotal + tax + shipping;
+    return { subtotal, tax, shipping, total };
+  };
 
-  // Calculate totals based on currently checked cart items
-  const { checkedItems, checkedSubtotal, shippingFee, total, totalCount } =
-    calculateCheckoutTotals();
+  const { subtotal, tax, shipping, total } = calculateTotals();
 
-  // --- Handlers ---
-
-  /** Updates form state on input change. */
+  // Handler for input changes in the form
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  /** Saves the edited shipping details to local storage for the current user. */
-  const handleSaveShipping = () => {
-    if (currentUser && currentUser.email) {
-      const { address, city } = formData;
-      saveShippingInfo(currentUser.email, { address, city });
+  // Handler to save TEMPORARY shipping address (does NOT save to permanent storage)
+  const handleToggleShippingEdit = () => {
+    if (isShippingEditing) {
+      // If they click 'Save Address'
+      const { address, city, state } = formData;
+      if (
+        !address.trim() ||
+        !city.trim() ||
+        !state.trim() ||
+        !formData.phone.trim()
+      ) {
+        setAddressWarning(
+          "All shipping fields and Mobile Number must be filled out before saving/placing the order."
+        );
+        return;
+      }
+      setAddressWarning("");
+      setIsShippingEditing(false);
+    } else {
+      // If they click 'Edit Address'
+      setIsShippingEditing(true);
     }
-    setIsShippingEditing(false);
   };
 
-  /**
-   * Main form submission handler.
-   * Performs validation, processes the order, updates stock/history, and clears cart items.
-   * @param {object} e - The form submit event.
-   */
-  const handleSubmit = (e) => {
+  // Submit order to backend service
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setAddressWarning("");
 
-    // 1. Validation Checks
+    // Validation: Block if user is in editing mode
     if (isShippingEditing) {
       setAddressWarning(
-        "Please save or cancel your address edits before placing the order."
+        "Please click 'Save Address' before placing the order."
       );
       return;
     }
-    if (!formData.address || !formData.city) {
-      setAddressWarning("Shipping address and city are required.");
+
+    // Final validation of required fields in case user is not logged in or missed the initial check
+    if (
+      !formData.address ||
+      !formData.city ||
+      !formData.state ||
+      !formData.phone
+    ) {
+      setAddressWarning(
+        "Shipping address, city, state/province, and phone are required."
+      );
       return;
     }
 
-    const finalOrder = calculateCheckoutTotals();
-    if (finalOrder.checkedItems.length === 0) {
-      setAddressWarning("No items selected for checkout.");
-      return;
+    try {
+      setIsSubmitting(true);
+
+      const orderPayload = {
+        shipping_name: formData.fullname,
+        shipping_email: formData.email,
+        shipping_phone: formData.phone || "0000000000",
+        shipping_address: formData.address,
+        shipping_city: formData.city,
+        shipping_state: formData.state,
+        shipping_zip: formData.zip || "0000",
+        shipping_country: "Philippines",
+        payment_method: formData.payment_method,
+        items: checkoutItems.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+        })),
+      };
+
+      const response = await orderService.checkout(orderPayload);
+
+      const orderId =
+        response.data?.id ||
+        response.data?.order_number ||
+        `#${Math.floor(Math.random() * 10000)}`;
+
+      localStorage.removeItem("checkout_selection");
+
+      setReceiptData({
+        orderId: orderId,
+        total: total,
+        count: checkoutItems.length,
+        email: formData.email,
+      });
+
+      setIsSubmitted(true); // Show receipt page
+    } catch (error) {
+      console.error("Checkout Error:", error);
+      const serverMsg =
+        error.response?.data?.message || error.response?.data?.error;
+      setAddressWarning(
+        serverMsg || "Failed to place order. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // 2. Core Transaction Logic
-    // Update inventory (deduct stock)
-    deductStockAndSave(finalOrder.checkedItems);
-    // Save order to history
-    const userEmail = currentUser ? currentUser.email : formData.email;
-    const orderId = savePurchaseToHistory(finalOrder, userEmail);
-
-    // 3. Update UI/State
-    setReceiptData({
-      total: finalOrder.total,
-      totalCount: finalOrder.totalCount,
-      email: userEmail,
-      orderId: orderId,
-    });
-
-    // Remove purchased items from the cart in local storage
-    const finalCart = (JSON.parse(localStorage.getItem("cart")) || []).filter(
-      (item) => !item.isChecked
-    );
-    localStorage.setItem("cart", JSON.stringify(finalCart));
-
-    // Display receipt screen
-    setIsSubmitted(true);
   };
 
-  // Helper variables for button state
-  const isAddressSet = formData.address && formData.city;
-  const isButtonDisabled = isShippingEditing || !isAddressSet;
-
-  // --- Render Logic: Receipt View ---
-  if (isSubmitted) {
+  // Render receipt page after order submission
+  if (isSubmitted && receiptData) {
     return (
       <section className="checkout-page thank-you-page">
-        <h1>Order Placed! 🥳</h1>
+        <h1>Order Placed!</h1>
         <div className="receipt-box">
           <h3>Purchase Receipt</h3>
           <p className="receipt-message-header">
-            Order ID: {receiptData.orderId}
+            Order ID: #{receiptData.orderId}
           </p>
           <p className="receipt-total">Total Charged:</p>
           <p className="receipt-amount">
             ₱
             {receiptData.total.toLocaleString(undefined, {
               minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
             })}
           </p>
           <p className="receipt-message">
-            Your order for **{receiptData.totalCount} items** has been placed
-            successfully.
-          </p>
-          <p>
-            A confirmation email will be sent to{" "}
-            {receiptData.email || "your email"}.
+            Your order has been placed successfully. A confirmation email will
+            be sent to {receiptData.email}.
           </p>
         </div>
         <div style={{ marginTop: "30px" }}>
-          <a href="/" className="btn-main">
+          <button onClick={() => navigate("/")} className="btn-main">
             Return to Home
-          </a>
+          </button>
         </div>
       </section>
     );
   }
 
-  // --- Render Logic: Checkout Form View ---
+  // Determines if checkout can proceed (must have fields and not be in edit mode)
+  const isAddressSet =
+    formData.address && formData.city && formData.state && formData.phone;
+  // Fields are read-only if the user is logged in AND not currently editing the address block
+  const readOnlyContactFields = !!currentUser;
+  const readOnlyAddressFields = !!currentUser && !isShippingEditing;
+
   return (
     <section className="checkout-page">
       <h1>Checkout</h1>
       <div className="checkout-container">
-        {/* LEFT SIDE: SHIPPING FORM */}
+        {/* Shipping Form Section */}
         <form className="checkout-form" onSubmit={handleSubmit}>
           <h2>Shipping Information</h2>
 
-          {/* User details are read-only if logged in */}
+          {/* CONTACT INFO (Read-only if logged in) */}
           <label>
-            Full Name
+            Full Name{" "}
             <input
               name="fullname"
-              placeholder="John Doe"
               value={formData.fullname}
               onChange={handleChange}
               required
-              readOnly={!!currentUser}
+              readOnly={readOnlyContactFields}
             />
           </label>
-
           <label>
-            Email
+            Email{" "}
             <input
               name="email"
               type="email"
-              placeholder="you@example.com"
               value={formData.email}
               onChange={handleChange}
               required
-              readOnly={!!currentUser}
+              readOnly={readOnlyContactFields}
             />
           </label>
-
-          {/* Address fields are editable only if editing is enabled (or for guests) */}
           <label>
-            Address
+            Phone{" "}
             <input
-              name="address"
-              placeholder="Shipping address"
-              value={formData.address}
+              name="phone"
+              placeholder="Mobile Number"
+              value={formData.phone}
               onChange={handleChange}
-              required
-              readOnly={!!currentUser && !isShippingEditing}
+              readOnly={readOnlyContactFields}
             />
           </label>
 
-          <label>
-            City
-            <input
-              name="city"
-              placeholder="e.g., Manila"
-              value={formData.city}
-              onChange={handleChange}
-              required
-              readOnly={!!currentUser && !isShippingEditing}
-            />
-          </label>
+          {/* ADDRESS FIELDS (Editable if NOT logged in, or if isShippingEditing is TRUE) */}
+          <div className="form-row" style={{ display: "flex", gap: "10px" }}>
+            <label style={{ flex: 2 }}>
+              Address{" "}
+              <input
+                name="address"
+                placeholder="Blk 1 Lot 2"
+                value={formData.address}
+                onChange={handleChange}
+                required
+                readOnly={readOnlyAddressFields}
+              />
+            </label>
+            <label style={{ flex: 1 }}>
+              City{" "}
+              <input
+                name="city"
+                placeholder="City"
+                value={formData.city}
+                onChange={handleChange}
+                required
+                readOnly={readOnlyAddressFields}
+              />
+            </label>
+          </div>
 
-          {/* Registered User Shipping Controls */}
+          <div className="form-row" style={{ display: "flex", gap: "10px" }}>
+            <label style={{ flex: 1 }}>
+              State/Province{" "}
+              <input
+                name="state"
+                placeholder="Laguna"
+                value={formData.state}
+                onChange={handleChange}
+                required
+                readOnly={readOnlyAddressFields}
+              />
+            </label>
+            <label style={{ flex: 1 }}>
+              Zip Code{" "}
+              <input
+                name="zip"
+                placeholder="4025"
+                value={formData.zip}
+                onChange={handleChange}
+                readOnly={readOnlyAddressFields}
+              />
+            </label>
+          </div>
+
+          {/* Button to edit or save shipping address (only visible to logged-in users) */}
           {currentUser && (
             <div className="shipping-edit-controls">
               {isShippingEditing ? (
-                <>
-                  <button
-                    type="button"
-                    className="btn-main btn-save-shipping"
-                    onClick={handleSaveShipping}
-                    disabled={!formData.address || !formData.city}
-                  >
-                    Save Address
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-cancel"
-                    onClick={() => setIsShippingEditing(false)}
-                  >
-                    Cancel Edit
-                  </button>
-                </>
+                <button
+                  type="button"
+                  className="btn-main btn-save-shipping"
+                  onClick={handleToggleShippingEdit}
+                >
+                  Save Address
+                </button>
               ) : (
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => setIsShippingEditing(true)}
+                  onClick={handleToggleShippingEdit}
                 >
                   Edit Address
                 </button>
@@ -383,35 +375,43 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* Form Messages */}
-          {addressWarning && (
-            <p className="validation-warning">{addressWarning}</p>
-          )}
+          <label style={{ marginTop: "20px" }}>Payment Method</label>
+          <select
+            name="payment_method"
+            value={formData.payment_method}
+            onChange={handleChange}
+            className="form-input"
+          >
+            <option value="cash_on_delivery">Cash on Delivery</option>
+            <option value="credit_card">Credit / Debit Card</option>
+          </select>
 
-          {!formData.address && !formData.city && (
-            <p className="helper-message">
-              Please fill in your shipping address and city before placing your
-              order.
+          {addressWarning && (
+            <p
+              className="validation-warning"
+              style={{ color: "#ef4444", marginTop: "10px" }}
+            >
+              {addressWarning}
             </p>
           )}
 
-          {/* Place Order Button */}
           <button
             type="submit"
             className="btn-main checkout-btn"
-            disabled={isButtonDisabled}
-            title={
+            disabled={
+              isSubmitting ||
+              isShippingEditing || // Block submission while actively editing
               !isAddressSet
-                ? "Please enter shipping details"
-                : "Ready to place order"
             }
           >
-            Place Order (₱
-            {total.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-            )
+            {isSubmitting ? (
+              <div className="form-button-content-wrapper">
+                <div className="spinner"></div>
+                Processing Order...
+              </div>
+            ) : (
+              `Place Order`
+            )}
           </button>
 
           <button
@@ -421,23 +421,17 @@ export default function Checkout() {
           >
             Cancel & Return to Cart
           </button>
-
-          {/* Cart Empty Placeholder */}
-          {checkedItems.length === 0 && (
-            <div className="cart-placeholder">
-              <h3>No items selected for checkout</h3>
-              <a href="/cart" className="btn-main shop-now-link">
-                Go to Cart
-              </a>
-            </div>
-          )}
         </form>
 
-        {/* RIGHT SIDE: ORDER SUMMARY */}
+        {/* Order Summary Section */}
         <div className="order-summary">
-          <h2>Your Order ({totalCount} Items)</h2>
+          <h2>
+            Your Order ({checkoutItems.reduce((acc, i) => acc + i.quantity, 0)}{" "}
+            Items)
+          </h2>
+
           <div className="summary-list">
-            {checkedItems.map((item) => (
+            {checkoutItems.map((item) => (
               <div key={item.id} className="summary-item">
                 <img
                   src={item.image || "/img/products/placeholder.png"}
@@ -454,19 +448,43 @@ export default function Checkout() {
             ))}
           </div>
 
-          {/* Summary Totals */}
           <div className="summary-calculations-wrapper">
             <div className="summary-row">
-              <p>Items Subtotal:</p>
-              <p>₱{checkedSubtotal.toLocaleString()}</p>
+              <p>Subtotal:</p>
+              <p>
+                ₱
+                {subtotal.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </p>
             </div>
             <div className="summary-row">
-              <p>Shipping (10%):</p>
-              <p>₱{shippingFee.toLocaleString()}</p>
+              <p>Tax (12%):</p>
+              <p>
+                ₱{tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </p>
             </div>
-            <div className="summary-total">
+            <div className="summary-row">
+              <p>Shipping Fee:</p>
+              <p>
+                ₱
+                {shipping.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </p>
+            </div>
+            <div
+              className="summary-total"
+              style={{
+                borderTop: "1px solid #444",
+                paddingTop: "10px",
+                marginTop: "10px",
+              }}
+            >
               <h3>Total:</h3>
-              <h3>₱{total.toLocaleString()}</h3>
+              <h3>
+                ₱{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </h3>
             </div>
           </div>
         </div>

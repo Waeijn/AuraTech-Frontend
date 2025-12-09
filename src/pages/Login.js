@@ -1,67 +1,63 @@
-import { useState } from "react";
-import { useAuth } from "../components/Navbar"; // Hook for authentication logic
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { authService } from "../services/authService";
+import { isAdmin } from "../utils/auth"; // Use Mades's Helper
 import "../styles/auth.css";
 
-/**
- * Login Component
- * Provides a form for existing users to authenticate and log into the application.
- */
 export default function Login() {
-  const { login } = useAuth();
-
-  // --- State Hooks ---
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  // State for displaying success or error messages to the user
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // --- Handlers ---
-
-  /** Updates form data state on input change. */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  /**
-   * Handles form submission: validates inputs and attempts user login.
-   * Redirects to the home page on success.
-   * @param {object} e - The form submission event.
-   */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(""); // Clear previous messages
+    setMessage("");
 
+    // Client-side validation
     if (!formData.email || !formData.password) {
       setMessageType("error");
       setMessage("Email and password are required");
       return;
     }
 
-    // Attempt login using the Auth Context
-    const result = login(formData);
-    setMessageType(result.success ? "success" : "error");
-    setMessage(result.message);
+    try {
+      setLoading(true);
+      // API Call
+      await authService.login(formData);
 
-    if (result.success) {
-      // Redirect to home page after a short delay
+      setMessageType("success");
+      setMessage("Login successful! Redirecting...");
+
+      const adminCheck = isAdmin();
+
       setTimeout(() => {
-        window.location.href = "/";
+        if (adminCheck) {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/";
+        }
       }, 1000);
+    } catch (error) {
+      setMessageType("error");
+      setMessage(error.message || "Invalid email or password");
+      setLoading(false);
     }
   };
 
   return (
     <section className="auth-page">
       <div className="auth-wrapper">
-        {/* LEFT SIDE: Brand Panel (Marketing/Visual Section) */}
+        {/* Brand panel with logo and tagline */}
         <div className="auth-brand-panel">
           <div className="brand-content">
             <img
@@ -74,11 +70,12 @@ export default function Login() {
           </div>
         </div>
 
-        {/* RIGHT SIDE: Login Form Panel */}
+        {/* Login form panel */}
         <div className="auth-form-panel">
           <div className="auth-container">
             <h1>Login</h1>
-            {/* Display status messages (success/error) */}
+
+            {/* Display success or error messages */}
             {message && (
               <div className={`form-message form-message-${messageType}`}>
                 {message}
@@ -86,6 +83,7 @@ export default function Login() {
             )}
 
             <form onSubmit={handleSubmit} className="auth-form">
+              {/* Email input */}
               <label className="form-label">
                 Email
                 <input
@@ -96,24 +94,25 @@ export default function Login() {
                   required
                   className="form-input"
                   placeholder="Enter your email"
+                  disabled={loading}
                 />
               </label>
 
+              {/* Password input with show/hide toggle */}
               <label className="form-label">
                 Password
                 <input
                   name="password"
-                  // Conditionally set input type for show/hide password feature
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
                   required
                   className="form-input"
                   placeholder="Enter your password"
+                  disabled={loading}
                 />
               </label>
 
-              {/* Password visibility toggle control */}
               <div className="password-toggle-wrapper">
                 <input
                   type="checkbox"
@@ -130,17 +129,25 @@ export default function Login() {
                 </label>
               </div>
 
-              <button type="submit" className="form-button">
-                Login
+              {/* Submit button */}
+              <button type="submit" className="form-button" disabled={loading}>
+                {loading ? (
+                  <div className="form-button-content-wrapper">
+                    <div className="spinner"></div>
+                    Logging in...
+                  </div>
+                ) : (
+                  "Login"
+                )}
               </button>
             </form>
 
-            {/* Link to Registration Page */}
+            {/* Link to register page */}
             <p className="auth-link">
               Don't have an account?{" "}
-              <a href="/register" className="auth-link-text">
+              <Link to="/register" className="auth-link-text">
                 Register here
-              </a>
+              </Link>
             </p>
           </div>
         </div>

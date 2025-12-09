@@ -1,5 +1,4 @@
-/* === AuraTech Account Page Layout === */
-
+/* AuraTech Account Page Layout */
 .account-page {
   width: 100%;
   min-height: 100vh;
@@ -37,6 +36,7 @@
   text-align: center;
 }
 
+/* Container holding account and shipping cards */
 .account-container {
   display: flex;
   flex-direction: column;
@@ -46,7 +46,7 @@
   width: 100%;
 }
 
-/* === Account Card Styles (Applied to both info and shipping) === */
+/* Account and Shipping Card Base Styles */
 .account-card,
 .shipping-card {
   background: var(--color-surface);
@@ -68,11 +68,24 @@
 
 .account-card {
   min-height: 350px;
-  height: auto; /* Removed fixed height for responsiveness */
+  height: auto;
 }
+
 .shipping-card {
   min-height: 400px;
-  height: auto; /* Removed fixed height for responsiveness */
+  height: auto;
+}
+
+/* NEW: Skeleton specific styles */
+.skeleton-card {
+  pointer-events: none;
+  background-color: #f7f7f7;
+  box-shadow: none;
+}
+
+.skeleton-card:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .account-card h2,
@@ -85,14 +98,14 @@
   margin-bottom: 25px;
 }
 
+/* Info blocks within cards */
 .info-block {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin-bottom: 30px;
+  margin-bottom: auto;
 }
 
-/* Use flex for strong/value pairing for clean vertical alignment */
 .info-block p,
 .shipping-static p {
   margin: 5px 0;
@@ -113,7 +126,7 @@
   font-style: italic;
 }
 
-/* === Button Styling === */
+/* Button base styling (FIXED HEIGHT/ALIGNMENT) */
 .btn-main,
 .btn-secondary,
 .btn-cancel {
@@ -124,8 +137,15 @@
   transition: all 0.3s ease;
   padding: 10px 20px;
   font-size: 0.95rem;
+
+  /* ENFORCING CONSISTENT HEIGHT */
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Primary buttons styling (View Purchase History, Edit Shipping Info) */
 .btn-main {
   background: linear-gradient(
     90deg,
@@ -140,19 +160,21 @@
   transform: translateY(-2px);
 }
 
+/* Logout button distinct style (STANDARDIZED) */
 .logout-btn {
-  /* Specific gradient for logout to stand out */
-  background: linear-gradient(90deg, #7b68ee);
+  background: var(--color-secondary-accent);
   color: #fff;
   border: none;
-  padding: 10px 20px;
 }
 
+/* Standardized hover for logout button */
 .logout-btn:hover {
-  filter: brightness(1.1);
+  background-color: var(--color-hover-secondary);
   transform: translateY(-2px);
+  filter: none;
 }
 
+/* Secondary buttons style */
 .btn-secondary {
   background: var(--color-bg-primary);
   color: var(--color-accent);
@@ -160,8 +182,8 @@
   padding: 8px 18px;
 }
 
+/* Container for buttons within cards */
 .account-actions {
-  /* Pushes buttons to the bottom of the card */
   display: flex;
   gap: 15px;
   flex-wrap: wrap;
@@ -169,20 +191,20 @@
   align-items: center;
 }
 
-/* === Shipping Information Section Styles === */
+/* Shipping information section */
 .shipping-static {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 30px;
+  margin-bottom: auto;
   align-items: flex-start;
 }
 
-/* Adds space for the shipping card to match the height of the account card when in static view */
 .shipping-static .edit-shipping-btn {
   width: 100%;
 }
 
+/* Shipping edit form styling */
 .shipping-edit-form label {
   display: flex;
   flex-direction: column;
@@ -215,10 +237,9 @@
   margin-top: 25px;
 }
 
-/* === Desktop Layout (Cards Side-by-Side) === */
+/* Desktop layout: cards side by side */
 @media (min-width: 800px) {
   .account-container {
-    /* Uses CSS Grid to create a two-column layout for the account cards on desktop */
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     align-items: stretch;
@@ -235,7 +256,7 @@
   }
 }
 
-/* === Responsive Adjustments (Mobile) === */
+/* Mobile responsive adjustments */
 @media (max-width: 600px) {
   .account-page {
     padding: 40px 20px;
@@ -246,7 +267,6 @@
     padding: 30px;
   }
 
-  /* Force buttons to full width on mobile */
   .btn-main,
   .btn-secondary,
   .btn-cancel {

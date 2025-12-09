@@ -1,453 +1,414 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import "../styles/cart.css";
-import productsData from "../data/products.json";
+import { cartService } from "../services/cartService";
 
-const SHIPPING_RATE = 0.1; // 10% shipping fee
-const INVENTORY_KEY = "temporary_inventory";
+const TAX_RATE = 0.12;
+const SHIPPING_FEE = 5000;
 
-// --- Utility Functions for Cart and Inventory Management ---
-
-const getCart = () => JSON.parse(localStorage.getItem("cart")) || [];
-const saveCart = (cart) => localStorage.setItem("cart", JSON.stringify(cart));
-
-/**
- * Initializes and retrieves product stock/inventory from local storage.
- * Defaults to product data stock if local storage is empty.
- * @returns {object} The current inventory object {productId: stockCount}.
- */
-const getInventory = () => {
-  let inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY));
-  if (!inventory) {
-    const initialStock = {};
-    productsData.forEach((p) => {
-      // Use product stock or a high default if undefined
-      initialStock[p.id] = p.stock || 99999;
-    });
-    inventory = initialStock;
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-  }
-  return inventory;
-};
-
-/**
- * Merges cart data (quantity, selection) with current stock/inventory data.
- * @returns {Array} List of cart items enriched with 'stock' property.
- */
-const getCartItemsWithStock = () => {
-  const cart = getCart();
-  const inventory = getInventory();
-  return cart.map((item) => {
-    return {
-      ...item,
-      stock: inventory[item.id] || 0,
-    };
-  });
-};
-
-// --- Cart Component ---
-
-/**
- * Cart Component
- * Displays selected cart items, allows quantity modification,
- * calculates subtotal/shipping/total for selected items, and handles checkout preparation.
- */
 export default function Cart() {
-  const [cartItems, setCartItems] = useState(getCartItemsWithStock());
-  // State for the item quantity modification modal
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingItemId, setUpdatingItemId] = useState(null);
+  const [removingItemId, setRemovingItemId] = useState(null);
+
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [quantityToModify, setQuantityToModify] = useState(1);
-  const [modalError, setModalError] = useState("");
 
-  // Effect to refresh cart data when the window regains focus (e.g., after login/modal close)
-  useEffect(() => {
-    const refreshCart = () => setCartItems(getCartItemsWithStock());
-    refreshCart();
+  // Fetch cart items from API or local storage
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+      const response = await cartService.get();
 
-    window.addEventListener("focus", refreshCart);
-    return () => window.removeEventListener("focus", refreshCart);
-  }, []);
+      let apiItems = [];
+      if (response.data && Array.isArray(response.data)) {
+        apiItems = response.data;
+      } else if (response.data && Array.isArray(response.data.items)) {
+        apiItems = response.data.items;
+      } else if (Array.isArray(response)) {
+        apiItems = response;
+      }
 
-  // --- Handlers ---
+      setCartItems((prevItems) => {
+        return apiItems.map((item) => {
+          const product = item.product || {};
+          const existing = prevItems.find((p) => p.id === product.id);
 
-  /**
-   * Toggles the 'isChecked' status of a cart item for checkout selection.
-   * Updates local storage and refreshes component state.
-   * @param {string} id - The ID of the product to toggle.
-   */
-  const handleToggleCheckout = (id) => {
-    const newCart = cartItems.map((item) =>
-      item.id === id ? { ...item, isChecked: !item.isChecked } : item
-    );
-    saveCart(newCart);
-    setCartItems(getCartItemsWithStock());
+          return {
+            id: product.id,
+            cartItemId: item.id,
+            name: product.name || "Unknown Product",
+            price: parseFloat(product.price) || 0,
+            image:
+              product.images?.[0]?.url ||
+              product.image ||
+              "/img/products/placeholder.png",
+            quantity: item.quantity,
+            stock: product.stock || 0,
+            isChecked: existing ? existing.isChecked : true,
+          };
+        });
+      });
+    } catch (error) {
+      console.error("Cart fetch error", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /**
-   * Sets up and opens the modal for complex quantity editing (e.g., removing multiple).
-   * @param {object} item - The cart item to be modified.
-   */
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "checkout_selection",
+      JSON.stringify(cartItems.filter((i) => i.isChecked))
+    );
+  }, [cartItems]);
+
+  const handleToggleCheckout = (id) => {
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, isChecked: !item.isChecked } : item
+      )
+    );
+  };
+
   const handleOpenEditModal = (item) => {
     setModalProduct(item);
     setQuantityToModify(1);
-    setModalError("");
     setIsModalOpen(true);
   };
 
-  /**
-   * Updates an item's quantity by a fixed delta (+1 or -1).
-   * Includes boundary checks against minimum quantity (1) and max stock.
-   * @param {string} id - The product ID.
-   * @param {number} delta - The change in quantity (-1 or 1).
-   */
-  const handleUpdateItemQuantity = (id, delta) => {
+  const handleUpdateItemQuantity = async (id, delta) => {
     const item = cartItems.find((i) => i.id === id);
     if (!item) return;
-
     let newQuantity = item.quantity + delta;
-    const maxStock = item.stock;
-
     if (newQuantity < 1) newQuantity = 1;
-    if (newQuantity > maxStock) {
-      alert(`Cannot add more than the available stock: ${maxStock}`);
+    if (newQuantity > item.stock) {
+      alert(`Max stock: ${item.stock}`);
       return;
     }
 
-    const newCart = cartItems.map((cartItem) =>
-      cartItem.id === id ? { ...cartItem, quantity: newQuantity } : cartItem
-    );
-
-    // Remove item if quantity drops to 0 (though prevented by the check above, this is for safety)
-    const finalCart = newCart.filter((item) => item.quantity > 0);
-    saveCart(finalCart);
-    setCartItems(getCartItemsWithStock());
+    try {
+      setUpdatingItemId(id);
+      await cartService.update(item.cartItemId, newQuantity);
+      fetchCart();
+    } catch (e) {
+      alert("Update failed");
+    } finally {
+      setUpdatingItemId(null);
+    }
   };
 
-  /**
-   * Handles the modal logic for removing a partial quantity of a product.
-   * Validates input and updates the cart state accordingly.
-   * @param {object} product - The product being modified.
-   * @param {string} operation - Should be "remove" in this context.
-   */
-  const updateOwnedQuantity = (product, operation) => {
-    setModalError("");
-    let quantity = parseInt(quantityToModify);
-
-    if (isNaN(quantity) || quantity <= 0) {
-      setModalError(`Please enter a valid quantity to ${operation}.`);
-      return;
-    }
-
-    let newQuantity;
-    let actionLabel;
-
-    if (operation === "remove") {
-      newQuantity = product.quantity - quantity;
-      actionLabel = "Removed";
-    } else {
-      // Guard clause for other operations not implemented
-      return;
-    }
-
-    // Validation check: ensure we don't remove more than owned
-    if (newQuantity < 0) {
-      setModalError(
-        `Cannot remove ${quantity}. You only have ${product.quantity}.`
-      );
-      return;
-    }
-
-    // Logic for updating the cart
-    if (newQuantity === 0) {
-      const finalCart = cartItems.filter((item) => item.id !== product.id);
-      saveCart(finalCart);
-      setCartItems(getCartItemsWithStock());
-      alert(`Removed ALL ${product.name}(s) from cart.`);
-    } else {
-      const newCart = cartItems.map((item) =>
-        item.id === product.id ? { ...item, quantity: newQuantity } : item
-      );
-      saveCart(newCart);
-      setCartItems(getCartItemsWithStock());
-      alert(
-        `${actionLabel} ${quantity} x ${product.name}. Total in cart: ${newQuantity}`
-      );
-    }
-
-    // Close and reset modal state upon successful update
-    setIsModalOpen(false);
-    setModalProduct(null);
-  };
-
-  /** Helper function to call the main update function for partial removal. */
-  const handleRemovePartial = () => updateOwnedQuantity(modalProduct, "remove");
-
-  /** Removes all units of the modal-selected product from the cart. */
-  const handleRemoveAll = () => {
+  const handleRemoveAll = async () => {
     if (!modalProduct) return;
-    const finalCart = cartItems.filter((item) => item.id !== modalProduct.id);
-    saveCart(finalCart);
-    setCartItems(getCartItemsWithStock());
-    alert(`Removed ALL ${modalProduct.name}(s) from cart.`);
-    setIsModalOpen(false);
-    setModalProduct(null);
+    try {
+      setRemovingItemId(modalProduct.id);
+      await cartService.remove(modalProduct.cartItemId);
+      setIsModalOpen(false);
+      setModalProduct(null);
+      fetchCart();
+    } catch (e) {
+      alert("Remove failed");
+    } finally {
+      setRemovingItemId(null);
+    }
   };
 
-  /** Helper function for the modal button to redirect to the product listing. */
-  const handleRedirectToCategory = () => {
-    window.location.href = `/products`;
-  };
-
-  // --- Memoized Calculations for Summary ---
-
+  // Calculate subtotal, tax, shipping, and total for selected items
   const {
     checkedItems,
     checkedSubtotal,
+    taxAmount,
     shippingFee,
     total,
     totalCheckedItemsCount,
   } = useMemo(() => {
     const checked = cartItems.filter((item) => item.isChecked);
-
     const totalCount = checked.reduce((sum, item) => sum + item.quantity, 0);
-
     const subtotal = checked.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
 
-    const shipping = subtotal * SHIPPING_RATE;
-    const grandTotal = subtotal + shipping;
+    const tax = subtotal * TAX_RATE;
+    const shipping = checked.length > 0 ? SHIPPING_FEE : 0;
 
     return {
       checkedItems: checked,
       checkedSubtotal: subtotal,
+      taxAmount: tax,
       shippingFee: shipping,
-      total: grandTotal,
+      total: subtotal + tax + shipping,
       totalCheckedItemsCount: totalCount,
     };
   }, [cartItems]);
 
-  // --- CartItem Sub-Component ---
+  // Skeleton loader for cart items
+  const CartItemSkeleton = () => (
+    <div className="cart-item skeleton-cart-item">
+      <div className="skeleton-checkbox"></div>
+      <div className="skeleton-image"></div>
+      <div className="item-details">
+        <div
+          className="skeleton-text"
+          style={{ width: "70%", height: "1.25rem", marginBottom: "8px" }}
+        ></div>
+        <div
+          className="skeleton-text"
+          style={{ width: "40%", height: "1rem" }}
+        ></div>
+      </div>
+      <div className="checkout-qty-controls">
+        <div
+          className="skeleton-text"
+          style={{ width: "100px", height: "32px", borderRadius: "6px" }}
+        ></div>
+      </div>
+      <div
+        className="skeleton-text"
+        style={{ width: "60px", height: "36px", borderRadius: "6px" }}
+      ></div>
+    </div>
+  );
 
+  // Component for individual cart item
   const CartItem = ({ item }) => {
-    const currentOwnedQty = item.quantity;
+    const isUpdating = updatingItemId === item.id;
 
     return (
-      <div className="cart-item">
+      <div className={`cart-item ${isUpdating ? "updating" : ""}`}>
         <input
           type="checkbox"
           checked={item.isChecked}
           onChange={() => handleToggleCheckout(item.id)}
           className="item-checkbox"
-          title="Select for checkout"
+          disabled={isUpdating}
         />
-
         <div className="item-image">
-          <img
-            src={item.image || "/img/products/placeholder.png"}
-            alt={item.name}
-          />
+          <img src={item.image} alt={item.name} />
         </div>
-
         <div className="item-details">
           <h3>{item.name}</h3>
           <p className="item-price-qty">
             <span className="item-price">₱{item.price.toLocaleString()}</span>
-            <span className="item-quantity">
-              {" "}
-              (In cart: {currentOwnedQty} / Stock: {item.stock})
-            </span>
-            <span className="item-subtotal">
-              {" "}
-              Total: ₱
-              {(item.price * currentOwnedQty).toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
+            <span className="item-quantity"> (Qty: {item.quantity})</span>
           </p>
         </div>
-
-        {/* Inline Quantity Controls (+/- buttons) */}
         <div className="checkout-qty-controls">
           <button
-            className="qty-change-btn minus"
             onClick={() => handleUpdateItemQuantity(item.id, -1)}
-            disabled={currentOwnedQty <= 1} // Disable if only one item is left
+            disabled={item.quantity <= 1 || isUpdating}
+            className="qty-change-btn"
           >
             -
           </button>
-          <span className="qty-value">{currentOwnedQty}</span>
+          <span className="qty-value">
+            {isUpdating ? (
+              <span className="inline-spinner" style={{ margin: 0 }}></span>
+            ) : (
+              item.quantity
+            )}
+          </span>
           <button
-            className="qty-change-btn plus"
             onClick={() => handleUpdateItemQuantity(item.id, 1)}
-            disabled={currentOwnedQty >= item.stock} // Disable if max stock is reached
+            disabled={item.quantity >= item.stock || isUpdating}
+            className="qty-change-btn"
           >
             +
           </button>
         </div>
-
         <button
           onClick={() => handleOpenEditModal(item)}
           className="edit-item-btn"
+          disabled={isUpdating}
         >
-          Edit
+          {isUpdating ? "Updating..." : "Edit"}
         </button>
       </div>
     );
   };
 
-  // --- Main Render ---
+  // Loading state UI with skeleton
+  if (loading) {
+    return (
+      <section className="cart-page">
+        <div
+          className="skeleton-text"
+          style={{
+            width: "300px",
+            height: "2.5rem",
+            marginBottom: "30px",
+            borderRadius: "8px",
+          }}
+        ></div>
 
+        <div className="cart-container">
+          <div className="cart-items">
+            <CartItemSkeleton />
+            <CartItemSkeleton />
+            <CartItemSkeleton />
+          </div>
+
+          <div className="cart-summary skeleton-summary">
+            <div
+              className="skeleton-text"
+              style={{ width: "60%", height: "1.5rem", marginBottom: "20px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ width: "100%", height: "1rem", marginBottom: "15px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ width: "100%", height: "1rem", marginBottom: "15px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ width: "100%", height: "1rem", marginBottom: "20px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ width: "100%", height: "2rem", marginBottom: "20px" }}
+            ></div>
+            <div
+              className="skeleton-text"
+              style={{ width: "100%", height: "48px", borderRadius: "10px" }}
+            ></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Empty cart state UI
+  if (cartItems.length === 0) {
+    return (
+      <section className="cart-page">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "50vh",
+            textAlign: "center",
+            gap: "1.5rem",
+          }}
+        >
+          <div style={{ fontSize: "5rem", opacity: "0.2" }}>🛒</div>
+          <h2 style={{ fontSize: "2rem", color: "#333", margin: 0 }}>
+            Your Cart is Empty
+          </h2>
+          <p style={{ color: "#666", maxWidth: "400px", margin: 0 }}>
+            Looks like you haven't added any items to the cart yet. Explore our
+            products to find the best gaming gear.
+          </p>
+
+          <Link
+            to="/products"
+            style={{
+              backgroundColor: "var(--color-accent, #00d2d3)",
+              color: "#fff",
+              padding: "8px 20px",
+              fontSize: "0.95rem",
+              marginTop: "10px",
+              borderRadius: "6px",
+              textDecoration: "none",
+              fontWeight: "bold",
+              display: "inline-block",
+            }}
+          >
+            Start Shopping
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  // Main cart UI
   return (
     <section className="cart-page">
       <h1>Your Cart ({totalCheckedItemsCount} items selected)</h1>
 
-      {/* Quantity Modification Modal */}
+      {/* Modal for removing/editing item */}
       {isModalOpen && modalProduct && (
-        <div className={`modal-overlay open`}>
+        <div className="modal-overlay open">
           <div className="quantity-modal remove-modal">
             <h2>Manage {modalProduct.name}</h2>
-            <p className="modal-message">
-              Current quantity in cart: {modalProduct.quantity}
-            </p>
-
-            {modalError && <p className="modal-error">{modalError}</p>}
-
-            <div className="modification-section add-section">
-              <button
-                className="btn-main full-width"
-                onClick={handleRedirectToCategory}
-              >
-                View All Products
-              </button>
-            </div>
-
-            <div className="modification-section remove-section">
-              <h3>Remove from Cart:</h3>
-              <div className="quantity-controls">
-                <input
-                  type="number"
-                  min="1"
-                  max={modalProduct.quantity}
-                  value={quantityToModify}
-                  onChange={(e) => {
-                    // Ensures input is parsed as an integer or defaults to 0
-                    const val = parseInt(e.target.value) || 0;
-                    setQuantityToModify(val);
-                  }}
-                  className="quantity-input"
-                />
-                <button
-                  className="btn-secondary"
-                  onClick={handleRemovePartial}
-                  disabled={
-                    quantityToModify <= 0 ||
-                    quantityToModify > modalProduct.quantity
-                  }
-                >
-                  Remove {quantityToModify}
-                </button>
-              </div>
-            </div>
-
             <div className="modal-actions">
-              <button className="btn-remove-all" onClick={handleRemoveAll}>
-                Remove ALL ({modalProduct.quantity})
+              <button
+                className="btn-remove-all"
+                onClick={handleRemoveAll}
+                disabled={removingItemId === modalProduct.id}
+              >
+                {removingItemId === modalProduct.id ? (
+                  <div className="button-content-wrapper">
+                    <span className="button-spinner"></span>
+                    Removing...
+                  </div>
+                ) : (
+                  "Remove from Cart"
+                )}
               </button>
               <button
                 className="btn-cancel"
                 onClick={() => setIsModalOpen(false)}
+                disabled={removingItemId === modalProduct.id}
               >
-                Done
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Cart Items and Summary Layout */}
       <div className="cart-container">
         <div className="cart-items">
-          <h2>Select Products for Checkout</h2>
-          {cartItems.length === 0 ? (
-            <div className="cart-placeholder">
-              <p>Your cart is empty. Time to buy some gear! 🎮</p>
-              <Link to="/products" className="btn-main shop-now-link">
-                Go to Products
-              </Link>
-            </div>
-          ) : (
-            cartItems.map((item) => <CartItem key={item.id} item={item} />)
-          )}
+          {cartItems.map((item) => (
+            <CartItem key={item.id} item={item} />
+          ))}
         </div>
 
-        {/* Order Summary Section */}
+        {/* Order summary panel */}
         <div className="cart-summary">
           <h2>Order Summary</h2>
-
-          <div className="summary-calculations">
-            {/* Subtotal */}
-            <div className="summary-row">
-              <p>Items Subtotal:</p>
-              <p>
-                ₱
-                {checkedSubtotal.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </div>
-
-            {/* Shipping Fee */}
-            <div className="summary-row">
-              <p>Shipping (10%):</p>
-              <p>
-                ₱
-                {shippingFee.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </p>
-            </div>
-
-            {/* Grand Total */}
-            <div className="summary-total">
-              <h3>Order Total:</h3>
-              <h3>
-                ₱
-                {total.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </h3>
-            </div>
+          <div className="summary-row">
+            <p>Items Subtotal:</p>
+            <p>₱{checkedSubtotal.toLocaleString()}</p>
           </div>
-
-          {/* Checkout Button */}
-          <Link
-            to="/checkout"
-            onClick={() => saveCart(cartItems)}
-            className="checkout-link-wrapper"
-          >
+          <div className="summary-row">
+            <p>Tax (12%):</p>
+            <p>
+              ₱
+              {taxAmount.toLocaleString(undefined, {
+                maximumFractionDigits: 2,
+              })}
+            </p>
+          </div>
+          <div className="summary-row">
+            <p>Shipping:</p>
+            <p>₱{shippingFee.toLocaleString()}</p>
+          </div>
+          <div className="summary-total">
+            <h3>Order Total:</h3>
+            <h3>
+              ₱{total.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </h3>
+          </div>
+          <Link to="/checkout">
             <button
               disabled={checkedItems.length === 0}
               className="btn-main checkout-btn"
-              title={
-                checkedItems.length === 0
-                  ? "Select items to proceed"
-                  : `Proceed to Checkout (${totalCheckedItemsCount} items)`
-              }
             >
-              Proceed to Checkout ({totalCheckedItemsCount} items)
+              Proceed to Checkout
             </button>
           </Link>
-
-          <p className="member-note">
-            Calculations are based on checked items (10% shipping fee).
-          </p>
         </div>
       </div>
     </section>

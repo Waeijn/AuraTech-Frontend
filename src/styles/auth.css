@@ -1,5 +1,4 @@
-/* === Authentication Page Styles (Split Layout & Gaming Theme) === */
-
+/* AuraTech Authentication Page Layout */
 .auth-page {
   display: flex;
   align-items: center;
@@ -23,7 +22,7 @@
   overflow: hidden;
 }
 
-/* --- LEFT SIDE: BRAND PANEL (40% Width) --- */
+/* Brand panel section for the left side */
 .auth-brand-panel {
   flex: 0 0 40%;
   display: flex;
@@ -34,7 +33,6 @@
   background-color: var(--color-text-primary);
   color: var(--color-surface);
   padding: 3rem;
-
   background-image: url("/public/img/hero/gaming-setup-banner.jpg");
   background-size: cover;
   background-position: center;
@@ -53,7 +51,7 @@
   z-index: 1;
 }
 
-/* Content needs a higher z-index than the overlay */
+/* Brand content needs higher z-index than the overlay */
 .brand-content {
   position: relative;
   z-index: 2;
@@ -75,13 +73,12 @@
 .brand-tagline {
   font-size: 1.3rem;
   font-weight: 500;
-  color: #00bcd4; /* Accent color */
+  color: #00bcd4;
   letter-spacing: 1px;
-  /* Added text shadow for subtle glow/visibility */
   text-shadow: 0 0 5px rgb(39, 133, 176);
 }
 
-/* --- RIGHT SIDE: FORM PANEL (60% Width) --- */
+/* Form panel section for the right side */
 .auth-form-panel {
   flex: 1;
   display: flex;
@@ -91,7 +88,18 @@
   padding: 3rem;
 }
 
-/* Content wrapper inside the form panel, setting max width for readability */
+/* For Chrome, Safari and Opera */
+.auth-form-panel::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE and Edge */
+.auth-form-panel {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Container for the form content, controlling max width for readability */
 .auth-container {
   width: 100%;
   max-width: 380px;
@@ -106,7 +114,7 @@
   margin-bottom: 2.5rem;
 }
 
-/* --- Form Messages (Success/Error) --- */
+/* Form messages for success or error states */
 .form-message {
   padding: 0.75rem 1rem;
   border-radius: 6px;
@@ -117,18 +125,18 @@
 }
 
 .form-message-success {
-  background-color: rgba(0, 188, 212, 0.1); /* Lightened accent */
+  background-color: rgba(0, 188, 212, 0.1);
   color: var(--color-accent);
   border: 1px solid var(--color-accent);
 }
 
 .form-message-error {
-  background-color: rgba(156, 39, 176, 0.1); /* Lightened secondary accent */
+  background-color: rgba(156, 39, 176, 0.1);
   color: var(--color-secondary-accent);
   border: 1px solid var(--color-secondary-accent);
 }
 
-/* --- Form Elements --- */
+/* Form layout and inputs */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -173,6 +181,7 @@
   filter: brightness(1.1);
 }
 
+/* Links below the form */
 .auth-link {
   text-align: left;
   margin-top: 2rem;
@@ -191,7 +200,7 @@
   text-decoration: underline;
 }
 
-/* Password Toggle UI for Login/Register */
+/* Password toggle styling */
 .password-toggle-wrapper {
   display: flex;
   align-items: center;
@@ -210,25 +219,20 @@
   cursor: pointer;
 }
 
-/* === Responsive Adjustments === */
-
-/* Tablet/Small Desktop Optimization (1200px and below) */
+/* Responsive adjustments for mobile and small desktop screens */
 @media (max-width: 1200px) {
   .auth-wrapper {
-    /* Scale down the entire wrapper slightly for better fit on intermediate screens */
     max-width: 900px;
   }
 }
 
-/* Mobile/Tablet Collapse (900px and below) */
+/* Responsive adjustments for mobile and small tablets */
 @media (max-width: 900px) {
-  /* Hide the large brand panel on smaller screens */
   .auth-brand-panel {
     display: none;
   }
 
   .auth-wrapper {
-    /* Stack form content vertically, allowing it to take up the full screen height */
     flex-direction: column;
     height: auto;
     max-height: unset;
@@ -239,12 +243,11 @@
   }
 
   .auth-form-panel {
-    /* Increase vertical padding for mobile */
     padding: 50px 1.5rem;
   }
 
   .auth-container h1 {
-    font-size: 2rem; /* Slightly smaller title on mobile */
+    font-size: 2rem;
     margin-bottom: 2rem;
   }
 }
